@@ -449,8 +449,8 @@ def unordered_lookup(query, original_map = None, sep= '|'):
     if original_map is None:
         original_map  =  {
     'bagging_method:bag | pre_smooth:False | post_smooth:False': 'Simple bagging',
-    'bagging_method:bag | pre_smooth:False | post_smooth:True': 'Simple bagging with pre-smoothing',
-    'bagging_method:bag | pre_smooth:True | post_smooth:False': 'Simple bagging with post-smoothing',
+    'bagging_method:bag | pre_smooth:False | post_smooth:True': 'Simple bagging with post-smoothing',
+    'bagging_method:bag | pre_smooth:True | post_smooth:False': 'Simple bagging with pre-smoothing',
     'bagging_method:bag | pre_smooth:True | post_smooth:True': 'Simple bagging with pre-smoothing and post-smoothing',
     'bagging_method:None | pre_smooth:False | post_smooth:False': 'Baseline',
     'bagging_method:None | pre_smooth:False | post_smooth:True': 'Baseline with smoothing'}
@@ -923,7 +923,10 @@ def plot_tables_from_results(
         for sig in method_sigs:
             if isinstance(sig, tuple):
                 lbl = " | ".join(f"{k}:{_fmt_val(k, v)}" for k, v in sig if k in diff_params) or "default"
-                col_headers.append(modify_label(lbl).replace(" | ", "<br>"))  # allow line breaks
+                if modify_label(lbl) is not None:
+                    col_headers.append(modify_label(lbl).replace(" | ", "<br>"))  # allow line breaks
+                else:
+                    col_headers.append(str(sig))  # allow line breaks
             else:
                 col_headers.append(str(sig))
 
@@ -974,17 +977,20 @@ def plot_tables_from_results(
 
         # ------- Dynamic size so nothing gets cropped -------
         def _lines(s: str) -> int:
-            return 1 + str(s).count("<br>") if s is not None else 1
+            return 1 + str(s).count("<br>") + str(s).count("\n") if s is not None else 1
 
         header_lines = max((_lines(h) for h in col_headers), default=1)
         row_lines = [max((_lines(c) for c in row), default=1) for row in cell_matrix]
+
+        hmax = max((len(h) for h in col_headers), default=1)/10
 
         HEADER_LINE_PX = 28
         ROW_LINE_PX    = 26
         TOP_PX, BOT_PX = 50, 14
         SIDE_PX        = 10
+        hmax_PX = 10
 
-        h = TOP_PX + header_lines * HEADER_LINE_PX + sum(max(1, n) * ROW_LINE_PX for n in row_lines) + BOT_PX
+        h = TOP_PX + header_lines * HEADER_LINE_PX + sum(max(1, n) * ROW_LINE_PX for n in row_lines) + BOT_PX + hmax_PX * hmax
         n_methods = max(0, len(col_headers) - 1)
         w = 260 + 160 * n_methods  # simple, roomy width
 

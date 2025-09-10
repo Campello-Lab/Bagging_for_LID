@@ -1,8 +1,9 @@
 ###################################################OWN IMPORT###################################################
 from LIDBagging.RunningEstimators.BaseEstimators import *
-from LIDBagging.RunningEstimators.BaggingSmoothing.SimpleBagging import simple_bagging_skdim, simple_bagging_LIDkit
-from LIDBagging.RunningEstimators.BaggingSmoothing.WeightedBagging import outofbag_weighted_inside_bagging_skdim, outofbag_weighted_bagging_skdim, outofbag_weighted_bagging_LIDkit
+from LIDBagging.RunningEstimators.BaggingSmoothing.SimpleBagging import *
+from LIDBagging.RunningEstimators.BaggingSmoothing.WeightedBagging import *
 from LIDKit.core.estimators.numpy.faiss import LIDEstimatorFaissNumpy
+from LID_Bagging_and_Bayesian_Incomplete import *
 ###############################################################################################################################COLLECTING ESTIMATORS###############################################################################################################################
 def sk_estimators(X, k = 10, correct = True, estimator_names=None, smooth=False, geo=None):
     dists, knnidx = skdim._commonfuncs.get_nn(X, k=k, n_jobs=1)
@@ -56,6 +57,21 @@ def LIDkit_estimators(X, k = 10, correct = True, estimator_names=None, smooth=Fa
                 avg_dict[name] = np.mean(lid_estimates)
         else:
             NotImplementedError('Wrong estimator type safeguard. Only mle works for now.')
+    return estimate_dict, avg_dict
+
+def Ricardo_estimators(X, k = 10, correct = True, estimator_names=None, smooth=False, geo=None):
+    estimate_dict = {}
+    avg_dict = {}
+    for name in estimator_names:
+        if name == 'mle':
+            lid_estimates = MLE_LID_Estimator(data_array=X, subsample_indexes = None, neighbourhood_size = k, return_smoothed = smooth, simple_smooth=False, geo = geo)
+            estimate_dict[name] = lid_estimates
+            avg_dict[name] = np.mean(lid_estimates)
+        if name == 'tle':
+            lid_estimates = TLE_LID_Estimator(data_array=X, subsample_indexes=None, neighbourhood_size=k,
+                                              return_smoothed=smooth, simple_smooth=False, geo=geo)
+            estimate_dict[name] = lid_estimates
+            avg_dict[name] = np.mean(lid_estimates)
     return estimate_dict, avg_dict
 
 def fast_skdim_estimators(data_set, estimator_names, method_type=None, n_bags=10, sampling_rate = 0.5, k=10, progress_bar=False, correct = True):
@@ -298,6 +314,81 @@ def LIDkit_complete_estimators(dataset, k, sr, Nbag, pre_smooth, post_smooth, t,
                                                                               post_smooth=post_smooth, error_type=submethod_error)
     elif bagging_method == 'approx_bagwth':
         estimators_dict, avg_estimator_dict = outofbag_weighted_bagging_LIDkit(estimator=None, Q=dataset, X=dataset,
+                                                                              n_bags=Nbag, k=k,
+                                                                              sampling_rate=sr,
+                                                                              progress_bar=progress_bar,
+                                                                              estimators=estimators,
+                                                                              estimator_names=used_estimator_names,
+                                                                              paralell_estimation=True,
+                                                                              weighing_type=submethod_0, t=t, use_w='y_aprox',
+                                                                              geo=None, pre_smooth=pre_smooth,
+                                                                              post_smooth=post_smooth, error_type=submethod_error)
+
+    elif bagging_method == 'bagbag':
+        estimators_dict, avg_estimator_dict = outofbag_weighted_inside_bagging_skdim(estimator=None, Q=dataset,
+                                                                                     X=dataset, n_bags=Nbag, k=k,
+                                                                                     sampling_rate=sr,
+                                                                                     progress_bar=progress_bar,
+                                                                                     estimators=estimators,
+                                                                                     estimator_names=used_estimator_names,
+                                                                                     paralell_estimation=True, t=t,
+                                                                                     geo=None, pre_smooth=pre_smooth,
+                                                                                     post_smooth=post_smooth, error_type=submethod_error)
+    elif bagging_method == 'bagwth':
+        NotImplementedError('Differing k adjustments are not implemented for LIDkit yet, only the approximate version.')
+
+    return estimators_dict, avg_estimator_dict
+
+def Ricardo_complete_estimators(dataset, k, sr, Nbag, pre_smooth, post_smooth, t, estimator, bagging_method, submethod_0, submethod_error, progress_bar=False, correct = True):
+    estimators = []
+    used_estimator_names = []
+    if isinstance(estimator, list):
+        estimator_names = estimator
+    elif isinstance(estimator, str):
+        estimator_names = [estimator]
+    else:
+        raise TypeError("Estimator name incorrect")
+    for i in range(len(estimator_names)):
+        if estimator_names[i] == 'mle':
+            estimators.append(Ricardo_MLE)
+            used_estimator_names.append('mle')
+        elif estimator_names[i] == 'mom':
+            estimators.append(sk_MOM)
+            used_estimator_names.append('mom')
+        elif estimator_names[i] == 'tle':
+            estimators.append(Ricardo_TLE)
+            used_estimator_names.append('tle')
+        elif estimator_names[i] == 'mada':
+            estimators.append(sk_MADA)
+            used_estimator_names.append('mada')
+        elif estimator_names[i] == 'ess':
+            estimators.append(sk_ESS)
+            used_estimator_names.append('ess')
+        elif estimator_names[i] == '2nn':
+            estimators.append(sk_2NN)
+            used_estimator_names.append('2nn')
+    if bagging_method is None:
+        estimators_dict, avg_estimator_dict = Ricardo_estimators(dataset, k=k, correct=correct, estimator_names=estimator_names, smooth=post_smooth, geo=None)
+    elif bagging_method == 'bag':
+        estimators_dict, avg_estimator_dict = simple_bagging_Ricardo(estimator=None, Q=dataset, X=dataset,
+                                                                   n_bags=Nbag, k=k, sampling_rate=sr,
+                                                                   progress_bar=progress_bar, estimators=estimators,
+                                                                   estimator_names=used_estimator_names,
+                                                                   paralell_estimation=True, geo=None, pre_smooth=pre_smooth,
+                                                                   post_smooth=post_smooth)
+    elif bagging_method == 'bagw':
+        estimators_dict, avg_estimator_dict = outofbag_weighted_bagging_Ricardo(estimator=None, Q=dataset, X=dataset,
+                                                                              n_bags=Nbag, k=k,
+                                                                              sampling_rate=sr,
+                                                                              progress_bar=progress_bar,
+                                                                              estimators=estimators,
+                                                                              estimator_names=used_estimator_names,
+                                                                              paralell_estimation=True,
+                                                                              weighing_type=submethod_0, t=t, use_w='n',
+                                                                              geo=None, pre_smooth=pre_smooth,
+                                                                              post_smooth=post_smooth, error_type=submethod_error)
+    elif bagging_method == 'approx_bagwth':
+        estimators_dict, avg_estimator_dict = outofbag_weighted_bagging_Ricardo(estimator=None, Q=dataset, X=dataset,
                                                                               n_bags=Nbag, k=k,
                                                                               sampling_rate=sr,
                                                                               progress_bar=progress_bar,

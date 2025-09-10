@@ -186,7 +186,9 @@ class LID_experiment:
         self.data = data
         return data
 
-    def estimate(self, bounds=None, use_LIDkit=False):
+    def estimate(self, bounds=None, use_LIDkit=False, use_Ricardo=False):
+        if use_LIDkit and use_Ricardo:
+            ValueError(f'Only one of use_LIDkit or use_Ricardo can be true at the same time')
         if isinstance(self.estimator_name, list):
             estimator_names = self.estimator_name
         elif isinstance(self.estimator_name, str):
@@ -198,6 +200,12 @@ class LID_experiment:
         for key in data_sets:
             if use_LIDkit:
                 estimators_dict, avg_estimator_dict = LIDkit_complete_estimators(data_sets[key][0], self.k, self.sr, self.Nbag,
+                                                                          self.pre_smooth, self.post_smooth, self.t,
+                                                                          self.estimator_name, self.bagging_method,
+                                                                          self.submethod_0, self.submethod_error,
+                                                                          progress_bar=False, correct=True)
+            elif use_Ricardo:
+                estimators_dict, avg_estimator_dict = Ricardo_complete_estimators(data_sets[key][0], self.k, self.sr, self.Nbag,
                                                                           self.pre_smooth, self.post_smooth, self.t,
                                                                           self.estimator_name, self.bagging_method,
                                                                           self.submethod_0, self.submethod_error,
