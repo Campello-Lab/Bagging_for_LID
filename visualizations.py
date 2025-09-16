@@ -422,9 +422,17 @@ def mn_nonlinear_4d_2(x0, x1, x2, x3):
     W = np.arctan(x3*np.cos(x0))
     return np.c_[X, Y, Z, W]
 
+def m1_sphere(x0, x1, x2, x3):
+    r = np.sqrt(x0**2+x1**2+x2**2+x3**2)
+    X = x0/r
+    Y = x1/r
+    Z = x2/r
+    W = x3/r
+    return np.c_[X, Y, Z, W]
+
 
 
 if __name__ == "__main__":
 
-    visualize_unit_cube_map_plotly(mn_nonlinear_4d_2, n_params=4, samples=80000, axes=(0,1,2), color_dim=3,
-                               title="mn_nonlinear_4d_2", seed=3, save_html="mn_nonlinear_4d_2.html")
+    visualize_unit_cube_map_plotly(m1_sphere, n_params=4, samples=80000, axes=(0,1,2), color_dim=3,
+                               title="m1_sphere_3d", seed=3, save_html="m1_sphere3.html")

@@ -2,7 +2,9 @@ from pathlib import Path
 import sys, os
 
 # Absolute path to your project root
-PROJECT_ROOT = Path(r"C:\Users\krp\OneDrive - Syddansk Universitet\PycharmProjects\LID1\LIDBagging2")
+#PROJECT_ROOT = Path(r"C:\Users\krp\OneDrive - Syddansk Universitet\PycharmProjects\LID1\LIDBagging2")
+
+PROJECT_ROOT = Path(r"C:\Users\User\PycharmProjects\LID\LIDBagging2")
 
 # Optional: make it the current working directory (helps with relative file paths)
 os.chdir(PROJECT_ROOT)
@@ -21,7 +23,8 @@ _devnull = open(os.devnull, "w")
 structlog.configure(logger_factory=structlog.PrintLoggerFactory(file=_devnull))
 
 if __name__ == "__main__":
-    directory = r'C:\Users\krp\OneDrive - Syddansk Universitet\PycharmProjects\LID1\LIDBagging2\pkls'
+    #directory = r'C:\Users\krp\OneDrive - Syddansk Universitet\PycharmProjects\LID1\LIDBagging2\pkls'
+    directory = r"C:\pkls"
 
     all = ['M1_Sphere', 'M2_Affine_3to5', 'M3_Nonlinear_4to6', 'M4_Nonlinear', 'M5b_Helix2d', 'M6_Nonlinear',
            'M7_Roll', 'M8_Nonlinear', 'M9_Affine', 'M10a_Cubic', 'M10b_Cubic', 'M10c_Cubic', 'M11_Moebius',
@@ -80,19 +83,22 @@ if __name__ == "__main__":
 
     k_prog = [5, 10, 19, 37, 72]
 
+    #k_prog = [k_prog[0]]
+
     # sr_prog = [0.11538461538461539, 0.08108108108108109, 0.058823529411764705, 0.041666666666666664]
 
     # sr_prog = [0.6, 0.42857142857142855, 0.3, 0.21428571428571427, 0.15789473684210525, 0.11538461538461539,
     #           0.08108108108108109, 0.058823529411764705, 0.041666666666666664]
 
     sr_prog = [0.6, 0.3, 0.15789473684210525, 0.08108108108108109, 0.041666666666666664]
+    #sr_prog = [sr_prog[0]]
 
     param_dicts7 = {'dataset_name': all,
                     'n': 2500,
                     'lid': None,
                     'dim': None,
-                    'estimator_name': 'mle',
-                    'bagging_method': [None, 'bag', 'bagw', 'approx_bagwth'],
+                    'estimator_name': 'tle',
+                    'bagging_method': ['bag'], #, 'approx_bagwth'
                     'submethod_0': '0',
                     'submethod_error': 'log_diff',
                     'k': k_prog,
@@ -106,7 +112,7 @@ if __name__ == "__main__":
                         'n': 2500,
                         'lid': None,
                         'dim': None,
-                        'estimator_name': 'mle',
+                        'estimator_name': 'tle',
                         'bagging_method': None,
                         'submethod_0': '0',
                         'submethod_error': 'log_diff',
@@ -121,7 +127,7 @@ if __name__ == "__main__":
                      'n': 2500,
                      'lid': None,
                      'dim': None,
-                     'estimator_name': 'mle',
+                     'estimator_name': 'tle',
                      'bagging_method': None,
                      'submethod_0': '0',
                      'submethod_error': 'log_diff',
@@ -136,7 +142,7 @@ if __name__ == "__main__":
                      'n': 2500,
                      'lid': None,
                      'dim': None,
-                     'estimator_name': 'mle',
+                     'estimator_name': 'tle',
                      'bagging_method': 'bag',
                      'submethod_0': '0',
                      'submethod_error': 'log_diff',
@@ -157,75 +163,91 @@ if __name__ == "__main__":
                                         directory=directory)
     print('data generation complete')
 
+
+
     results11 = new_result_generator(param_dicts7, multiprocess=True, load=True, load_data=True, worker_count=5,
-                                     save_name='skdim_radar_chart_k_sr_mle',
+                                     save_name='skdim_radar_chart_k_sr_tle',
                                      directory=directory)
 
-    #plot_radar_best_of_sweep(results11, sweep_params=['k', 'sr'], normalize_data=True, log=False, save=True,
-    #                         save_prefix="skdim_radar_best_mle", height_per_row=450, width_per_col=450,
-    #                         verbose=False)
+    plot_radar_best_of_sweep(results11, sweep_params=['k', 'sr'], normalize_data=True, log=False, save=True,
+                             save_prefix="skdim_radar_best_tle", height_per_row=450, width_per_col=450,
+                             verbose=False)
 
     plot_table_best_of_sweep(results11, sweep_params=['k', 'sr'], mode="combined", normalize_data=False, log=False,
-                             metric_label_map=None, save_prefix="skdim_table_best_mle")
+                             metric_label_map=None, save_prefix="skdim_table_best_tle")
 
-    results12 = new_result_generator(param_dicts7, multiprocess=False, load=True, load_data=True, worker_count=None,
-                                     save_name='LIDkit_radar_chart_k_sr_mle', use_LIDkit=True,
-                                     directory=directory)
 
-    #plot_radar_best_of_sweep(results12, sweep_params=['k', 'sr'], normalize_data=True, log=False, save=True,
+
+
+    #results11 = new_result_generator(param_dicts7, multiprocess=False, load=False, load_data=True, worker_count=None,
+    #                                 save_name='LIDkit_radar_chart_k_sr_mle', use_LIDkit=True,
+    #                                 directory=directory)
+
+
+    #plot_radar_best_of_sweep(results11, sweep_params=['k', 'sr'], normalize_data=True, log=False, save=True,
     #                         save_prefix="LIDkit_radar_best_mle", height_per_row=450, width_per_col=450,
     #                         verbose=False)
 
-    plot_table_best_of_sweep(results12, sweep_params=['k', 'sr'], mode="combined", normalize_data=False, log=False,
-                             metric_label_map=None, save_prefix="LIDkit_table_best_mle")
+    #plot_table_best_of_sweep(results11, sweep_params=['k', 'sr'], mode="combined", normalize_data=False, log=False,
+    #                         metric_label_map=None, save_prefix="LIDkit_table_best_mle")
 
-    results13 = new_result_generator(param_dicts7, multiprocess=True, load=True, load_data=True, worker_count=5,
-                                     save_name='Ricardo_radar_chart_k_sr_mle', use_LIDkit=False, use_Ricardo=True,
+
+
+    results11 = new_result_generator(param_dicts7, multiprocess=True, load=False, load_data=True, worker_count=5,
+                                     save_name='Ricardo_radar_chart_k_sr_tle_onlybagpart', use_LIDkit=False, use_Ricardo=True,
                                      directory=directory)
 
-    #plot_radar_best_of_sweep(results13, sweep_params=['k', 'sr'], normalize_data=True, log=False, save=True,
-    #                         save_prefix="Ricardo_radar_best_mle", height_per_row=450, width_per_col=450,
-    #                         verbose=False)
+    plot_radar_best_of_sweep(results11, sweep_params=['k', 'sr'], normalize_data=True, log=False, save=True,
+                             save_prefix="Ricardo_radar_best_tle", height_per_row=450, width_per_col=450,
+                             verbose=False)
 
-    plot_table_best_of_sweep(results13, sweep_params=['k', 'sr'], mode="combined", normalize_data=False, log=False,
-                             metric_label_map=None, save_prefix="Ricardo_table_best_mle")
+    plot_table_best_of_sweep(results11, sweep_params=['k', 'sr'], mode="combined", normalize_data=False, log=False,
+                             metric_label_map=None, save_prefix="Ricardo_table_best_tle_onlybagpart")
+
 
     # SMOOTHING
     #################################
 
-    results21 = new_result_generator(param_dicts8, multiprocess=True, load=True, load_data=True, worker_count=5,
-                                     save_name='skdim_radar_chart_k_sr_mle_smooth',
+    results11 = new_result_generator(param_dicts8, multiprocess=True, load=False, load_data=True, worker_count=5,
+                                     save_name='skdim_radar_chart_k_sr_tle_smooth',
                                      directory=directory)
 
-    #plot_radar_best_of_sweep(results21, sweep_params=['k', 'sr'], normalize_data=True, log=False, save=True,
-    #                         save_prefix="skdim_radar_best_mle_smooth", height_per_row=450, width_per_col=450,
-    #                         verbose=False)
+    plot_radar_best_of_sweep(results11, sweep_params=['k', 'sr'], normalize_data=True, log=False, save=True,
+                             save_prefix="skdim_radar_best_tle_smooth", height_per_row=450, width_per_col=450,
+                             verbose=False)
 
-    plot_table_best_of_sweep(results21, sweep_params=['k', 'sr'], mode="combined", normalize_data=False, log=False,
-                             metric_label_map=None, save_prefix="skdim_table_best_mle_smooth")
+    plot_table_best_of_sweep(results11, sweep_params=['k', 'sr'], mode="combined", normalize_data=False, log=False,
+                             metric_label_map=None, save_prefix="skdim_table_best_tle_smooth")
 
-    results22 = new_result_generator(param_dicts8, multiprocess=False, load=False, load_data=True, worker_count=5,
-                                     save_name='LIDkit_radar_chart_k_sr_mle_smooth', use_LIDkit=True,
-                                     directory=directory)
 
-    #plot_radar_best_of_sweep(results22, sweep_params=['k', 'sr'], normalize_data=True, log=False, save=True,
+
+    #results11 = new_result_generator(param_dicts8, multiprocess=True, load=False, load_data=True, worker_count=3,
+    #                                 save_name='LIDkit_radar_chart_k_sr_mle_smooth', use_LIDkit=True,
+    #                                 directory=directory)
+#
+    #plot_radar_best_of_sweep(results11, sweep_params=['k', 'sr'], normalize_data=True, log=False, save=True,
     #                         save_prefix="LIDkit_radar_best_mle_smooth", height_per_row=450, width_per_col=450,
     #                         verbose=False)
-
-    plot_table_best_of_sweep(results22, sweep_params=['k', 'sr'], mode="combined", normalize_data=False, log=False,
-                             metric_label_map=None, save_prefix="LIDkit_table_best_mle_smooth")
-
-    results23 = new_result_generator(param_dicts8, multiprocess=True, load=False, load_data=True, worker_count=5,
-                                     save_name='Ricardo_radar_chart_k_sr_mle_smooth', use_LIDkit=False,
+#
+    #plot_table_best_of_sweep(results11, sweep_params=['k', 'sr'], mode="combined", normalize_data=False, log=False,
+    #                         metric_label_map=None, save_prefix="LIDkit_table_best_mle_smooth")
+#
+#
+    results11 = new_result_generator(param_dicts8, multiprocess=True, load=False, load_data=True, worker_count=5,
+                                     save_name='Ricardo_radar_chart_k_sr_tle_smooth', use_LIDkit=False,
                                      use_Ricardo=True,
                                      directory=directory)
 
-    #plot_radar_best_of_sweep(results23, sweep_params=['k', 'sr'], normalize_data=True, log=False, save=True,
-    #                         save_prefix="Ricardo_radar_best_mle_smooth", height_per_row=450, width_per_col=450,
-    #                         verbose=False)
+    # Plotting
+    #################################
 
-    plot_table_best_of_sweep(results23, sweep_params=['k', 'sr'], mode="combined", normalize_data=False, log=False,
-                             metric_label_map=None, save_prefix="Ricardo_table_best_mle_smooth")
+
+    plot_radar_best_of_sweep(results11, sweep_params=['k', 'sr'], normalize_data=True, log=False, save=True,
+                             save_prefix="Ricardo_radar_best_tle_smooth", height_per_row=450, width_per_col=450,
+                             verbose=False)
+
+    plot_table_best_of_sweep(results11, sweep_params=['k', 'sr'], mode="combined", normalize_data=False, log=False,
+                             metric_label_map=None, save_prefix="Ricardo_table_best_tle_smooth")
 
 '''
     #plot_experiment_mse_bars(results, vary_param='Nbag', figsize=(30, 36), base_fontsize=13, label_every=1, save_name="new_bar_plot_NEW_Nbag")

@@ -28,13 +28,41 @@ def geodesic_knn(X, k_euc, n_geo):
         geodesic_dists.append(selected_dists.tolist())
     return geodesic_dists, geodesic_indices
 
-def smoothing(X, lid_estimates, k = 10, dists = None, knnidx=None, geo=None):
-    if (dists is None) or (knnidx is None):
-        if geo is None:
-            dists, knnidx = skdim._commonfuncs.get_nn(X, k=k, n_jobs=1)
+def smoothing(X, lid_estimates, k=10, dists=None, knnidx=None, geo=None,
+              smooth_style='code1', bag_indices=None):
+    # Default: existing behavior
+    if smooth_style == 'code1':
+        if (dists is None) or (knnidx is None):
+            if geo is None:
+                dists, knnidx = skdim._commonfuncs.get_nn(X, k=k, n_jobs=1)
+            else:
+                dists, knnidx = geodesic_knn(X, k_euc=geo, n_geo=k)
+        smoothed_estimates = np.empty(len(lid_estimates))
+        for i in range(len(lid_estimates)):
+            if np.isin(i, knnidx[i]):
+                raise ValueError("KNN indices contains the query index")
+            smoothed_estimates[i] = (np.sum(lid_estimates[knnidx[i]]) + lid_estimates[i])/(k+1)
+        return smoothed_estimates, np.mean(smoothed_estimates)
+
+    # New: Code-base-2 compatible smoothing (k terms total)
+    if knnidx is None:
+        raise ValueError("code2-style smoothing requires bag-specific knnidx.")
+    if bag_indices is None:
+        raise ValueError("code2-style smoothing requires bag_indices for membership.")
+
+    n = len(lid_estimates)
+    smoothed_estimates = np.empty(n)
+    in_bag = np.zeros(n, dtype=bool)
+    in_bag[np.asarray(bag_indices, dtype=int)] = True
+
+    # knnidx assumed shape (n, k) (neighbors exclude self)
+    for i in range(n):
+        nbrs = knnidx[i]
+        if in_bag[i]:
+            # self + first k-1 neighbors (drop farthest)
+            idx = np.concatenate(([i], nbrs[:max(k-1, 0)]))
         else:
-            dists, knnidx = geodesic_knn(X, k_euc=geo, n_geo=k)
-    smoothed_estimates = np.empty(len(lid_estimates))
-    for i in range(len(lid_estimates)):
-        smoothed_estimates[i] = (np.sum(lid_estimates[knnidx[i]]) + lid_estimates[i])/(k+1)
+            # k neighbors (no self)
+            idx = nbrs[:k]
+        smoothed_estimates[i] = np.mean(lid_estimates[idx])
     return smoothed_estimates, np.mean(smoothed_estimates)

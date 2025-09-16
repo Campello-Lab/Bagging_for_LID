@@ -10,7 +10,7 @@ from LIDBagging.RunningEstimators.BaseEstimators import *
 def simple_bagging_skdim(estimator, Q, X, n_bags=10, k=10, sampling_rate=None,
                          progress_bar=False, estimators=None, estimator_names=None,
                          paralell_estimation=False, w=None, indexuse=None, pre_smooth=False,
-                         geo=None, post_smooth=False, seed=42):
+                         geo=None, post_smooth=False, seed=42, smooth_style='code1'):
     rand_gen = np.random.RandomState(seed)
     def compute_distance_matrix(X):
         return squareform(pdist(X))
@@ -122,7 +122,11 @@ def simple_bagging_skdim(estimator, Q, X, n_bags=10, k=10, sampling_rate=None,
                 #smallest_distances, smallest_indices = fast_k_smallest_in_bag(sorted_distances, sorted_indices,
                 #                                                              split_indices[j], k=k)
                 for key in estimator_dictionary:
-                    estimate_dictionary[key][:, j] = estimator_dictionary[key](X=X, dists=smallest_distances, knnidx=smallest_indices, k=k, w=w, smooth=pre_smooth, geo=geo)[0]
+                    if smooth_style != "code1":
+                        estimate_dictionary[key][:, j] = estimator_dictionary[key](X=X, dists=smallest_distances, knnidx=smallest_indices, k=k, w=w, smooth=pre_smooth, geo=geo, smooth_style=smooth_style, bag_indices=split_indices[j])[0]
+                    else:
+                        estimate_dictionary[key][:, j] = \
+                        estimator_dictionary[key](X=X, dists=smallest_distances, knnidx=smallest_indices, k=k, w=w, smooth=pre_smooth, geo=geo, smooth_style=smooth_style)[0]
                     #print(f'original_bag_estimate_for_bag_{j}: {np.mean(estimate_dictionary[key][:, j])}')
         bagging_estimator_dictionary = {estimator_names[i]: np.mean(estimate_dictionary[estimator_names[i]], axis=1) for i in range(len(estimator_names))}
         avg_bagging_estimator_dictionary = {estimator_names[i]: np.mean(bagging_estimator_dictionary[estimator_names[i]]) for i in range(len(estimator_names))}
@@ -171,7 +175,7 @@ def simple_bagging_Ricardo(estimator, Q, X, n_bags=10, k=10, sampling_rate=None,
                          estimators=None, estimator_names=None, paralell_estimation=False, w=None,
                          indexuse=None, pre_smooth=False, geo=None, post_smooth=False, log_level = "INFO", seed = 42):
     n = Q.shape[0]
-    result_components = {estimator_names[i]: lid_Bagging_wrapper(data_array=Q, ensemble_size=n_bags, subsample_rate=sampling_rate, rand_gen_seed=seed, estimator_name=estimator_names[i], neighbourhood_size=k, return_smoothed=False, simple_smooth=pre_smooth, geo=None) for i in range(len(estimator_names))}
+    result_components = {estimator_names[i]: lid_Bagging_wrapper(data_array=Q, ensemble_size=n_bags, subsample_rate=sampling_rate, rand_gen_seed=seed, estimator_name=estimator_names[i], neighbourhood_size=k, return_smoothed=pre_smooth, simple_smooth=False, geo=None) for i in range(len(estimator_names))}
     bagging_estimator_dictionary = {estimator_names[i]: result_components[estimator_names[i]] for i in range(len(estimator_names))}
     avg_bagging_estimator_dictionary = {estimator_names[i]: np.mean(bagging_estimator_dictionary[estimator_names[i]]) for i in range(len(estimator_names))}
     if post_smooth:

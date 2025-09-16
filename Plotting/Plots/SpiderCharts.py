@@ -968,10 +968,42 @@ def plot_tables_from_results(
         # Plotly Table uses columns → transpose
         columns = list(map(list, zip(*cell_matrix))) if cell_matrix else [[] for _ in col_headers]
 
+        # ----------------- NEW: compute per-cell font colors -----------------
+        # Highlight the smallest value in each row red for MSE / Bias² / Variance metrics.
+        metric_base = met_key[6:] if met_key.startswith("total_") else met_key
+        # build default colors matrix (one list per column)
+        n_rows = len(datasets)
+        font_colors_per_column = []
+        # first column (Dataset names) stay default (black)
+        font_colors_per_column.append(["black"] * n_rows)
+
+        # For method columns compute colors
+        if metric_base in {"mse", "bias2", "var"}:
+            # compute per-row minima ignoring non-finite entries
+            vals_arr = vals.to_numpy(dtype=float)  # shape (n_rows, n_methods)
+            for col_idx in range(vals_arr.shape[1]):
+                # placeholder for this column
+                font_colors_per_column.append(["black"] * n_rows)
+            for r in range(n_rows):
+                row_vals = vals_arr[r, :]
+                finite_mask = np.isfinite(row_vals)
+                if np.any(finite_mask):
+                    minv = np.min(row_vals[finite_mask])
+                    # mark any method matching min as red
+                    for c in range(row_vals.shape[0]):
+                        if finite_mask[c] and np.isclose(row_vals[c], minv):
+                            # +1 because first column is dataset name
+                            font_colors_per_column[c + 1][r] = "red"
+        else:
+            # non-highlighted metrics: all black
+            for _ in method_sigs:
+                font_colors_per_column.append(["black"] * n_rows)
+        # --------------------------------------------------------------------
+
         fig = go.Figure(
             data=[go.Table(
                 header=dict(values=col_headers, align="left", font=dict(size=12)),
-                cells=dict(values=columns, align="left", font=dict(size=11)),
+                cells=dict(values=columns, align="left", font=dict(size=11, color=font_colors_per_column)),
             )]
         )
 

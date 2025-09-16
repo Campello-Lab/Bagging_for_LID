@@ -72,6 +72,11 @@ def Ricardo_estimators(X, k = 10, correct = True, estimator_names=None, smooth=F
                                               return_smoothed=smooth, simple_smooth=False, geo=geo)
             estimate_dict[name] = lid_estimates
             avg_dict[name] = np.mean(lid_estimates)
+        if name == 'mada':
+            lid_estimates = MADA_LID_Estimator(data_array=X, subsample_indexes=None, neighbourhood_size=k,
+                                              return_smoothed=smooth, simple_smooth=False, geo=geo)
+            estimate_dict[name] = lid_estimates
+            avg_dict[name] = np.mean(lid_estimates)
     return estimate_dict, avg_dict
 
 def fast_skdim_estimators(data_set, estimator_names, method_type=None, n_bags=10, sampling_rate = 0.5, k=10, progress_bar=False, correct = True):
@@ -359,7 +364,7 @@ def Ricardo_complete_estimators(dataset, k, sr, Nbag, pre_smooth, post_smooth, t
             estimators.append(Ricardo_TLE)
             used_estimator_names.append('tle')
         elif estimator_names[i] == 'mada':
-            estimators.append(sk_MADA)
+            estimators.append(Ricardo_MADA)
             used_estimator_names.append('mada')
         elif estimator_names[i] == 'ess':
             estimators.append(sk_ESS)

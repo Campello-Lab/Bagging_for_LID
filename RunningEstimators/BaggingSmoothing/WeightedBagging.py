@@ -288,11 +288,11 @@ def outofbag_weighted_bagging_skdim(estimator, Q, X, n_bags=10, k=10, sampling_r
                 for key in estimator_dictionary:
                     estimate_dictionary[key][:, j] = estimator_dictionary[key](X=X, dists=smallest_distances, knnidx=smallest_indices, k=k, smooth=pre_smooth, geo=geo)[0]
                     if use_w == 'n':
-                        out_of_bag_e, _, ks = estimator_dictionary[key](X=X, dists=out_of_bag_smallest_distances, knnidx=out_of_bag_smallest_indices, k=k, return_ks=True, smooth=pre_smooth, geo=geo)
+                        out_of_bag_e, _, ks = estimator_dictionary[key](X=X, dists=out_of_bag_smallest_distances, knnidx=out_of_bag_smallest_indices, k=k, return_ks=True, smooth=pre_smooth, geo=geo, w=None)
                     elif use_w == 'y':
                         out_of_bag_e, _, ks = estimator_dictionary[key](X=X, dists=out_of_bag_smallest_distances, knnidx=out_of_bag_smallest_indices, k=k, w=bag_ws, return_ks=True)
                     else:
-                        out_of_bag_e, _, ks = estimator_dictionary[key](X=X, dists=out_of_bag_smallest_distances,knnidx=out_of_bag_smallest_indices, k=int(k/sampling_rate), return_ks=True)
+                        out_of_bag_e, _, ks = estimator_dictionary[key](X=X, dists=out_of_bag_smallest_distances,knnidx=out_of_bag_smallest_indices, k=int(k/sampling_rate), return_ks=True, w=None)
                     k_2_dict[key][:, j] = ks
                     masks = ~np.isfinite(out_of_bag_e)
                     if weighing_type == '0':
@@ -900,11 +900,11 @@ def outofbag_weighted_bagging_Ricardo(estimator, Q, X, n_bags=10, k=10, sampling
         for key in estimator_dictionary:
             estimate_dictionary[key][:, j] = estimator_dictionary[key](X=X, dists=smallest_distances, knnidx=smallest_indices, k=k, smooth=pre_smooth, geo=geo)[0]
             if use_w == 'n':
-                out_of_bag_e, _, ks = estimator_dictionary[key](X=X, dists=out_of_bag_smallest_distances, knnidx=out_of_bag_smallest_indices, k=k, return_ks=True, smooth=pre_smooth, geo=geo)
+                out_of_bag_e, _, ks = estimator_dictionary[key](X=X, dists=out_of_bag_smallest_distances, knnidx=out_of_bag_smallest_indices, k=k, return_ks=True, smooth=pre_smooth, geo=geo, w=None)
             elif use_w == 'y':
                 out_of_bag_e, _, ks = estimator_dictionary[key](X=X, dists=out_of_bag_smallest_distances, knnidx=out_of_bag_smallest_indices, k=k, w=bag_ws, return_ks=True)
             else:
-                out_of_bag_e, _, ks = estimator_dictionary[key](X=X, dists=out_of_bag_smallest_distances,knnidx=out_of_bag_smallest_indices, k=int(k/sampling_rate), return_ks=True)
+                out_of_bag_e, _, ks = estimator_dictionary[key](X=X, dists=out_of_bag_smallest_distances,knnidx=out_of_bag_smallest_indices, k=int(k/sampling_rate), return_ks=True, w=None)
             k_2_dict[key][:, j] = ks
             masks = ~np.isfinite(out_of_bag_e)
             if weighing_type == '0':

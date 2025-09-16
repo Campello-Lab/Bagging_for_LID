@@ -83,13 +83,13 @@ def sk_MOM(X, dists, knnidx, k = 10, w=None, return_ks = False, use_w = 'direct'
         if return_ks:
             ks = np.repeat(k, X.shape[0])
             if smooth:
-                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=None, knnidx=None, geo=geo)
+                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=dists, knnidx=knnidx, geo=geo)
                 return lid_smoothed_estimates, np.mean(lid_smoothed_estimates), ks
             else:
                 return lid_estimates, np.mean(lid_estimates), ks
         else:
             if smooth:
-                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=None, knnidx=None, geo=geo)
+                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=dists, knnidx=knnidx, geo=geo)
                 return lid_smoothed_estimates, np.mean(lid_smoothed_estimates)
             else:
                 return lid_estimates, np.mean(lid_estimates)
@@ -114,7 +114,7 @@ def sk_MOM(X, dists, knnidx, k = 10, w=None, return_ks = False, use_w = 'direct'
             return lid_estimates, np.mean(lid_estimates)
 
 
-def sk_TLE(X, dists, knnidx, k = 10, w=None, return_ks=False, use_w='indirect', smooth=False, geo=None):
+def sk_TLE(X, dists, knnidx, k = 10, w=None, return_ks=False, use_w='indirect', smooth=False, geo=None, smooth_style="code1"):
     if w is None:
         tle = skdim.id.TLE()
         tle._fit(X, dists=dists, knnidx=knnidx)
@@ -122,13 +122,13 @@ def sk_TLE(X, dists, knnidx, k = 10, w=None, return_ks=False, use_w='indirect', 
         if return_ks:
             ks = np.repeat(k, X.shape[0])
             if smooth:
-                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=None, knnidx=None, geo=geo)
+                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=dists, knnidx=knnidx, geo=geo, smooth_style=smooth_style)
                 return lid_smoothed_estimates, np.mean(lid_smoothed_estimates), ks
             else:
                 return lid_estimates, np.mean(lid_estimates), ks
         else:
             if smooth:
-                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=None, knnidx=None, geo=geo)
+                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=dists, knnidx=knnidx, geo=geo, smooth_style=smooth_style)
                 return lid_smoothed_estimates, np.mean(lid_smoothed_estimates)
             else:
                 return lid_estimates, np.mean(lid_estimates)
@@ -146,7 +146,7 @@ def sk_TLE(X, dists, knnidx, k = 10, w=None, return_ks=False, use_w='indirect', 
     else:
         NotImplemented(f"Not implemented use_w: {use_w}")
 
-def sk_MLE(X, dists, knnidx, k = 10, correct = True, w = None, return_ks = False, use_w = 'direct', smooth=False, geo=None):
+def sk_MLE(X, dists, knnidx, k = 10, correct = True, w = None, return_ks = False, use_w = 'direct', smooth=False, geo=None, smooth_style='code1', bag_indices=None):
     if w is None:
         mle = skdim.id.MLE()
         mle.fit(X, n_neighbors=k, comb='mean', precomputed_knn_arrays=(dists, knnidx))
@@ -157,13 +157,13 @@ def sk_MLE(X, dists, knnidx, k = 10, correct = True, w = None, return_ks = False
         if return_ks:
             ks = np.repeat(k, X.shape[0])
             if smooth:
-                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=None, knnidx=None, geo=geo)
+                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=dists, knnidx=knnidx, geo=geo, smooth_style=smooth_style)
                 return lid_smoothed_estimates, np.mean(lid_smoothed_estimates), ks
             else:
                 return lid_estimates, np.mean(lid_estimates), ks
         else:
             if smooth:
-                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=None, knnidx=None, geo=geo)
+                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=dists, knnidx=knnidx, geo=geo, smooth_style=smooth_style, bag_indices=bag_indices)
                 return lid_smoothed_estimates, np.mean(lid_smoothed_estimates)
             else:
                 return lid_estimates, np.mean(lid_estimates)
@@ -193,13 +193,13 @@ def sk_2NN(X, dists, knnidx, k = 10, correct = True, w = None, return_ks = False
         if return_ks:
             ks = np.repeat(k, X.shape[0])
             if smooth:
-                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=None, knnidx=None, geo=geo)
+                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=dists, knnidx=knnidx, geo=geo)
                 return lid_smoothed_estimates, np.mean(lid_smoothed_estimates), ks
             else:
                 return lid_estimates, np.mean(lid_estimates), ks
         else:
             if smooth:
-                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=None, knnidx=None, geo=geo)
+                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=dists, knnidx=knnidx, geo=geo)
                 return lid_smoothed_estimates, np.mean(lid_smoothed_estimates)
             else:
                 return lid_estimates, np.mean(lid_estimates)
@@ -226,13 +226,13 @@ def sk_ESS(X, dists, knnidx, k = 10, correct = True, w=None, return_ks = False, 
         if return_ks:
             ks = np.repeat(k, X.shape[0])
             if smooth:
-                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=None, knnidx=None, geo=geo)
+                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=dists, knnidx=knnidx, geo=geo)
                 return lid_smoothed_estimates, np.mean(lid_smoothed_estimates), ks
             else:
                 return lid_estimates, np.mean(lid_estimates), ks
         else:
             if smooth:
-                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=None, knnidx=None, geo=geo)
+                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=dists, knnidx=knnidx, geo=geo)
                 return lid_smoothed_estimates, np.mean(lid_smoothed_estimates)
             else:
                 return lid_estimates, np.mean(lid_estimates)
@@ -258,13 +258,13 @@ def sk_MADA(X, dists, knnidx, k = 10, correct = True, w=None, return_ks = False,
         if return_ks:
             ks = np.repeat(k, X.shape[0])
             if smooth:
-                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=None, knnidx=None, geo=geo)
+                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=dists, knnidx=knnidx, geo=geo)
                 return lid_smoothed_estimates, np.mean(lid_smoothed_estimates), ks
             else:
                 return lid_estimates, np.mean(lid_estimates), ks
         else:
             if smooth:
-                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=None, knnidx=None, geo=geo)
+                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=dists, knnidx=knnidx, geo=geo)
                 return lid_smoothed_estimates, np.mean(lid_smoothed_estimates)
             else:
                 return lid_estimates, np.mean(lid_estimates)
@@ -440,6 +440,25 @@ def Ricardo_TLE(X, dists, knnidx, k = 10, w=None, return_ks=False, use_w='indire
 def Ricardo_MLE(X, dists, knnidx, k = 10, w=None, return_ks=False, use_w='indirect', smooth=False, geo=None, **kwargs):
     if w is None:
         lid_estimates = MLE_LID_Estimator(data_array=X, neighbourhood_size=k, return_smoothed=False, simple_smooth=False, geo=False, nn_dist=dists, KNN_indices=knnidx, **kwargs)
+        if return_ks:
+            ks = np.repeat(k, X.shape[0])
+            if smooth:
+                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=None, knnidx=None, geo=geo)
+                return lid_smoothed_estimates, np.mean(lid_smoothed_estimates), ks
+            else:
+                return lid_estimates, np.mean(lid_estimates), ks
+        else:
+            if smooth:
+                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=None, knnidx=None, geo=geo)
+                return lid_smoothed_estimates, np.mean(lid_smoothed_estimates)
+            else:
+                return lid_estimates, np.mean(lid_estimates)
+    else:
+        NotImplemented(f"Not implemented use_w: {use_w}")
+
+def Ricardo_MADA(X, dists, knnidx, k = 10, w=None, return_ks=False, use_w='indirect', smooth=False, geo=None, **kwargs):
+    if w is None:
+        lid_estimates = MADA_LID_Estimator(data_array=X, neighbourhood_size=k, return_smoothed=False, simple_smooth=False, geo=False, nn_dist=dists, KNN_indices=knnidx, **kwargs)
         if return_ks:
             ks = np.repeat(k, X.shape[0])
             if smooth:
