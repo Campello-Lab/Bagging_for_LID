@@ -4,6 +4,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import Callable, Tuple, Optional, Sequence
+import scipy
 
 try:
     # noqa: F401 - needed to enable 3D projection in matplotlib
@@ -430,9 +431,233 @@ def m1_sphere(x0, x1, x2, x3):
     W = x3/r
     return np.c_[X, Y, Z, W]
 
+def M10_Cubic(x0, x1, x2, x3):
+    X = 0
+    Y = x1
+    Z = x2
+    W = x3
+    return np.c_[X, Y, Z, W]
 
+import numpy as np
+
+# --------------------------------------------------------------------
+# Facet helpers (keep your original style; they all return (N,4) arrays)
+# --------------------------------------------------------------------
+def M10_Cubic(x0, x1, x2, x3):
+    """X=0 face: (0, x1, x2, x3)"""
+    X = 0
+    Y = x1
+    Z = x2
+    W = x3
+    return np.c_[X + 0*np.asarray(Y), Y, Z, W]
+
+def M11_Cubic(x0, x1, x2, x3):
+    """X=1 face: (1, x1, x2, x3)"""
+    X = 1
+    Y = x1
+    Z = x2
+    W = x3
+    return np.c_[X + 0*np.asarray(Y), Y, Z, W]
+
+def M20_Cubic(x0, x1, x2, x3):
+    """Y=0 face: (x0, 0, x2, x3)"""
+    X = x0
+    Y = 0
+    Z = x2
+    W = x3
+    return np.c_[X, Y + 0*np.asarray(X), Z, W]
+
+def M21_Cubic(x0, x1, x2, x3):
+    """Y=1 face: (x0, 1, x2, x3)"""
+    X = x0
+    Y = 1
+    Z = x2
+    W = x3
+    return np.c_[X, Y + 0*np.asarray(X), Z, W]
+
+def M30_Cubic(x0, x1, x2, x3):
+    """Z=0 face: (x0, x1, 0, x3)"""
+    X = x0
+    Y = x1
+    Z = 0
+    W = x3
+    return np.c_[X, Y, Z + 0*np.asarray(X), W]
+
+def M31_Cubic(x0, x1, x2, x3):
+    """Z=1 face: (x0, x1, 1, x3)"""
+    X = x0
+    Y = x1
+    Z = 1
+    W = x3
+    return np.c_[X, Y, Z + 0*np.asarray(X), W]
+
+def M40_Cubic(x0, x1, x2, x3):
+    """W=0 face: (x0, x1, x2, 0)"""
+    X = x0
+    Y = x1
+    Z = x2
+    W = 0
+    return np.c_[X, Y, Z, W + 0*np.asarray(X)]
+
+def M41_Cubic(x0, x1, x2, x3):
+    """W=1 face: (x0, x1, x2, 1)"""
+    X = x0
+    Y = x1
+    Z = x2
+    W = 1
+    return np.c_[X, Y, Z, W + 0*np.asarray(X)]
+
+
+# --------------------------------------------------------------------
+# Map function compatible with visualize_unit_cube_map_plotly
+# Expects P shape = (N, 4) with columns [s, u, v, w] in [0,1]
+# --------------------------------------------------------------------
+def tesseract_surface_map_M10_Cubic(P: np.ndarray) -> np.ndarray:
+    """
+    Map [0,1]^4 -> union of the 8 facets of the 4D unit cube.
+    P[:,0] (s) selects the facet; P[:,1:4] (u,v,w) are the free coords.
+
+    Returns (N,4) array of 4D points.
+    """
+    P = np.asarray(P)
+    if P.ndim == 1:
+        P = P[None, :]
+    if P.shape[1] != 4:
+        raise ValueError("tesseract_surface_map expects n_params=4 (columns: s, u, v, w).")
+
+    s = P[:, 0]
+    u = P[:, 1]
+    v = P[:, 2]
+    w = P[:, 3]
+
+    # Bin s into 8 facets (avoid s==1 landing outside the range)
+    k = np.floor(np.clip(s, 0.0, 1.0 - 1e-12) * 8).astype(np.int64)
+
+    # Preallocate outputs
+    X = np.empty_like(s)
+    Y = np.empty_like(s)
+    Z = np.empty_like(s)
+    W = np.empty_like(s)
+
+    # Masks for each of the 8 facets
+    m0 = (k == 0)  # X=0
+    m1 = (k == 1)  # X=1
+    m2 = (k == 2)  # Y=0
+    m3 = (k == 3)  # Y=1
+    m4 = (k == 4)  # Z=0
+    m5 = (k == 5)  # Z=1
+    m6 = (k == 6)  # W=0
+    m7 = (k == 7)  # W=1
+
+    # Fill per facet
+    X[m0], Y[m0], Z[m0], W[m0] = 0.0, u[m0], v[m0], w[m0]
+    X[m1], Y[m1], Z[m1], W[m1] = 1.0, u[m1], v[m1], w[m1]
+
+    X[m2], Y[m2], Z[m2], W[m2] = u[m2], 0.0, v[m2], w[m2]
+    X[m3], Y[m3], Z[m3], W[m3] = u[m3], 1.0, v[m3], w[m3]
+
+    X[m4], Y[m4], Z[m4], W[m4] = u[m4], v[m4], 0.0, w[m4]
+    X[m5], Y[m5], Z[m5], W[m5] = u[m5], v[m5], 1.0, w[m5]
+
+    X[m6], Y[m6], Z[m6], W[m6] = u[m6], v[m6], w[m6], 0.0
+    X[m7], Y[m7], Z[m7], W[m7] = u[m7], v[m7], w[m7], 1.0
+
+    return np.c_[X, Y, Z, W]
+
+def M12_Norm(P_or_x0, x1=None, x2=None, x3=None):
+    from scipy.stats import norm
+    """
+    Map [0,1]^4 -> N(0,1)^4 using the normal inverse CDF.
+    Compatible with both map_fn(P) and map_fn(x0,x1,x2,x3) call styles.
+    """
+    # Accept either a single (N,4) array or 4 separate arrays
+    if x1 is None and x2 is None and x3 is None:
+        P = np.asarray(P_or_x0)
+        if P.ndim == 1:
+            P = P[None, :]
+        if P.shape[1] != 4:
+            raise ValueError("M12_Norm expects 4 parameters (columns).")
+        x0, x1, x2, x3 = P.T
+    else:
+        x0 = np.asarray(P_or_x0)
+        x1 = np.asarray(x1)
+        x2 = np.asarray(x2)
+        x3 = np.asarray(x3)
+
+    # Clip away from {0,1} to avoid +/-inf from the inverse CDF
+    eps = np.finfo(float).eps  # ~2.22e-16
+    lo = eps
+    hi = 1.0 - eps
+
+    u0 = np.clip(x0, lo, hi)
+    u1 = np.clip(x1, lo, hi)
+    u2 = np.clip(x2, lo, hi)
+    u3 = np.clip(x3, lo, hi)
+
+    X = norm.ppf(u0)
+    Y = norm.ppf(u1)
+    Z = norm.ppf(u2)
+    W = norm.ppf(u3)
+    return np.c_[X, Y, Z, W]
+
+def lollipop_map(P_or_s, r=None, u=None, t=None):
+    """
+    Map [0,1]^4 -> R^2 per the 'lollipop' dataset:
+      Candy:  (2 + sqrt(R)*sin Phi, 2 + sqrt(R)*cos Phi),  R~U(0,1), Phi~U(0,2pi)
+      Stick:  (T, T),  T~U(0, 2 - 1/sqrt(2))
+    Selector s in [0,1]: s < 0.5 -> candy, else stick.
+
+    Compatible with visualize_unit_cube_map_plotly (both call styles).
+    Returns (N, 2).
+    """
+    # Accept (N,4) or four arrays
+    if r is None and u is None and t is None:
+        P = np.asarray(P_or_s)
+        if P.ndim == 1:
+            P = P[None, :]
+        if P.shape[1] != 4:
+            raise ValueError("lollipop_map expects 4 parameters (columns: s, r, u, t).")
+        s, r, u, t = P.T
+    else:
+        s = np.asarray(P_or_s)
+        r = np.asarray(r)
+        u = np.asarray(u)
+        t = np.asarray(t)
+
+    N = s.shape[0]
+    X = np.empty(N, dtype=float)
+    Y = np.empty(N, dtype=float)
+
+    # Constants from the definition
+    two_pi = 2.0 * np.pi
+    T_max = 2.0 - 1.0 / np.sqrt(2.0)
+
+    # Masks
+    m_candy = s < 0.5
+    m_stick = ~m_candy
+
+    # Candy (offset disk with radius sqrt(R))
+    if np.any(m_candy):
+        R = r[m_candy]                 # U(0,1)
+        Phi = two_pi * u[m_candy]      # U(0, 2π)
+        rad = np.sqrt(R)
+        X[m_candy] = 2.0 + rad * np.sin(Phi)
+        Y[m_candy] = 2.0 + rad * np.cos(Phi)
+
+    # Stick (diagonal segment)
+    if np.any(m_stick):
+        T = T_max * t[m_stick]         # U(0, T_max)
+        X[m_stick] = T
+        Y[m_stick] = T
+
+    return np.c_[X, Y]
+
+def uniform(x0, x1):
+    X = x0
+    Y = x0
+    return np.c_[X, Y]
 
 if __name__ == "__main__":
 
-    visualize_unit_cube_map_plotly(m1_sphere, n_params=4, samples=80000, axes=(0,1,2), color_dim=3,
-                               title="m1_sphere_3d", seed=3, save_html="m1_sphere3.html")
+    visualize_unit_cube_map_plotly(uniform, n_params=2, samples=80000, axes=(0,1), color_dim=2,
+                               title="uniform_1d", seed=3, save_html="uniform_1d.html")
