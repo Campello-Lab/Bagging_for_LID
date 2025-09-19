@@ -41,7 +41,7 @@ def smoothing(X, lid_estimates, k=10, dists=None, knnidx=None, geo=None,
         for i in range(len(lid_estimates)):
             if np.isin(i, knnidx[i]):
                 raise ValueError("KNN indices contains the query index")
-            smoothed_estimates[i] = (np.sum(lid_estimates[knnidx[i]]) + lid_estimates[i])/(k+1)
+            smoothed_estimates[i] = (np.sum(lid_estimates[knnidx[i, :-1]]) + lid_estimates[i])/k
         return smoothed_estimates, np.mean(smoothed_estimates)
 
     # New: Code-base-2 compatible smoothing (k terms total)
