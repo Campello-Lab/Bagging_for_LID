@@ -1,3 +1,5 @@
+import pandas as pd
+
 #!!Hard coded part!! This is for changing the full, class parameter based identifiers into the expressive naming conventiones used in the paper.
 def unordered_lookup(query, original_map = None, sep= '|'):
     if original_map is None:
