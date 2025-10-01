@@ -5,6 +5,12 @@ import importlib.metadata as _imeta
 import re
 import pandas as pd
 from typing import Any, Mapping
+from plotly.colors import get_colorscale, sample_colorscale
+
+import plotly.graph_objects as go
+import pathlib
+from typing import Mapping, Literal
+import numpy as np
 ###################################################OWN IMPORT###################################################
 from LIDBagging.Helper.Other import normalize
 ###############################################################################################################################SPIDER CHARTS###############################################################################################################################
@@ -22,176 +28,216 @@ def _check_versions():
             "Run  pip install -U 'kaleido>=0.2.1,<1'."
         )
 
-def create_spider_chart(data_sets, dictionaries, names, normalize_data=False, metric='MSE', save=True, save_name='spider_chart', fill=True):
-    if metric == 'MSE':
-        metric_val = 1
-    elif metric == 'Bias2':
-        metric_val = 2
-    elif metric == 'Var':
-        metric_val = 3
-    methods = list(data_sets.keys())
-    num_methods = len(methods)
-    values = []
-    for d in dictionaries:
-        chosen_values = [d[method][metric_val] for method in methods]
-        values.append(chosen_values)
-    values_array = np.array(values)
-    if normalize_data:
-        values_array = np.array([normalize(values_array[:, i]) for i in range(num_methods)]).T
-    angles = np.linspace(0, 2 * np.pi, num_methods, endpoint=False).tolist()
-    angles += angles[:1]
-    fig, ax = plt.subplots(figsize=(15, 15), dpi=120, subplot_kw=dict(polar=True))
-    for idx, value in enumerate(values_array):
-        value = list(value) + [value[0]]
-        ax.plot(angles, value, linewidth=2, linestyle='solid', label=names[idx])
-        if fill:
-            ax.fill(angles, value, alpha=0.05)
-    ax.set_yticks(np.arange(-0.1, 1.1, 0.1))
-    ax.set_yticklabels([f'{x:.2f}' for x in np.arange(-0.1, 1.1, 0.1)])
-    ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(methods, rotation=45, ha="right")
-    ax.legend(loc='upper right', bbox_to_anchor=(1.1, 1.1))
-    if normalize_data:
-        plt.title(f"Spider Chart ({metric}) normalized", size=20, color='blue', y=1.1)
-    else:
-        plt.title(f"Spider Chart ({metric})", size=20, color='blue', y=1.1)
-    if save:
-        directory = r'C:\Users\User\PycharmProjects\pythonProject3\LIDstuff\saved_results\plots'
-        plt.savefig(directory + '\\' + f'{save_name}.pdf')
 
-def create_stacked_spider_charts(data_sets, dictionaries, names, normalize_data=False, save=True,
-                                 save_name='stacked_spider_charts', fill=True):
-    metrics = ['MSE', 'Bias2', 'Var']
-    metric_indices = {'MSE': 1, 'Bias2': 2, 'Var': 3}
-    methods = list(data_sets.keys())
-    num_methods = len(methods)
-    angles = np.linspace(0, 2 * np.pi, num_methods, endpoint=False).tolist()
-    angles += angles[:1]
-    fig, axs = plt.subplots(nrows=3, figsize=(12, 18), dpi=120, subplot_kw=dict(polar=True))
-    for ax, metric in zip(axs, metrics):
-        metric_val = metric_indices[metric]
-        values = []
-        for d in dictionaries:
-            chosen_values = [d[method][metric_val] for method in methods]
-            values.append(chosen_values)
-        values_array = np.array(values)
-        if normalize_data:
-            values_array = np.array([normalize(values_array[:, i]) for i in range(num_methods)]).T
-        for idx, value in enumerate(values_array):
-            value = list(value) + [value[0]]  # close the loop
-            ax.plot(angles, value, linewidth=2, linestyle='solid', label=names[idx])
-            if fill:
-                ax.fill(angles, value, alpha=0.05)
-        ax.set_yticks(np.arange(-0.1, 1.1, 0.1))
-        ytick_labels = [f'{x:.2f}' for x in np.arange(-0.1, 1.1, 0.1)]
-        tick_objs = ax.set_yticklabels(ytick_labels)
-        for label in tick_objs:
-            label.set_fontsize(8)
-            label.set_color('gray')
-        ax.set_xticks(angles[:-1])
-        labels = methods
-        for angle, label in zip(angles[:-1], labels):
-            angle_deg = np.degrees(angle)
-            if angle_deg >= 0 and angle_deg <= 90 or angle_deg >= 270:
-                ha = 'left'
-            elif 90 < angle_deg < 270:
-                ha = 'right'
-            else:
-                ha = 'center'
-            ax.text(angle, 1.15, label, size=10, horizontalalignment=ha, verticalalignment='center')
-        ax.set_xticklabels([])  # Clear default labels
-        ax.set_title(f"{metric} (normalized)" if normalize_data else metric, size=16, y=1.1)
-    axs[0].legend(
-        loc='center left',
-        bbox_to_anchor=(1, 1),  # further to the right
-        title='Methods'
-    )
-    plt.tight_layout()
-    plt.subplots_adjust(right=0.85, hspace=0.4)
-    if save:
-        directory = r'C:\Users\User\PycharmProjects\pythonProject3\LIDstuff\saved_results\plots'
-        plt.savefig(directory + '\\' + f'{save_name}.pdf')
+def reorder_sorted_experiments(df, order=None, keep_rest=True):
+    order_mle = [(('Nbag', 10),
+                  ('bagging_method', None),
+                  ('estimator_name', 'mle'),
+                  ('post_smooth', False),
+                  ('pre_smooth', False),
+                  ('submethod_0', '0'),
+                  ('submethod_error', 'log_diff'),
+                  ('t', 1)), (('Nbag', 10),
+                              ('bagging_method', None),
+                              ('estimator_name', 'mle'),
+                              ('post_smooth', True),
+                              ('pre_smooth', False),
+                              ('submethod_0', '0'),
+                              ('submethod_error', 'log_diff'),
+                              ('t', 1)), (('Nbag', 10),
+                                          ('bagging_method', 'bag'),
+                                          ('estimator_name', 'mle'),
+                                          ('post_smooth', False),
+                                          ('pre_smooth', False),
+                                          ('submethod_0', '0'),
+                                          ('submethod_error', 'log_diff'),
+                                          ('t', 1)), (('Nbag', 10),
+                                                      ('bagging_method', 'bag'),
+                                                      ('estimator_name', 'mle'),
+                                                      ('post_smooth', True),
+                                                      ('pre_smooth', False),
+                                                      ('submethod_0', '0'),
+                                                      ('submethod_error', 'log_diff'),
+                                                      ('t', 1)), (('Nbag', 10),
+                                                                  ('bagging_method', 'bag'),
+                                                                  ('estimator_name', 'mle'),
+                                                                  ('post_smooth', False),
+                                                                  ('pre_smooth', True),
+                                                                  ('submethod_0', '0'),
+                                                                  ('submethod_error', 'log_diff'),
+                                                                  ('t', 1)), (('Nbag', 10),
+                                                                              ('bagging_method', 'bag'),
+                                                                              ('estimator_name', 'mle'),
+                                                                              ('post_smooth', True),
+                                                                              ('pre_smooth', True),
+                                                                              ('submethod_0', '0'),
+                                                                              ('submethod_error', 'log_diff'),
+                                                                              ('t', 1)), (('Nbag', 10),
+                                                                                          ('bagging_method', 'bagw'),
+                                                                                          ('estimator_name', 'mle'),
+                                                                                          ('post_smooth', False),
+                                                                                          ('pre_smooth', False),
+                                                                                          ('submethod_0', '0'),
+                                                                                          ('submethod_error',
+                                                                                           'log_diff'),
+                                                                                          ('t', 1)), (('Nbag', 10),
+                                                                                                      ('bagging_method',
+                                                                                                       'approx_bagwth'),
+                                                                                                      ('estimator_name',
+                                                                                                       'mle'),
+                                                                                                      ('post_smooth',
+                                                                                                       False),
+                                                                                                      ('pre_smooth',
+                                                                                                       False),
+                                                                                                      ('submethod_0',
+                                                                                                       '0'),
+                                                                                                      (
+                                                                                                      'submethod_error',
+                                                                                                      'log_diff'),
+                                                                                                      ('t', 1))]
 
-def create_method_variant_spider_charts(data_sets, dictionaries, names, normalize_data=False, save=True,
-                                        save_prefix='spider_chart_by_method', fill=True):
-    metrics = ['MSE', 'Bias2', 'Var']
-    metric_indices = {'MSE': 1, 'Bias2': 2, 'Var': 3}
+    order_tle = [(('Nbag', 10),
+                  ('bagging_method', None),
+                  ('estimator_name', 'tle'),
+                  ('post_smooth', False),
+                  ('pre_smooth', False),
+                  ('submethod_0', '0'),
+                  ('submethod_error', 'log_diff'),
+                  ('t', 1)), (('Nbag', 10),
+                              ('bagging_method', None),
+                              ('estimator_name', 'tle'),
+                              ('post_smooth', True),
+                              ('pre_smooth', False),
+                              ('submethod_0', '0'),
+                              ('submethod_error', 'log_diff'),
+                              ('t', 1)), (('Nbag', 10),
+                                          ('bagging_method', 'bag'),
+                                          ('estimator_name', 'tle'),
+                                          ('post_smooth', False),
+                                          ('pre_smooth', False),
+                                          ('submethod_0', '0'),
+                                          ('submethod_error', 'log_diff'),
+                                          ('t', 1)), (('Nbag', 10),
+                                                      ('bagging_method', 'bag'),
+                                                      ('estimator_name', 'tle'),
+                                                      ('post_smooth', True),
+                                                      ('pre_smooth', False),
+                                                      ('submethod_0', '0'),
+                                                      ('submethod_error', 'log_diff'),
+                                                      ('t', 1)), (('Nbag', 10),
+                                                                  ('bagging_method', 'bag'),
+                                                                  ('estimator_name', 'tle'),
+                                                                  ('post_smooth', False),
+                                                                  ('pre_smooth', True),
+                                                                  ('submethod_0', '0'),
+                                                                  ('submethod_error', 'log_diff'),
+                                                                  ('t', 1)), (('Nbag', 10),
+                                                                              ('bagging_method', 'bag'),
+                                                                              ('estimator_name', 'tle'),
+                                                                              ('post_smooth', True),
+                                                                              ('pre_smooth', True),
+                                                                              ('submethod_0', '0'),
+                                                                              ('submethod_error', 'log_diff'),
+                                                                              ('t', 1)), (('Nbag', 10),
+                                                                                          ('bagging_method', 'bagw'),
+                                                                                          ('estimator_name', 'tle'),
+                                                                                          ('post_smooth', False),
+                                                                                          ('pre_smooth', False),
+                                                                                          ('submethod_0', '0'),
+                                                                                          ('submethod_error',
+                                                                                           'log_diff'),
+                                                                                          ('t', 1)), (('Nbag', 10),
+                                                                                                      ('bagging_method',
+                                                                                                       'approx_bagwth'),
+                                                                                                      ('estimator_name',
+                                                                                                       'tle'),
+                                                                                                      ('post_smooth',
+                                                                                                       False),
+                                                                                                      ('pre_smooth',
+                                                                                                       False),
+                                                                                                      ('submethod_0',
+                                                                                                       '0'),
+                                                                                                      (
+                                                                                                      'submethod_error',
+                                                                                                      'log_diff'),
+                                                                                                      ('t', 1))]
 
-    methods = list(data_sets.keys())
-    num_methods = len(methods)
-    angles = np.linspace(0, 2 * np.pi, num_methods, endpoint=False).tolist()
-    angles += angles[:1]
+    order_mada = [(('Nbag', 10),
+                   ('bagging_method', None),
+                   ('estimator_name', 'mada'),
+                   ('post_smooth', False),
+                   ('pre_smooth', False),
+                   ('submethod_0', '0'),
+                   ('submethod_error', 'log_diff'),
+                   ('t', 1)), (('Nbag', 10),
+                               ('bagging_method', None),
+                               ('estimator_name', 'mada'),
+                               ('post_smooth', True),
+                               ('pre_smooth', False),
+                               ('submethod_0', '0'),
+                               ('submethod_error', 'log_diff'),
+                               ('t', 1)), (('Nbag', 10),
+                                           ('bagging_method', 'bag'),
+                                           ('estimator_name', 'mada'),
+                                           ('post_smooth', False),
+                                           ('pre_smooth', False),
+                                           ('submethod_0', '0'),
+                                           ('submethod_error', 'log_diff'),
+                                           ('t', 1)), (('Nbag', 10),
+                                                       ('bagging_method', 'bag'),
+                                                       ('estimator_name', 'mada'),
+                                                       ('post_smooth', True),
+                                                       ('pre_smooth', False),
+                                                       ('submethod_0', '0'),
+                                                       ('submethod_error', 'log_diff'),
+                                                       ('t', 1)), (('Nbag', 10),
+                                                                   ('bagging_method', 'bag'),
+                                                                   ('estimator_name', 'mada'),
+                                                                   ('post_smooth', False),
+                                                                   ('pre_smooth', True),
+                                                                   ('submethod_0', '0'),
+                                                                   ('submethod_error', 'log_diff'),
+                                                                   ('t', 1)), (('Nbag', 10),
+                                                                               ('bagging_method', 'bag'),
+                                                                               ('estimator_name', 'mada'),
+                                                                               ('post_smooth', True),
+                                                                               ('pre_smooth', True),
+                                                                               ('submethod_0', '0'),
+                                                                               ('submethod_error', 'log_diff'),
+                                                                               ('t', 1)), (('Nbag', 10),
+                                                                                           ('bagging_method', 'bagw'),
+                                                                                           ('estimator_name', 'mada'),
+                                                                                           ('post_smooth', False),
+                                                                                           ('pre_smooth', False),
+                                                                                           ('submethod_0', '0'),
+                                                                                           ('submethod_error',
+                                                                                            'log_diff'),
+                                                                                           ('t', 1)), (('Nbag', 10),
+                                                                                                       (
+                                                                                                       'bagging_method',
+                                                                                                       'approx_bagwth'),
+                                                                                                       (
+                                                                                                       'estimator_name',
+                                                                                                       'mada'),
+                                                                                                       ('post_smooth',
+                                                                                                        False),
+                                                                                                       ('pre_smooth',
+                                                                                                        False),
+                                                                                                       ('submethod_0',
+                                                                                                        '0'),
+                                                                                                       (
+                                                                                                       'submethod_error',
+                                                                                                       'log_diff'),
+                                                                                                       ('t', 1))]
+    default_order = order_mle + order_tle + order_mada
+    order = default_order if order is None else order
 
-    # Group variant indices by base method
-    method_groups = defaultdict(list)
-    for idx, name in enumerate(names):
-        base_method = name.split('_')[0]
-        method_groups[base_method].append((idx, name))
+    ordered = [c for c in order if c in df.columns]
+    the_rest = [c for c in df.columns if c not in order] if keep_rest else []
 
-    for metric in metrics:
-        metric_val = metric_indices[metric]
-        main_methods = list(method_groups.keys())
-        num_main_methods = len(main_methods)
-        num_cols = 3
-        num_rows = math.ceil(num_main_methods / num_cols)
-
-        fig, axs = plt.subplots(nrows=num_rows, ncols=num_cols,
-                                figsize=(num_cols * 4.5, num_rows * 4.5), dpi=120,
-                                subplot_kw=dict(polar=True))
-        axs = axs.flatten()
-
-        for i, (main_method, variant_list) in enumerate(method_groups.items()):
-            ax = axs[i]
-
-            # Step 1: Build values array like in your working example
-            values = []
-            variant_names = []
-            for idx, variant_name in variant_list:
-                vals = [dictionaries[idx][method][metric_val] for method in methods]
-                values.append(vals)
-                variant_names.append(variant_name)
-            values_array = np.array(values)  # shape [num_variants, num_methods]
-
-            # Step 2: Normalize per-method across variants
-            if normalize_data:
-                values_array = np.array([normalize(values_array[:, i]) for i in range(num_methods)]).T
-
-            # Step 3: Plot each variant
-            for idx, value in enumerate(values_array):
-                val = list(value) + [value[0]]
-                ax.plot(angles, val, linewidth=1.5, linestyle='solid', label=variant_names[idx])
-                if fill:
-                    ax.fill(angles, val, alpha=0.04)
-
-            ax.set_ylim(-0.1, 1)
-            ax.set_yticks(np.arange(-0.1, 1.1, 0.2))
-            ytick_labels = [f'{x:.1f}' for x in np.arange(-0.1, 1.1, 0.2)]
-            tick_objs = ax.set_yticklabels(ytick_labels)
-            for label in tick_objs:
-                label.set_fontsize(7)
-                label.set_color('gray')
-
-            for angle, label in zip(angles[:-1], methods):
-                angle_deg = np.degrees(angle)
-                ha = 'left' if (0 <= angle_deg <= 90 or angle_deg >= 270) else 'right'
-                ax.text(angle, 1.08, label, size=8, ha=ha, va='center')
-
-            ax.set_xticklabels([])
-            ax.set_title(main_method, size=11, y=1.12)
-
-            if len(variant_list) > 1:
-                ax.legend(fontsize=6, loc='lower left', bbox_to_anchor=(0.0, -0.3), frameon=False, title='Variants')
-
-        for j in range(i + 1, len(axs)):
-            fig.delaxes(axs[j])
-
-        fig.suptitle(f"{metric} (normalized)" if normalize_data else metric, size=14, y=0.98)
-        plt.subplots_adjust(hspace=0.5, wspace=0.4, top=0.90, bottom=0.05, left=0.05, right=0.95)
-
-        if save:
-            directory = r'C:\Users\User\PycharmProjects\pythonProject3\LIDstuff\saved_results\plots'
-            file_name = f'{save_prefix}_{metric}.pdf'
-            plt.savefig(directory + '\\' + file_name, bbox_inches='tight')
+    # 👇 prevent pandas from interpreting the key as a 3D array
+    key = pd.Index(ordered + the_rest, dtype=object)
+    return df.loc[:, key]
 
 # ---------- internal writer ------------------------------------------------- #
 def _write_figure(fig, path, fmt, **size_kw):
@@ -700,9 +746,56 @@ def extract_metric_results(df, params, metric_keys=None):
         out[key] = extract_optimal_results(df, params, key)
     return out
 
-def result_extraction(experiments, sweep_params, metric_keys=None):
+def save_results2(results, directory, save_name):
+    import os
+    import pickle
+    os.makedirs(directory, exist_ok=True)  # Ensure directory exists
+    filepath = os.path.join(directory, save_name)  # Create full path
+    with open(filepath, "wb") as fh:
+        pickle.dump(results, fh, protocol=pickle.HIGHEST_PROTOCOL)
+
+######################################################################
+def unordered_lookup(query, original_map = None, sep= '|'):
+    if original_map is None:
+        original_map  =  {
+    'bagging_method:bag | pre_smooth:False | post_smooth:False': 'Simple bagging',
+    'bagging_method:bag | pre_smooth:False | post_smooth:True': 'Simple bagging with post-smoothing',
+    'bagging_method:bag | pre_smooth:True | post_smooth:False': 'Simple bagging with pre-smoothing',
+    'bagging_method:bag | pre_smooth:True | post_smooth:True': 'Simple bagging with pre-smoothing and post-smoothing',
+    'bagging_method:None | pre_smooth:False | post_smooth:False': 'Baseline',
+    'bagging_method:None | pre_smooth:False | post_smooth:True': 'Baseline with smoothing'}
+    def build_canonical_map(original: dict[str, str], sep: str = '|') -> dict[tuple[str, ...], str]:
+        return {
+            tuple(sorted(part.strip() for part in key.split(sep))): value
+            for key, value in original.items()
+        }
+    canonical_map = build_canonical_map(original_map)
+    signature = tuple(sorted(part.strip() for part in query.split(sep)))
+    return canonical_map.get(signature)
+
+def modify_label(label):
+    if label == 'bagging_method:bag':
+        label = 'Simple bagging'
+    elif label == 'bagging_method:bagw':
+        label = 'Bagging with out-of-bag weights'
+    elif label == 'bagging_method:bagwth':
+        label = 'Bagging with out-of-bag weights (adjust)'
+    elif label == 'bagging_method:approx_bagwth':
+        label = 'Bagging with out-of-bag weights (approximate adjust)'
+    elif label == 'bagging_method:None':
+        label = 'Baseline'
+    else:
+        label = unordered_lookup(label)
+    return label
+
+###########################################################################
+
+def result_extraction(experiments, sweep_params, metric_keys=None, save=False, directory=None):
     df = sorted_experiments(experiments, sweep_params)
+    df = reorder_sorted_experiments(df)
     metric_results = extract_metric_results(df, sweep_params, metric_keys=metric_keys)
+    if save:
+        save_results2(metric_results, directory=directory)
     return metric_results
 
 def plot_radar_from_results(
@@ -870,14 +963,86 @@ def plot_radar_best_of_sweep(
     estimator_name=estimator_name,
     metric_label_map=None)
 
-import plotly.graph_objects as go
-import pathlib
+from plotly.colors import get_colorscale, sample_colorscale
+
+def _parse_rgba(col: str):
+    col = str(col).strip()
+    if col.startswith("#"):
+        h = col[1:]
+        if len(h) == 3:
+            r, g, b = [int(ch*2, 16) for ch in h]
+        else:
+            r, g, b = int(h[0:2],16), int(h[2:4],16), int(h[4:6],16)
+        return (r, g, b, 1.0)
+    if col.lower().startswith("rgba"):
+        a = col[col.find("(")+1:col.find(")")].split(",")
+        return (int(float(a[0])), int(float(a[1])), int(float(a[2])), float(a[3]))
+    if col.lower().startswith("rgb"):
+        a = col[col.find("(")+1:col.find(")")].split(",")
+        return (int(float(a[0])), int(float(a[1])), int(float(a[2])), 1.0)
+    # named colors → fallback via small scale
+    return _parse_rgba(get_colorscale([(0.0, col), (1.0, col)])[-1][1])
+
+def _lerp(a, b, t): return a + (b - a) * t
+
+def _color_at(stops, p):
+    """linear interpolate color on stops at position p ∈ [0,1]"""
+    p = max(0.0, min(1.0, float(p)))
+    for i in range(len(stops)-1):
+        p0, c0 = stops[i]
+        p1, c1 = stops[i+1]
+        if p0 <= p <= p1:
+            t = 0.0 if p1 == p0 else (p - p0) / (p1 - p0)
+            r0,g0,b0,a0 = _parse_rgba(c0); r1,g1,b1,a1 = _parse_rgba(c1)
+            r = int(round(_lerp(r0, r1, t))); g = int(round(_lerp(g0, g1, t)))
+            b = int(round(_lerp(b0, b1, t))); a = _lerp(a0, a1, t)
+            return f"rgba({r},{g},{b},{a:.3f})"
+    r,g,b,a = _parse_rgba(stops[-1][1])
+    return f"rgba({r},{g},{b},{a:.3f})"
+
+def truncate_and_stretch(cs_like="Reds", cut_top=0.20):
+    """
+    Make a colorscale like Plotly 'Reds' but with the darkest tail removed.
+    cut_top = 0.20 drops the top 20% (dark maroon) and stretches the rest to 1.0.
+    Returns: list of (pos, color) stops usable anywhere Plotly expects a colorscale.
+    """
+    # base stops
+    base = get_colorscale(cs_like) if isinstance(cs_like, str) else list(cs_like)
+    base = sorted([(float(p), str(c)) for p,c in base], key=lambda x: x[0])
+
+    alpha = max(1e-6, 1.0 - float(cut_top))   # keep [0, alpha] of the original
+    # remap existing stops up to alpha
+    kept = [(p/alpha, c) for (p,c) in base if p <= alpha]
+    # ensure we end exactly at 1.0 with the color that was at alpha
+    end_col = _color_at(base, alpha)
+    if not kept or kept[-1][0] < 1.0 - 1e-9:
+        kept.append((1.0, end_col))
+    else:
+        kept[-1] = (1.0, end_col)
+    # ensure we start at pure white (optional but matches your request)
+    start_col = _color_at(base, 0.0)
+    kept[0] = (0.0, "rgba(255,255,255,1.0)")  # force true white start
+    return kept
+
 def plot_tables_from_results(
-    results: Mapping[str, tuple[pd.DataFrame, pd.DataFrame]] ,
+    results: Mapping[str, tuple[pd.DataFrame, pd.DataFrame]],
     *,
-    mode: str = "combined",            # "combined" | "values" | "params"
+    mode: str = "combined",                   # "combined" | "values" | "params"
     normalize_data: bool = False,
     log: bool = False,
+    # NEW: styling & heatmap options
+    best_mark: bool = True,
+    best_font_color: str = "green",
+    best_by: Literal["min","max","auto"] = "auto",
+    heatmap_cells: bool = False,
+    heatmap_colorscale: str | list = "RdBu_r",   # large -> red, small -> blue by default
+    color_scale_mode: Literal["linear","log"] = "linear",
+    nan_fill_color: str = "rgba(240,240,240,0.8)",
+    show_row_colorbars: bool = True,
+    colorbar_len_px: int = 80,
+    colorbar_gap_px: int = 10,
+    colorbar_thickness_px: int = 8,
+    # existing
     metric_label_map: Mapping[str, str] | None = None,
     float_fmt: str = "{:.4g}",
     title_prefix: str | None = None,
@@ -886,12 +1051,15 @@ def plot_tables_from_results(
     save_prefix: str = "table_best",
     outdir: str | pathlib.Path = "./plots",
 ) -> dict[str, go.Figure]:
-    """Render tables with Plotly (one figure per metric) and export to PDF (Kaleido)."""
+    """Render tables with Plotly (one figure per metric) and export to PDF (Kaleido).
+
+    Adds optional per-row heatmap cell coloring + row colorbars and best-cell text coloring.
+    """
     if mode not in {"combined", "values", "params"}:
         raise ValueError("mode must be one of {'combined','values','params'}")
 
-    _fmt_val   = globals().get("_fmt_val", lambda k, v: f"{v}")
-    _normalize = globals().get("_normalize", lambda x: x)
+    _fmt_val     = globals().get("_fmt_val", lambda k, v: f"{v}")
+    _normalize   = globals().get("_normalize", lambda x: x)
     modify_label = globals().get("modify_label", lambda s: s)
 
     def pretty_metric_name(key: str) -> str:
@@ -899,6 +1067,9 @@ def plot_tables_from_results(
             return metric_label_map[key]
         base = key[6:] if key.startswith("total_") else key
         return {"mse": "MSE", "bias2": "Bias²", "var": "Variance"}.get(base, base.upper())
+
+    def _lines(s: str) -> int:
+        return 1 + str(s).count("<br>") + str(s).count("\n") if s is not None else 1
 
     figs: dict[str, go.Figure] = {}
 
@@ -908,7 +1079,7 @@ def plot_tables_from_results(
         if not values_df.index.equals(params_df.index) or not values_df.columns.equals(params_df.columns):
             raise ValueError(f"Index/columns mismatch for '{met_key}' between params_df and values_df.")
 
-        datasets = list(values_df.index)
+        datasets    = list(values_df.index)
         method_sigs = list(values_df.columns)
 
         # concise headers: only differing params
@@ -923,14 +1094,12 @@ def plot_tables_from_results(
         for sig in method_sigs:
             if isinstance(sig, tuple):
                 lbl = " | ".join(f"{k}:{_fmt_val(k, v)}" for k, v in sig if k in diff_params) or "default"
-                if modify_label(lbl) is not None:
-                    col_headers.append(modify_label(lbl).replace(" | ", "<br>"))  # allow line breaks
-                else:
-                    col_headers.append(str(sig))  # allow line breaks
+                mod = modify_label(lbl)
+                col_headers.append((mod if mod is not None else str(sig)).replace(" | ", "<br>"))
             else:
                 col_headers.append(str(sig))
 
-        # values (log then per-dataset normalize, like radar)
+        # values used for text (apply log + normalize like original)
         vals = values_df.astype(float).copy()
         if log:
             with np.errstate(divide="ignore", invalid="ignore"):
@@ -968,79 +1137,359 @@ def plot_tables_from_results(
         # Plotly Table uses columns → transpose
         columns = list(map(list, zip(*cell_matrix))) if cell_matrix else [[] for _ in col_headers]
 
-        # ----------------- NEW: compute per-cell font colors -----------------
-        # Highlight the smallest value in each row red for MSE / Bias² / Variance metrics.
-        metric_base = met_key[6:] if met_key.startswith("total_") else met_key
-        # build default colors matrix (one list per column)
+        # ----------------- Best-cell text colors -----------------
         n_rows = len(datasets)
-        font_colors_per_column = []
-        # first column (Dataset names) stay default (black)
+        font_colors_per_column: list[list[str]] = []
+        # first column (Dataset names)
         font_colors_per_column.append(["black"] * n_rows)
 
-        # For method columns compute colors
-        if metric_base in {"mse", "bias2", "var"}:
-            # compute per-row minima ignoring non-finite entries
-            vals_arr = vals.to_numpy(dtype=float)  # shape (n_rows, n_methods)
-            for col_idx in range(vals_arr.shape[1]):
-                # placeholder for this column
-                font_colors_per_column.append(["black"] * n_rows)
-            for r in range(n_rows):
-                row_vals = vals_arr[r, :]
-                finite_mask = np.isfinite(row_vals)
-                if np.any(finite_mask):
-                    minv = np.min(row_vals[finite_mask])
-                    # mark any method matching min as red
-                    for c in range(row_vals.shape[0]):
-                        if finite_mask[c] and np.isclose(row_vals[c], minv):
-                            # +1 because first column is dataset name
-                            font_colors_per_column[c + 1][r] = "red"
-        else:
-            # non-highlighted metrics: all black
+        metric_base = met_key[6:] if met_key.startswith("total_") else met_key
+        if best_mark:
+            # pick rule
+            if best_by == "auto":
+                criterion = "min" if metric_base in {"mse", "bias2", "var"} else "min"
+            else:
+                criterion = best_by
+
+            data = vals.to_numpy(dtype=float)  # (n_rows, n_methods)
+            # init all method columns as black
             for _ in method_sigs:
                 font_colors_per_column.append(["black"] * n_rows)
-        # --------------------------------------------------------------------
 
-        fig = go.Figure(
-            data=[go.Table(
-                header=dict(values=col_headers, align="left", font=dict(size=12)),
-                cells=dict(values=columns, align="left", font=dict(size=11, color=font_colors_per_column)),
-            )]
-        )
+            for r in range(n_rows):
+                row_vals = data[r, :]
+                finite = np.isfinite(row_vals)
+                if not np.any(finite):
+                    continue
+                target = np.nanmin(row_vals[finite]) if criterion == "min" else np.nanmax(row_vals[finite])
+                is_best = np.isclose(row_vals, target, equal_nan=False)
+                for c, ok in enumerate(is_best):
+                    if ok and finite[c]:
+                        font_colors_per_column[c + 1][r] = best_font_color
+        else:
+            for _ in method_sigs:
+                font_colors_per_column.append(["black"] * n_rows)
+
+        # ----------------- Background fill colors (per-row heatmap) -----------------
+        fill_colors_per_column: list[list[str]] | str = "white"
+        per_row_scales: list[tuple[float, float]] = []  # for colorbars
+
+        def _to_color(v: float, vmin: float, vmax: float) -> float:
+            # normalize to [0,1]
+            if not np.isfinite(v):
+                return np.nan
+            if vmax <= vmin:
+                return 0.5
+            return (v - vmin) / (vmax - vmin)
+
+        if heatmap_cells:
+            tbl_vals = values_df.astype(float).to_numpy(copy=True)  # use raw metric for color scaling
+            if color_scale_mode == "log":
+                with np.errstate(divide="ignore", invalid="ignore"):
+                    tbl_vals = np.log10(tbl_vals)
+
+            # per-row min/max (ignoring non-finite)
+            vmins = np.nanmin(np.where(np.isfinite(tbl_vals), tbl_vals, np.nan), axis=1)
+            vmaxs = np.nanmax(np.where(np.isfinite(tbl_vals), tbl_vals, np.nan), axis=1)
+            per_row_scales = [(vmins[i], vmaxs[i]) for i in range(tbl_vals.shape[0])]
+
+            # prepare fill color matrix: one list per column
+            fill_colors_per_column = []
+            # first column (Dataset names) stays white
+            fill_colors_per_column.append(["white"] * n_rows)
+
+            # Map normalized value → rgba via Plotly colorscale
+            from plotly.colors import get_colorscale
+
+            def _resolve_colorscale(cs_like):
+                """
+                Accept:
+                  • Plotly built-in name (str)
+                  • list of (pos, color) pairs
+                  • list of color strings
+                Return: sorted list of (pos∈[0,1], color_str)
+                """
+                # 1) String name → built-in
+                if isinstance(cs_like, str):
+                    return get_colorscale(cs_like)
+
+                # 2) numpy array → list
+                try:
+                    import numpy as np
+                    if isinstance(cs_like, np.ndarray):
+                        cs_like = cs_like.tolist()
+                except Exception:
+                    pass
+
+                # 3) List/tuple
+                if isinstance(cs_like, (list, tuple)) and cs_like:
+                    first = cs_like[0]
+                    # Already (pos, color) pairs?
+                    if isinstance(first, (list, tuple)) and len(first) == 2 and isinstance(first[0], (int, float)):
+                        out = []
+                        for p, c in cs_like:
+                            p = float(p)
+                            p = 0.0 if p < 0 else (1.0 if p > 1 else p)
+                            out.append((p, str(c)))
+                        out.sort(key=lambda pc: pc[0])
+                        return out
+                    # Plain list of colors → make evenly spaced stops
+                    else:
+                        n = len(cs_like)
+                        if n == 1:
+                            return [(0.0, str(cs_like[0])), (1.0, str(cs_like[0]))]
+                        return [(i / (n - 1), str(c)) for i, c in enumerate(cs_like)]
+
+                # Fallback
+                return get_colorscale("Reds")
+
+            def _parse_color(col: str):
+                """Return (r,g,b,a) with r,g,b in 0..255, a in 0..1."""
+                col = str(col).strip()
+                if col.startswith("#"):
+                    # hex #RGB, #RRGGBB
+                    h = col[1:]
+                    if len(h) == 3:
+                        r, g, b = [int(ch * 2, 16) for ch in h]
+                    else:
+                        r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+                    return (r, g, b, 1.0)
+                if col.lower().startswith("rgba"):
+                    nums = col[col.find("(") + 1:col.find(")")].split(",")
+                    r, g, b = int(float(nums[0])), int(float(nums[1])), int(float(nums[2]))
+                    a = float(nums[3])
+                    return (r, g, b, a)
+                if col.lower().startswith("rgb"):
+                    nums = col[col.find("(") + 1:col.find(")")].split(",")
+                    r, g, b = int(float(nums[0])), int(float(nums[1])), int(float(nums[2]))
+                    return (r, g, b, 1.0)
+                # Last resort: ask Plotly to name-resolve via a tiny colorscale sample
+                # (works for 'red', 'orange', etc.) – build a 2-stop scale and take end
+                try:
+                    cs_tmp = get_colorscale([(0.0, col), (1.0, col)])
+                except Exception:
+                    cs_tmp = [(0.0, "#000000"), (1.0, "#000000")]
+                # recurse on the normalized color string
+                return _parse_color(cs_tmp[-1][1])
+
+            def _lerp(a, b, t):
+                return a + (b - a) * t
+
+            def _interp_color_from_stops(stops, x: float) -> str:
+                """stops: list[(pos, color_str)], x in [0,1] → 'rgba(r,g,b,a)'"""
+                import math
+                if not math.isfinite(x):
+                    return nan_fill_color
+                x = float(max(0.0, min(1.0, x)))
+                # find segment
+                for i in range(len(stops) - 1):
+                    p0, c0 = stops[i]
+                    p1, c1 = stops[i + 1]
+                    if x >= p0 and x <= p1:
+                        t = 0.0 if p1 == p0 else (x - p0) / (p1 - p0)
+                        r0, g0, b0, a0 = _parse_color(c0)
+                        r1, g1, b1, a1 = _parse_color(c1)
+                        r = int(round(_lerp(r0, r1, t)))
+                        g = int(round(_lerp(g0, g1, t)))
+                        b = int(round(_lerp(b0, b1, t)))
+                        a = _lerp(a0, a1, t)
+                        return f"rgba({r},{g},{b},{a:.3f})"
+                # x beyond last stop
+                r, g, b, a = _parse_color(stops[-1][1])
+                return f"rgba({r},{g},{b},{a:.3f})"
+
+            cs = _resolve_colorscale(heatmap_colorscale)
+
+            def _interp_color(x: float) -> str:
+                return _interp_color_from_stops(cs, x)
+
+            for c in range(tbl_vals.shape[1]):
+                col_fill = []
+                for r in range(tbl_vals.shape[0]):
+                    v = tbl_vals[r, c]
+                    vmin, vmax = per_row_scales[r]
+                    if not np.isfinite(v):
+                        col_fill.append(nan_fill_color)
+                    else:
+                        x = _to_color(v, vmin, vmax)
+                        col_fill.append(_interp_color(x))
+                fill_colors_per_column.append(col_fill)
 
         # ------- Dynamic size so nothing gets cropped -------
-        def _lines(s: str) -> int:
-            return 1 + str(s).count("<br>") + str(s).count("\n") if s is not None else 1
-
         header_lines = max((_lines(h) for h in col_headers), default=1)
         row_lines = [max((_lines(c) for c in row), default=1) for row in cell_matrix]
-
         hmax = max((len(h) for h in col_headers), default=1)/10
 
         HEADER_LINE_PX = 28
         ROW_LINE_PX    = 26
-        TOP_PX, BOT_PX = 50, 14
+        TOP_PX, BOT_PX = 30, 0
         SIDE_PX        = 10
-        hmax_PX = 10
+        hmax_PX        = 10
 
-        h = TOP_PX + header_lines * HEADER_LINE_PX + sum(max(1, n) * ROW_LINE_PX for n in row_lines) + BOT_PX + hmax_PX * hmax
+        # compute base table size
+        table_h = TOP_PX + header_lines * HEADER_LINE_PX + sum(max(1, n) * ROW_LINE_PX for n in row_lines) + BOT_PX + hmax_PX * hmax
         n_methods = max(0, len(col_headers) - 1)
-        w = 260 + 160 * n_methods  # simple, roomy width
+        table_w = 260 + 160 * n_methods
+
+        # extra width for row colorbars (if enabled)
+        extra_w = 0
+        if heatmap_cells and show_row_colorbars:
+            extra_w = colorbar_gap_px + colorbar_len_px
+
+        fig_w = int(table_w + extra_w + SIDE_PX*2)
+        fig_h = int(table_h)
+
+        # Reserve a right strip for the bars (inside the plotting area, not margins)
+        plot_area_w_px = fig_w - SIDE_PX - max(SIDE_PX, colorbar_gap_px)  # left + right margins
+        reserve_px = (colorbar_gap_px + colorbar_len_px) if (heatmap_cells and show_row_colorbars) else 0
+        reserve_frac = min(0.5, max(0.0, reserve_px / max(1, plot_area_w_px))) if (heatmap_cells and show_row_colorbars) else 0  # fraction of plot area
+        table_domain_right = 1.0 - reserve_frac
+
+        HEADER_BLUE = "paleturquoise"  # column headers
+        ROW_HEADER_BLUE = "aliceblue"
+
+        header_height_px = HEADER_LINE_PX * header_lines
+
+        fig = go.Figure(
+            data=[go.Table(
+                header=dict(values=col_headers, align="left", font=dict(size=12), height=header_height_px, line=dict(color="darkgrey", width=1)), #,fill_color=HEADER_BLUE
+                cells=dict(
+                    values=columns,
+                    align="left",
+                    font=dict(size=11, color=font_colors_per_column),
+                    line=dict(color="darkgrey", width=1),
+                    fill_color=([ [ROW_HEADER_BLUE] * n_rows ] + fill_colors_per_column[1:]) if isinstance(fill_colors_per_column, list)
+                   else [ [ROW_HEADER_BLUE] * n_rows ] + [fill_colors_per_column]*(len(col_headers)-1),
+                    height=ROW_LINE_PX,  # <-- uniform row height; critical for alignment
+                ),
+                domain=dict(x=[0.0, table_domain_right], y=[0.0, 1.0]),  # <-- leaves a strip on the right
+            )]
+        )
 
         title_txt = (", ".join([p for p in (title_prefix, f'Optimized for: {metric_label}') if p])) if title_prefix else f'Optimized for: {metric_label}'
-        fig.update_layout(title=title_txt, margin=dict(l=SIDE_PX, r=SIDE_PX, t=TOP_PX, b=BOT_PX),
-                          width=int(w), height=int(h))
-        # ----------------------------------------------------
+        fig.update_layout(
+            title=title_txt,
+            margin=dict(l=SIDE_PX, r=max(SIDE_PX, colorbar_gap_px), t=TOP_PX, b=BOT_PX),
+            width=fig_w,
+            height=fig_h,
+            plot_bgcolor="white",
+            paper_bgcolor="white",
+        )
+        fig.update_xaxes(visible=False, showgrid=True, zeroline=False, showticklabels=False, fixedrange=True, gridcolor="darkgrey", gridwidth=1)
+        fig.update_yaxes(visible=False, showgrid=True, zeroline=False, showticklabels=False, fixedrange=True, gridcolor="darkgrey", gridwidth=1)
 
+        # ----------------- Per-row horizontal colorbars (right side) -----------------
+        # ----------------- Per-row horizontal colorbars (right side) -----------------
+        # ----------------- Per-row horizontal colorbars (right side) -----------------
+        if heatmap_cells and show_row_colorbars and per_row_scales:
+            # Row midpoints in paper coords using UNIFORM row height
+            row_mid_y_papers = []
+            for r in range(len(datasets)):
+                # absolute pixels from top of full figure to the row r midpoint
+                mid_global_px = TOP_PX + header_height_px + r * ROW_LINE_PX + (ROW_LINE_PX / 2.0)
+                y_paper = 1.0 - (mid_global_px / fig_h)  # paper uses 0..1 from bottom
+                row_mid_y_papers.append(float(np.clip(y_paper, 0.0, 1.0)))
+
+            # Left edge of the table domain in paper coords
+            left_pad_frac = SIDE_PX / fig_w
+            right_pad_frac = max(SIDE_PX, colorbar_gap_px) / fig_w
+            plot_area_frac = 1.0 - left_pad_frac - right_pad_frac
+
+            table_right_paper = left_pad_frac + table_domain_right * plot_area_frac
+
+            # Bar placement: start immediately after the table with a pixel gap
+            x_left_paper = table_right_paper + (colorbar_gap_px / fig_w)
+
+            # Bar length in pixels (exact), thickness in px
+            bar_len_px = max(20, colorbar_len_px)  # a small minimum looks better
+
+            # --- Better ticks (denser), log-aware
+            def _bar_ticks(vmin_z: float, vmax_z: float, mode: str, max_ticks: int = 9):
+                if mode == "log":
+                    lo, hi = float(vmin_z), float(vmax_z)  # z is already log10 for log mode
+                    if not np.isfinite(lo) or not np.isfinite(hi):
+                        return None, None, None, None
+                    if hi <= lo:
+                        hi = lo + 1e-12
+                    e0, e1 = np.floor(lo), np.ceil(hi)
+                    span = e1 - e0
+                    # try decade ticks; if narrow, include 2 and 5 within each decade
+                    if span <= 3:
+                        # decade + minor (2,5) ticks
+                        exps = np.arange(e0, e1 + 1e-9, 1.0)
+                        tickvals = []
+                        ticktext = []
+                        for e in exps:
+                            for m in [1, 2, 5]:
+                                v = np.log10(m) + e
+                                if v >= lo - 1e-9 and v <= hi + 1e-9:
+                                    tickvals.append(float(v))
+                                    ticktext.append(f"{m * 10 ** e:.3g}")
+                        return tickvals, ticktext, None, "array"
+                    else:
+                        step = max(1.0, np.ceil(span / (max(3, max_ticks - 1))))
+                        exps = np.arange(e0, e1 + 1e-9, step)
+                        tickvals = list(exps.astype(float))
+                        ticktext = [f"{np.power(10.0, e):.3g}" for e in exps]
+                        return tickvals, ticktext, None, "array"
+                else:
+                    # linear: let Plotly choose but nudge it for density & compact labels
+                    return None, None, "g", "auto"
+
+            for r, (vmin_col, vmax_col) in enumerate(per_row_scales):
+                if not (np.isfinite(vmin_col) and np.isfinite(vmax_col)):
+                    continue
+                if vmax_col <= vmin_col:
+                    vmax_col = vmin_col + 1e-12
+
+                # z-domain matches how you colored cells: log uses log10, linear uses raw
+                if color_scale_mode == "log":
+                    vmin_z, vmax_z = vmin_col, vmax_col  # already log10
+                else:
+                    vmin_z, vmax_z = vmin_col, vmax_col
+
+                tickvals, ticktext, tickformat, tickmode = _bar_ticks(vmin_z, vmax_z, color_scale_mode, max_ticks=9)
+
+                fig.add_trace(go.Heatmap(
+                    z=[[vmin_z, vmax_z]],
+                    zmin=vmin_z, zmax=vmax_z,
+                    colorscale=heatmap_colorscale,
+                    showscale=True,
+                    opacity=1e-6,  # keep colorbar in static export
+                    hoverinfo="skip",
+                    colorbar=dict(
+                        orientation="h",
+                        x=x_left_paper,  # right after the table
+                        xanchor="left",
+                        y=row_mid_y_papers[r],
+                        yanchor="middle",
+                        lenmode="pixels",  # <-- exact pixel length
+                        len=bar_len_px,
+                        thickness=colorbar_thickness_px,
+                        outlinewidth=0,
+                        tickmode=tickmode,
+                        tickvals=tickvals,
+                        ticktext=ticktext,
+                        tickformat=tickformat,
+                        tickfont=dict(size=9),  # smaller labels to avoid overlap
+                        ticks="outside",
+                        title=dict(text="", side="top"),
+                    ),
+                ))
+
+        # ----------------- Save -----------------
         if save:
             outdir = pathlib.Path(outdir)
             outdir.mkdir(parents=True, exist_ok=True)
             out_path = outdir / f"{save_prefix}_{met_key}_{mode}.{export_format}"
-            img = fig.to_image(format=export_format, engine="kaleido", width=int(w), height=int(h), scale=1)
+            img = fig.to_image(format=export_format, engine="kaleido", width=fig_w, height=fig_h, scale=1)
             out_path.write_bytes(img)
 
         figs[met_key] = fig
 
     return figs
+
+reds_bright = truncate_and_stretch("Reds", cut_top=0.33)
 
 def plot_table_best_of_sweep(
     experiments,
@@ -1059,10 +1508,22 @@ def plot_table_best_of_sweep(
     font_size: int = 10,
     cell_pad: float = 0.4,
     header_pad: float = 0.6,
-    max_chars = 16
+    max_chars = 16,
+    best_mark: bool = True,
+    best_font_color: str = "green",
+    best_by: Literal["min","max","auto"] = "min",
+    heatmap_cells: bool = True,
+    heatmap_colorscale: str | list = reds_bright,   # large -> red, small -> blue by default
+    color_scale_mode: Literal["linear","log"] = "log",
+    nan_fill_color: str = "rgba(240,240,240,0.8)",
+    show_row_colorbars: bool = False,
+    colorbar_len_px: int = 70,
+    colorbar_gap_px: int = 7,
+    colorbar_thickness_px: int = 8,
+    savedf=False
 ):
     import dataframe_image as dfi
-    results = result_extraction(experiments, sweep_params, metric_keys=None)
+    results = result_extraction(experiments, sweep_params, metric_keys=None, directory=outdir, save=savedf)
     estimator_name = experiments[0].estimator_name
     plot_tables_from_results(
     results = results,
@@ -1076,6 +1537,17 @@ def plot_table_best_of_sweep(
     export_format = export_format,
     save_prefix = save_prefix,
     outdir = outdir,
+    best_mark = best_mark,
+    best_font_color = best_font_color,
+    best_by = best_by,
+    heatmap_cells = heatmap_cells,
+    heatmap_colorscale = heatmap_colorscale,  # large -> red, small -> blue by default
+    color_scale_mode = color_scale_mode,
+    nan_fill_color = nan_fill_color,
+    show_row_colorbars = show_row_colorbars,
+    colorbar_len_px = colorbar_len_px,
+    colorbar_gap_px = colorbar_gap_px,
+    colorbar_thickness_px = colorbar_thickness_px,
     )
     #font_size = font_size,
     #cell_pad= cell_pad,

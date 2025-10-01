@@ -10,7 +10,7 @@ from LIDBagging.RunningEstimators.BaseEstimators import *
 def simple_bagging_skdim(estimator, Q, X, n_bags=10, k=10, sampling_rate=None,
                          progress_bar=False, estimators=None, estimator_names=None,
                          paralell_estimation=False, w=None, indexuse=None, pre_smooth=False,
-                         geo=None, post_smooth=False, seed=42, smooth_style='code1'):
+                         geo=None, post_smooth=False, seed=42, smooth_style='code2'):
     rand_gen = np.random.RandomState(seed)
     def compute_distance_matrix(X):
         return squareform(pdist(X))
@@ -139,7 +139,7 @@ def simple_bagging_skdim(estimator, Q, X, n_bags=10, k=10, sampling_rate=None,
 
 def simple_bagging_LIDkit(estimator, Q, X, n_bags=10, k=10, sampling_rate=None, progress_bar=False,
                          estimators=None, estimator_names=None, paralell_estimation=False, w=None,
-                         indexuse=None, pre_smooth=False, geo=None, post_smooth=False, log_level = "INFO", seed = 42):
+                         indexuse=None, pre_smooth=False, geo=None, post_smooth=False, log_level = "INFO", seed=42):
     n = Q.shape[0]
     LIDkit_estimator = NumpyBaggingLIDEstimator(k=k, num_bags = n_bags, samples_per_bag=np.ceil(sampling_rate*n).astype(int), log_level=log_level)
     if (len(estimator_names) == 1) and (estimator_names[0] == 'mle') and (estimator is None):
