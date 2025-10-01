@@ -380,7 +380,6 @@ def outofbag_weighted_inside_bagging_skdim(estimator, Q, X, n_bags=10, k=10, sam
 
     n, m = Q.shape[0], Q.shape[1]
     distances = compute_distance_matrix(X)
-    #sorted_distances, sorted_indices = precompute_sorted_distances(distances)
     bags, split_indices, out_of_bag_indices = sample_or_split_data_with_indices(X, n_bags=n_bags, sampling_rate=sampling_rate)
     estimator_dictionary = {estimator_names[i]: estimators[i] for i in range(len(estimator_names))}
     estimate_dictionary = {estimator_names[i]: np.zeros((n, n_bags)) for i in range(len(estimator_names))}
@@ -389,8 +388,6 @@ def outofbag_weighted_inside_bagging_skdim(estimator, Q, X, n_bags=10, k=10, sam
         smallest_distances, smallest_indices = k_smallest_distance_Q(distances=distances, indices=split_indices[j],
                                                                      k=k)
         bag_ws = smallest_distances[:, -1]
-        #out_of_bag_smallest_distances, out_of_bag_smallest_indices = k_smallest_distance_Q(distances=distances, indices=out_of_bag_indices[j],
-        #                                                             k=k, w=bag_ws)
         for key in estimator_dictionary:
             estimate_dictionary[key][:, j] = \
             estimator_dictionary[key](X=X, dists=smallest_distances, knnidx=smallest_indices, k=k, smooth=pre_smooth, geo=geo)[0]
@@ -624,9 +621,6 @@ def outofbag_weighted_bagging_LIDkit(estimator, Q, X, n_bags=10, k=10, sampling_
         return bagging_estimators_dictionary, avg_bagging_estimator_dictionary
 
     n = Q.shape[0]
-    #estimator_dictionary = {estimator_names[i]: estimators[i] for i in range(len(estimator_names))}
-    #estimate_dictionary = {estimator_names[i]: np.zeros((n, n_bags)) for i in range(len(estimator_names))}
-    #out_of_bag_estimate_dictionary = {estimator_names[i]: np.zeros((n, n_bags)) for i in range(len(estimator_names))}
     LIDkit_estimator = NumpyBaggingLIDEstimator(k=k, num_bags=n_bags, samples_per_bag=np.ceil(sampling_rate * n).astype(int))
     if use_w == 'n':
         if (len(estimator_names) == 1) and (estimator_names[0] == 'mle') and (estimator is None):

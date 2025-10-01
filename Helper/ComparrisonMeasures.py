@@ -57,9 +57,6 @@ def add_spatial_subset(data_set, estimates, bounds, log_comparrison=False):
                 bounds_mask[i] = False
     spatial_subset = {name: [estimates[bounds_mask], data_set[1][bounds_mask]]}
     subset_data = [data_set[0][bounds_mask], data_set[1][bounds_mask], data_set[2], data_set[3][bounds_mask]]
-    #import matplotlib.pyplot as plt
-    #plt.scatter(subset_data[0][:,0], subset_data[0][:,1], marker = '.')
-    #plt.savefig('test2.pdf', bbox_inches="tight")
     total_mse, total_bias2, total_var, subset_subset_measures, subset_subsets = true_data_comparrison_measures(subset_data, estimates[bounds_mask], log_comparrison=log_comparrison)
     spatial_subset_measures = {name: [np.mean(spatial_subset[name][0]), total_mse, total_bias2, total_var, subset_subset_measures, subset_subsets]}
     return spatial_subset_measures, spatial_subset

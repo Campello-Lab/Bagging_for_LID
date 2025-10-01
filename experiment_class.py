@@ -5,11 +5,11 @@ from LIDBagging.Helper.ComparrisonMeasures import *
 #from LIDBagging.RunningEstimators.BaseEstimators import *
 from LIDBagging.RunningEstimators.Collecting import *
 from LIDBagging.RunningEstimators.Running import *
-from LIDBagging.Plotting.new_plots import *
+from cleaning_bin.OLD_Code.new_plots import *
 #from LIDBagging.Plotting.Plots.K_plots import *
 #from LIDBagging.Plotting.Plots.BarPlots import *
-from LIDBagging.Plotting.Plots.KNN_Graph import *
-from LIDBagging.Plotting.Plots.LocalPlot import *
+from cleaning_bin.oldplots.KNN_Graph import *
+from cleaning_bin.oldplots.LocalPlot import *
 #from LIDBagging.Plotting.Plots.SpiderCharts import *
 from LIDBagging.Datasets.Uniform_Generator import *
 import itertools
@@ -26,6 +26,7 @@ def save_dict(data, directory, filename):
 def load_dict(filepath):
     with open(filepath, 'rb') as f:
         return pickle.load(f)
+
 def expand_param_dict(param_dict):
     def to_iterable(value):
         if isinstance(value, (str, bytes)):
@@ -34,6 +35,7 @@ def expand_param_dict(param_dict):
     keys = list(param_dict)
     values = [to_iterable(param_dict[k]) for k in keys]
     return [dict(zip(keys, combo)) for combo in itertools.product(*values)]
+
 def expand_param_dicts(param_dicts):
     if isinstance(param_dicts, list):
         param_dicts = param_dicts

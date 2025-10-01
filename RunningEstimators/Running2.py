@@ -14,14 +14,14 @@ from itertools import repeat
 from tqdm import tqdm
 ##############################################################################################################################################################
 def save_results2(results, directory, save_name):
-    os.makedirs(directory, exist_ok=True)  # Ensure directory exists
-    filepath = os.path.join(directory, save_name)  # Create full path
+    os.makedirs(directory, exist_ok=True)
+    filepath = os.path.join(directory, save_name)
     with open(filepath, "wb") as fh:
         pickle.dump(results, fh, protocol=pickle.HIGHEST_PROTOCOL)
 
 def load_results2(directory, save_name):
-    os.makedirs(directory, exist_ok=True)  # Ensure directory exists
-    filepath = os.path.join(directory, save_name)  # Create full path
+    os.makedirs(directory, exist_ok=True)
+    filepath = os.path.join(directory, save_name)
     with open(filepath, "rb") as fh:
         print(fh)
         results = pickle.load(fh)
@@ -46,17 +46,13 @@ def _run_star(args):
 def run_several_experiments_multiprocess(params_lists, worker_count=None, load=False, use_LIDkit=False, use_Ricardo=False, directory=r"C:\pkls"):
     if worker_count is None:
         worker_count = mp.cpu_count()
-
     tasks = zip(params_lists, repeat(load), repeat(use_LIDkit), repeat(use_Ricardo), repeat(directory))
-
     with mp.Pool(worker_count) as pool:
         results_iter = pool.imap_unordered(_run_star, tasks)
-
         results = list(tqdm(results_iter,
                             total=len(params_lists),
                             desc="running experiments",
                             unit="exp"))
-
     return results
 
 def run_several_experiments_sequential(params_lists, load=False, use_LIDkit=False, use_Ricardo=False, directory=r"C:\pkls"):

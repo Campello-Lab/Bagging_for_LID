@@ -1,28 +1,14 @@
 from __future__ import annotations
-
-"""Heat‑map visualisation of baseline–vs‑bagging differences for LID experiments.
-
-* Revised 2025‑06‑03 to **reuse a single baseline** whenever the varying
-  parameters are `sr`, `Nbag`, or `t`, which do **not** influence the
-  baseline estimator.  Baseline lookup is keyed only by parameters that *do*
-  matter to the baseline (`n`, `k`, `lid`, `dim`).
-
-* Adds `reverse_x`/`reverse_y` to flip either axis.
-"""
-
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Sequence, Tuple, Union, Mapping
-
 import matplotlib.pyplot as plt
 import numpy as np
+from LIDBagging.Plotting.plotting_helpers import *
 
-# ────────────────────────────────────────────────────────────────────────
-# helpers
-# ────────────────────────────────────────────────────────────────────────
-_NUMERIC_PARAMS = {"n", "k", "sr", "Nbag", "lid", "dim", "t"}
-_BASELINE_PARAMS = {"n", "k", "lid", "dim"}            # affect baseline
-_BOOL_STR_PARAMS = {
+_NUMERIC_PARAMS = {"n", "k", "sr", "Nbag", "lid", "dim", "t"} # class parameters that can change for bagged estimators
+_BASELINE_PARAMS = {"n", "k", "lid", "dim"}            # class parameters that can change for baseline estimator
+_BOOL_STR_PARAMS = { #these are not changable class parameters for this interaction plot
     "pre_smooth",
     "post_smooth",
     "estimator_name",
@@ -31,35 +17,6 @@ _BOOL_STR_PARAMS = {
     "submethod_error",
 }
 _ALL_PARAMS = _NUMERIC_PARAMS | _BOOL_STR_PARAMS
-
-
-def _auto_grid(n: int) -> tuple[int, int]:
-    if n <= 0:
-        raise ValueError("n must be positive")
-    cols = int(np.floor(np.sqrt(n))) or 1
-    rows = int(np.ceil(n / cols))
-    while rows < cols:
-        cols -= 1
-        rows = int(np.ceil(n / cols))
-    return rows, cols
-
-
-def _auto_fontsize(figsize: tuple[float, float], base: int | float | None) -> float:
-    return float(base) if base is not None else max(6.0, 0.9 * min(figsize) + 2)
-
-
-def _fmt_val(p: str, v: Any) -> str:
-    if v is None:
-        return "None"
-    if p in {"sr", "t"}:
-        return f"{float(v):.3f}"
-    if p in {"n", "k", "Nbag", "lid", "dim"}:
-        return str(int(v))
-    return str(v)
-
-# ────────────────────────────────────────────────────────────────────────
-# main plotting routine
-# ────────────────────────────────────────────────────────────────────────
 
 def plot_experiment_heatmaps(
     experiments: Sequence[Any],
@@ -81,10 +38,11 @@ def plot_experiment_heatmaps(
     log=False,
     type='difference',
     inlog = False,
+    fig_title = None
 ):
-    """Draw baseline‑vs‑bagged metric differences as 2‑D heat‑maps."""
+    """Draw baseline‑vs‑bagged metric differences as 2‑D heat‑maps, where the two axes represent varying parameters."""
 
-    # sanity ---------------------------------------------------------
+    #sanity check ---------------------------------------------------------
     if x_param == y_param:
         raise ValueError("x_param and y_param must differ")
     for p in (x_param, y_param):
@@ -94,20 +52,21 @@ def plot_experiment_heatmaps(
     if not experiments:
         raise ValueError("experiments list is empty")
 
-    # bucket by dataset ---------------------------------------------
+    #separate experiments based on dataset ---------------------------------------------------------
     ds_runs: dict[str, list[Any]] = defaultdict(list)
     for e in experiments:
         ds_runs[e.dataset_name].append(e)
 
-    # figure‑level title --------------------------------------------
-    fixed_global = {}
-    for p in _ALL_PARAMS - {x_param, y_param, "bagging_method", "dataset_name"}:
-        vals = {getattr(e, p) for e in experiments}
-        if len(vals) == 1:
-            fixed_global[p] = vals.pop()
-    fig_title = " | ".join(f"{k}:{_fmt_val(k,v)}" for k, v in fixed_global.items())
+    #Figure out the global title that explains all the used parameters, unless a title is provided --------------------------------------------
+    if fig_title is None:
+        fixed_global = {}
+        for p in _ALL_PARAMS - {x_param, y_param, "bagging_method", "dataset_name"}:
+            vals = {getattr(e, p) for e in experiments}
+            if len(vals) == 1:
+                fixed_global[p] = vals.pop()
+        fig_title = " | ".join(f"{k}:{_fmt_val(k,v)}" for k, v in fixed_global.items())
 
-    # layout & fonts -------------------------------------------------
+    #automatically set up the layout, fonts -------------------------------------------------
     rows, cols = _auto_grid(len(ds_runs)) if grid and len(ds_runs) > 1 else (len(ds_runs), 1)
     if figsize is None:
         figsize = (4 * cols, 3.5 * rows)
@@ -122,8 +81,9 @@ def plot_experiment_heatmaps(
     save_dir = Path(save_dir)
     save_dir.mkdir(parents=True, exist_ok=True)
 
-    key_to_label = {"mse": "MSE", "bias2": "Bias²", "var": "Variance"}
+    key_to_label = {"mse": "MSE", "bias2": "Bias²", "var": "Variance"} #Mapping from metric to their label
 
+    # we do this plot separately for the 3 metrics: MSE, Bias² and Variance
     for met_key in metrics:
         if met_key not in key_to_label:
             raise ValueError(f"Unknown metric '{met_key}'")
@@ -137,31 +97,34 @@ def plot_experiment_heatmaps(
 
             for ax, (ds_name, runs) in zip(axes, sorted(ds_runs.items())):
 
-                # baseline lookup keyed by params that affect baseline
+                # we separate baseline and bagged experiments, because later we will need to compare them
                 baseline_lookup: dict[tuple, Any] = {}
                 bagged_list = []
                 for r in runs:
-                    base_key = tuple(getattr(r, p) for p in _BASELINE_PARAMS)
-                    if r.bagging_method is None:
-                        baseline_lookup[base_key] = r
+                    base_key = tuple(getattr(r, p) for p in _BASELINE_PARAMS) #extract individual experiment params
+                    if r.bagging_method is None: # if it's an experiment with the baseline estimator
+                        baseline_lookup[base_key] = r #we save the experiment here, together with the relevant params in this dictionary
                     else:
-                        bagged_list.append(r)
+                        bagged_list.append(r) #othrwise we save it in the bagged experiment list
 
-                xs_sorted = sorted({getattr(r, x_param) for r in bagged_list})
-                ys_sorted = sorted({getattr(r, y_param) for r in bagged_list})
+                xs_sorted = sorted({getattr(r, x_param) for r in bagged_list}) #extract the relevant bagged experiment params x axis, sort them using the natural ordering of these params (usually increasing numbers)
+                ys_sorted = sorted({getattr(r, y_param) for r in bagged_list}) #extract the relevant bagged experiment params y axis, sort them using the natural ordering of these params (usually increasing numbers)
+                #Sometimes we want to have them in decreasing or increasing order
                 if reverse_x:
                     xs_sorted = xs_sorted[::-1]
                 if reverse_y:
                     ys_sorted = ys_sorted[::-1]
                 xs_map = {v: i for i, v in enumerate(xs_sorted)}
                 ys_map = {v: i for i, v in enumerate(ys_sorted)}
-                data = np.full((len(ys_sorted), len(xs_sorted)), np.nan)
+                data = np.full((len(ys_sorted), len(xs_sorted)), np.nan) #Would be function values for the map of 2d parameter value combinations
 
+                #now we're ready to figure out the 2 function's values to build the color map
                 for r in bagged_list:
                     base_key = tuple(getattr(r, p) for p in _BASELINE_PARAMS)
                     base_run = baseline_lookup.get(base_key)
                     if base_run is None:
                         continue  # no baseline → leave NaN
+                    #A lot of decisions based on function settings on how to measure difference, if we even want to measure difference. We can also just build a heatmap from the bagged or baseline results individually.
                     if inlog:
                         if log:
                             if type == 'difference':
@@ -194,8 +157,9 @@ def plot_experiment_heatmaps(
                                 diff = getattr(r, f"total_{met_key}")
                     xi = xs_map[getattr(r, x_param)]
                     yi = ys_map[getattr(r, y_param)]
-                    data[yi, xi] = diff
+                    data[yi, xi] = diff #fill up the function values
 
+                #setup colormap style
                 vmax = np.nanmax(np.abs(data)) or 1.0
                 if type == 'difference' or log:
                     im = ax.imshow(data, cmap=cmap, vmin=-vmax, vmax=vmax, origin="lower")

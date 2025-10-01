@@ -1,29 +1,14 @@
-"""Plotting utilities for LID experiments.
-
-This canvas now contains three helpers:
-
-1. `_auto_grid` and `_auto_fontsize` – shared low‑level utilities
-2. `plot_experiment_mse_bars`      – stacked Bias²/Var bars vs. any parameter
-3. `plot_experiment_metric_curves` – *new* function‑plot version (one line per
-   method signature, three separate PDFs)
-
-The older bar and k‑plot versions were removed here to keep the file concise.
-(Feel free to copy them back if you still need them.)
-"""
 from __future__ import annotations
-
 import math
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Mapping, Sequence, Tuple, Union
-
 import matplotlib.pyplot as plt
 import numpy as np
+from LIDBagging.Plotting.plotting_helpers import *
+from LIDBagging.Plotting.naming_helpers import *
 
-# ────────────────────────────────────────────────────────────────────────
-# shared helpers
-# ────────────────────────────────────────────────────────────────────────
-
+#define the variable class parameter, for which this function can sweep over results
 _NUMERIC_PARAMS = {"n", "k", "sr", "Nbag", "lid", "dim", "t"}
 _BOOL_OR_STR_PARAMS = {
     "pre_smooth",
@@ -35,74 +20,8 @@ _BOOL_OR_STR_PARAMS = {
 }
 _ALL_PARAMS = _NUMERIC_PARAMS | _BOOL_OR_STR_PARAMS
 
-
-def _auto_grid(n: int) -> tuple[int, int]:
-    """Return (rows, cols) for a near‑square grid with rows ≥ cols."""
-    if n <= 0:
-        raise ValueError("n must be positive")
-    cols = max(1, int(math.floor(math.sqrt(n))))
-    rows = int(math.ceil(n / cols))
-    while rows < cols:
-        cols -= 1
-        rows = int(math.ceil(n / cols))
-    return rows, cols
-
-
-def _auto_fontsize(figsize: tuple[float, float], base: int | float | None) -> float:
-    return float(base) if base is not None else max(6.0, 0.9 * min(figsize) + 2)
-
-
-def _format_val(param: str, val: Any) -> str:
-    """Pretty formatting of parameter values for labels/titles."""
-    if param in {"sr", "t"}:
-        return f"{float(val):.3f}"
-    if param in {"n", "k", "Nbag", "lid", "dim"}:
-        return str(int(val))
-    return str(val)
-
-
-# ────────────────────────────────────────────────────────────────────────
-# 1. stacked bars helper from previous step (kept for context)
-# ────────────────────────────────────────────────────────────────────────
-# … removed for brevity …
-
-# ────────────────────────────────────────────────────────────────────────
-# 2. NEW: metric‑vs‑parameter line plots
-# ────────────────────────────────────────────────────────────────────────
-
-def unordered_lookup(query, original_map = None, sep= '|'):
-    if original_map is None:
-        original_map = {
-    'bagging_method:bag | pre_smooth:False | post_smooth:False': 'Simple bagging',
-    'bagging_method:bag | pre_smooth:False | post_smooth:True': 'Simple bagging with pre-smoothing',
-    'bagging_method:bag | pre_smooth:True | post_smooth:False': 'Simple bagging with post-smoothing',
-    'bagging_method:bag | pre_smooth:True | post_smooth:True': 'Simple bagging with pre-smoothing and post-smoothing',
-    'bagging_method:None | pre_smooth:False | post_smooth:False': 'Baseline',
-    'bagging_method:None | pre_smooth:False | post_smooth:True': 'Baseline with smoothing'}
-    def build_canonical_map(original: dict[str, str], sep: str = '|') -> dict[tuple[str, ...], str]:
-        return {
-            tuple(sorted(part.strip() for part in key.split(sep))): value
-            for key, value in original.items()
-        }
-    canonical_map = build_canonical_map(original_map)
-    signature = tuple(sorted(part.strip() for part in query.split(sep)))
-    return canonical_map.get(signature)
-
-def modify_label(label):
-    if label == 'bagging_method:bag':
-        label = 'Simple bagging'
-    elif label == 'bagging_method:bagw':
-        label = 'Bagging with out-of-bag weights'
-    elif label == 'bagging_method:bagwth':
-        label = 'Bagging with out-of-bag weights (adjust)'
-    elif label == 'bagging_method:None':
-        label = 'Baseline'
-    else:
-        label = unordered_lookup(label)
-    return label
-
 def plot_experiment_metric_curves(
-    experiments: Sequence[Any],  # list[ LID_experiment ]
+    experiments: Sequence[Any],
     *,
     vary_param: str | None = None,
     log: bool = False,
@@ -116,7 +35,7 @@ def plot_experiment_metric_curves(
     show: bool = False,
     xscale='log'
 ):
-    """Plot total MSE / Bias² / Variance vs. *vary_param* for each dataset.
+    """Plot total MSE / Bias² / Variance on the y-axis for *vary_param* on the x-axis, for each dataset.
 
     Produces **three** files: ``<save_name>_mse.pdf``, ``…_bias2.pdf``, ``…_var.pdf``.
     Each subplot shows one dataset, with one curve per *method signature*.
@@ -155,7 +74,7 @@ def plot_experiment_metric_curves(
         vals = {getattr(e, p) for e in experiments}
         if len(vals) == 1:
             fixed_global[p] = vals.pop()
-    fig_title = " | ".join(f"{k}:{_format_val(k, v)}" for k, v in fixed_global.items())
+    fig_title = " | ".join(f"{k}:{_fmt_val(k, v)}" for k, v in fixed_global.items())
 
     # ── helper to generate subplot curves ───────────────────────────
     def _signature(exp: Any) -> tuple[tuple[str, Any], ...]:
@@ -214,7 +133,7 @@ def plot_experiment_metric_curves(
                     ys = [getattr(r, f"total_{met_key}") for r in runs]
                     if log:
                         ys = [np.log10(y) for y in ys]
-                    label = " | ".join(f"{p}:{_format_val(p, v)}" for p, v in sig if p in diff_params) or "default"
+                    label = " | ".join(f"{p}:{_fmt_val(p, v)}" for p, v in sig if p in diff_params) or "default"
                     label = modify_label(label)
                     ax.plot(
                         xs,
@@ -237,7 +156,7 @@ def plot_experiment_metric_curves(
                 tick_lbls = []
                 for idx, val in enumerate(xs_all):
                     show = idx == 0 or idx == len(xs_all) - 1 or idx % label_every == 0
-                    tick_lbls.append(_format_val(vary_param, val) if show else "")
+                    tick_lbls.append(_fmt_val(vary_param, val) if show else "")
                 ax.set_xticklabels(tick_lbls)
                 ax.set_xlabel(vary_param)
                 ax.set_ylabel("log₁₀(" + met_label + ")" if log else met_label)
