@@ -1,10 +1,5 @@
-from scipy.spatial.distance import pdist, squareform
-from tqdm import tqdm
-import numpy as np
 ###################################################OWN IMPORT###################################################
-from LIDBagging.RunningEstimators.BaggingSmoothing.Smoothing import smoothing
 from LIDKit.core._experimental.bagging.numpy import *
-from LID_Bagging_and_Bayesian_Incomplete import *
 from LIDBagging.RunningEstimators.BaseEstimators import *
 ##############################################################################################################################################################################################################################################################
 def simple_bagging_skdim(estimator, Q, X, n_bags=10, k=10, sampling_rate=None,

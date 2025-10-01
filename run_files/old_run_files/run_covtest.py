@@ -1,17 +1,5 @@
 ###################################################OWN IMPORT###################################################
-from LIDBagging.Datasets.DatasetGeneration import *
-from LIDBagging.Helper.Other import *
-from LIDBagging.Helper.ComparrisonMeasures import *
-from LIDBagging.RunningEstimators.BaseEstimators import *
-from LIDBagging.RunningEstimators.Collecting import *
-from LIDBagging.RunningEstimators.Running import *
-from LIDBagging.Plotting.new_plots import *
-from LIDBagging.Plotting.Plots.K_plots import *
-from LIDBagging.Plotting.Plots.BarPlots import *
-from LIDBagging.Plotting.Plots.KNN_Graph import *
-from LIDBagging.Plotting.Plots.LocalPlot import *
-from LIDBagging.Plotting.Plots.SpiderCharts import *
-from LIDBagging.Theory_testing.bag_covariance import *
+from cleaning_bin.random_things.Theory_testing.bag_covariance import *
 ################################################################################################################
 if __name__ == "__main__":
     param_list1 = [0.04*(i+1) for i in range(22)]

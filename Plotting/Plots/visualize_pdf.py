@@ -393,6 +393,11 @@ if __name__ == "__main__":
     r"C:\Users\User\PycharmProjects\LID\LIDBagging2\interactive_datasets\roll.html",
     r"C:\Users\User\PycharmProjects\LID\LIDBagging2\interactive_datasets\scurve.html"]
 
+    paths2 = [r"C:\Users\krp\OneDrive - Syddansk Universitet\PycharmProjects\LID1\LIDBagging2\LIDBagging\lollipop.html",
+r"C:\Users\krp\OneDrive - Syddansk Universitet\PycharmProjects\LID1\LIDBagging2\LIDBagging\M10_Cubic.html",
+r"C:\Users\krp\OneDrive - Syddansk Universitet\PycharmProjects\LID1\LIDBagging2\LIDBagging\M12_Norm.html",
+r"C:\Users\krp\OneDrive - Syddansk Universitet\PycharmProjects\LID1\LIDBagging2\LIDBagging\uniform_1d.html"]
+
     names = ["data_pdfs/affine3to5.pdf",
     "data_pdfs/helix.pdf",
     "data_pdfs/m1_sphere.pdf",
@@ -403,6 +408,14 @@ if __name__ == "__main__":
     "data_pdfs/nonlinear4to6.pdf",
     "data_pdfs/roll.pdf",
     "data_pdfs/scurve.pdf"]
+
+    names2 = ["data_pdfs/lollipop.pdf",
+              "data_pdfs/M10_Cubic.pdf",
+              "data_pdfs/M12_Norm.pdf",
+              "data_pdfs/uniform_1d.pdf"]
+
+    names = names2
+    paths= paths2
 
     for i in range(len(paths)):
         path = paths[i]

@@ -1,4 +1,3 @@
-import skdim
 from tqdm import tqdm
 import sys
 cloned_folders = [
@@ -7,15 +6,13 @@ cloned_folders = [
 for folder in cloned_folders:
     if folder not in sys.path:
         sys.path.append(folder)
-import numpy as np
 ###################################################OWN IMPORT###################################################
-from LIDBagging.RunningEstimators.BaggingSmoothing.Smoothing import smoothing
 from LIDBagging.RunningEstimators.RewrittenRawEstimators.TLE import *
 from LIDBagging.RunningEstimators.RewrittenRawEstimators.MADA import *
 from LIDBagging.RunningEstimators.RewrittenRawEstimators.ESS import *
 from LIDBagging.RunningEstimators.RewrittenRawEstimators.TwoNN import *
 from LIDKit.core.estimators.numpy.tle import *
-from LID_Bagging_and_Bayesian_Incomplete import *
+from cleaning_bin.random_things.LID_Bagging_and_Bayesian_Incomplete import *
 ###############################################################################################################################BASE ESTIMATORS###############################################################################################################################
 
 def k_smallest_nonzero_0(x, k):

@@ -627,7 +627,7 @@ def outofbag_weighted_bagging_LIDkit(estimator, Q, X, n_bags=10, k=10, sampling_
     #estimator_dictionary = {estimator_names[i]: estimators[i] for i in range(len(estimator_names))}
     #estimate_dictionary = {estimator_names[i]: np.zeros((n, n_bags)) for i in range(len(estimator_names))}
     #out_of_bag_estimate_dictionary = {estimator_names[i]: np.zeros((n, n_bags)) for i in range(len(estimator_names))}
-    LIDkit_estimator = NumpyBaggingLIDEstimator(k=k, num_bags=n_bags, samples_per_bag=int(sampling_rate * n))
+    LIDkit_estimator = NumpyBaggingLIDEstimator(k=k, num_bags=n_bags, samples_per_bag=np.ceil(sampling_rate * n).astype(int))
     if use_w == 'n':
         if (len(estimator_names) == 1) and (estimator_names[0] == 'mle') and (estimator is None):
             estimates_per_bag_out_of_bag = {estimator_names[i]: LIDkit_estimator.per_bag_and_out_of_bag_estimate(query_points=Q, reference=X, pooling_method = 'linear', loss_function = 'quadratic') for i in range(len(estimator_names))}

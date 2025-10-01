@@ -1,9 +1,8 @@
 ###################################################OWN IMPORT###################################################
-from LIDBagging.RunningEstimators.BaseEstimators import *
 from LIDBagging.RunningEstimators.BaggingSmoothing.SimpleBagging import *
 from LIDBagging.RunningEstimators.BaggingSmoothing.WeightedBagging import *
 from LIDKit.core.estimators.numpy.faiss import LIDEstimatorFaissNumpy
-from LID_Bagging_and_Bayesian_Incomplete import *
+from cleaning_bin.random_things.LID_Bagging_and_Bayesian_Incomplete import *
 ###############################################################################################################################COLLECTING ESTIMATORS###############################################################################################################################
 def sk_estimators(X, k = 10, correct = True, estimator_names=None, smooth=False, geo=None):
     dists, knnidx = skdim._commonfuncs.get_nn(X, k=k, n_jobs=1)
