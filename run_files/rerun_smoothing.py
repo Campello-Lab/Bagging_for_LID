@@ -221,6 +221,7 @@ if __name__ == "__main__":
 
     ####################################################################################TrueExpStarts####################################################xx
 
+
     results_data = new_result_generator(param_dicts_data, multiprocess=False, load=True, load_data=True,
                                         worker_count=None,
                                         save_name='data_generation',
@@ -230,7 +231,7 @@ if __name__ == "__main__":
     # SMOOTHING
     #################################
 
-    results_mle = new_result_generator(param_dicts_mle, multiprocess=True, load=False, load_data=True, worker_count=5,
+    results_mle = new_result_generator(param_dicts_mle, multiprocess=True, load=True, load_data=True, worker_count=7,
                                      save_name='skdim_radar_chart_k_sr_mle_smooth',
                                      directory=directory)
 
@@ -241,7 +242,7 @@ if __name__ == "__main__":
     plot_table_best_of_sweep(results_mle, sweep_params=['k', 'sr'], mode="combined", normalize_data=False, log=False,
                              metric_label_map=None, save_prefix="skdim_table_best_mle_smooth")
 
-    results_mada = new_result_generator(param_dicts_mada, multiprocess=True, load=False, load_data=True, worker_count=5,
+    results_mada = new_result_generator(param_dicts_mada, multiprocess=True, load=True, load_data=True, worker_count=7,
                                      save_name='skdim_radar_chart_k_sr_mada_smooth',
                                      directory=directory)
 
@@ -252,16 +253,53 @@ if __name__ == "__main__":
     plot_table_best_of_sweep(results_mada, sweep_params=['k', 'sr'], mode="combined", normalize_data=False, log=False,
                              metric_label_map=None, save_prefix="skdim_table_best_mada_smooth")
 
-    results_tle = new_result_generator(param_dicts_tle, multiprocess=True, load=False, load_data=True, worker_count=5,
+    results_tle = new_result_generator(param_dicts_tle, multiprocess=True, load=True, load_data=True, worker_count=7,
                                        save_name='skdim_radar_chart_k_sr_tle_smooth',
                                        directory=directory)
 
     plot_radar_best_of_sweep(results_tle, sweep_params=['k', 'sr'], normalize_data=True, log=False, save=True,
                              save_prefix="skdim_radar_best_tle_smooth", height_per_row=450, width_per_col=450,
-                             verbose=False)
+                              verbose=False)
 
     plot_table_best_of_sweep(results_tle, sweep_params=['k', 'sr'], mode="combined", normalize_data=False, log=False,
                              metric_label_map=None, save_prefix="skdim_table_best_tle_smooth")
+
+    #Weighted Variants
+
+    print('Smoothing Done, Starting Weighted Variants')
+
+    results_mle = new_result_generator(param_dicts_mle, multiprocess=True, load=True, load_data=True, worker_count=7,
+                                     save_name='skdim_radar_chart_k_sr_mle',
+                                     directory=directory)
+
+    plot_radar_best_of_sweep(results_mle, sweep_params=['k', 'sr'], normalize_data=True, log=False, save=True,
+                             save_prefix="skdim_radar_best_mle", height_per_row=450, width_per_col=450,
+                             verbose=False)
+
+    plot_table_best_of_sweep(results_mle, sweep_params=['k', 'sr'], mode="combined", normalize_data=False, log=False,
+                             metric_label_map=None, save_prefix="skdim_table_best_mle")
+
+    results_tle = new_result_generator(param_dicts_tle, multiprocess=True, load=True, load_data=True, worker_count=7,
+                                       save_name='skdim_radar_chart_k_sr_tle',
+                                       directory=directory)
+
+    plot_radar_best_of_sweep(results_tle, sweep_params=['k', 'sr'], normalize_data=True, log=False, save=True,
+                             save_prefix="skdim_radar_best_tle", height_per_row=450, width_per_col=450,
+                              verbose=False)
+
+    plot_table_best_of_sweep(results_tle, sweep_params=['k', 'sr'], mode="combined", normalize_data=False, log=False,
+                             metric_label_map=None, save_prefix="skdim_table_best_tle")
+
+    results_mada = new_result_generator(param_dicts_mada, multiprocess=True, load=False, load_data=True, worker_count=5,
+                                     save_name='skdim_radar_chart_k_sr_mada',
+                                     directory=directory)
+
+    plot_radar_best_of_sweep(results_mada, sweep_params=['k', 'sr'], normalize_data=True, log=False, save=True,
+                             save_prefix="skdim_radar_best_mada", height_per_row=450, width_per_col=450,
+                             verbose=False)
+
+    plot_table_best_of_sweep(results_mada, sweep_params=['k', 'sr'], mode="combined", normalize_data=False, log=False,
+                             metric_label_map=None, save_prefix="skdim_table_best_mada")
 
     # Plotting
     #################################
