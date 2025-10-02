@@ -1,18 +1,13 @@
-import pandas as pd
+import multiprocessing as mp
+from itertools import repeat
 from tqdm import tqdm
-import multiprocessing
-import pickle
-import os
+import logging, traceback
 ###################################################OWN IMPORT###################################################
 from LIDBagging.RunningEstimators.Collecting import fast_skdim_estimators
 from LIDBagging.Helper.ComparrisonMeasures import get_lollipop_comparrison_measures
 #from LIDBagging.Datasets.DatasetGeneration import get_datasets
 from LIDBagging.experiment_class import *
 ###############################################################################################################################RUNNING ESTIMATORS###################################
-import multiprocessing as mp
-from itertools import repeat
-from tqdm import tqdm
-##############################################################################################################################################################
 def save_results2(results, directory, save_name):
     os.makedirs(directory, exist_ok=True)
     filepath = os.path.join(directory, save_name)
@@ -41,18 +36,39 @@ def run_experiment2(params, load=False, use_LIDkit=False, use_Ricardo=False, dir
     return experiment
 
 def _run_star(args):
-    return run_experiment2(*args)
+    try:
+        exp = run_experiment2(*args)
+        return {"ok": True, "value": exp}
+    except Exception:
+        return {"ok": False, "traceback": traceback.format_exc()}
 
-def run_several_experiments_multiprocess(params_lists, worker_count=None, load=False, use_LIDkit=False, use_Ricardo=False, directory=r"C:\pkls"):
+def run_several_experiments_multiprocess(
+    params_lists,
+    worker_count=None,
+    load=False,
+    use_LIDkit=False,
+    use_Ricardo=False,
+    directory=r"C:\pkls",
+):
     if worker_count is None:
         worker_count = mp.cpu_count()
     tasks = zip(params_lists, repeat(load), repeat(use_LIDkit), repeat(use_Ricardo), repeat(directory))
+    results = []
+    failures = 0
     with mp.Pool(worker_count) as pool:
-        results_iter = pool.imap_unordered(_run_star, tasks)
-        results = list(tqdm(results_iter,
-                            total=len(params_lists),
-                            desc="running experiments",
-                            unit="exp"))
+        for res in tqdm(
+            pool.imap_unordered(_run_star, tasks),
+            total=len(params_lists),
+            desc="running experiments",
+            unit="exp",
+        ):
+            if res["ok"]:
+                results.append(res["value"])
+            else:
+                failures += 1
+                print(f"[ERROR] experiment failed ({failures} so far). See log for traceback.")
+                logging.error("Experiment failed with traceback:\n%s", res["traceback"])
+    logging.info("Completed %d/%d experiments (failed: %d).", len(results), len(params_lists), failures)
     return results
 
 def run_several_experiments_sequential(params_lists, load=False, use_LIDkit=False, use_Ricardo=False, directory=r"C:\pkls"):
@@ -73,6 +89,20 @@ def new_result_generator(param_dicts, multiprocess=False, load=False, load_data=
     else:
         results = load_results2(directory=directory, save_name=save_name)
     return results
+
+def general_result_generator(param_dicts_dict, multiprocess=False, load=False, load_data=False, worker_count=None, save_name='res', use_LIDkit=False, use_Ricardo=False, directory=r'C:\Users\User\PycharmProjects\pythonProject3\LIDstuff\saved_results\pkls2'):
+    results_dict = {}
+    for key, value in param_dicts_dict.items():
+        result = new_result_generator(value, multiprocess=multiprocess, load=load, load_data=load_data, worker_count=worker_count,
+                             save_name=f'{save_name}_{key}', use_LIDkit=use_LIDkit, use_Ricardo=use_Ricardo,
+                             directory=directory)
+        results_dict[f'{save_name}_{key}'] = result
+    return results_dict
+
+def plotting_across_results_dict(results_dict, plotting_function, **kwargs):
+    for key, value in results_dict.items():
+        plotting_function(experiments=value, save_prefix=key, **kwargs)
+
 
 
 

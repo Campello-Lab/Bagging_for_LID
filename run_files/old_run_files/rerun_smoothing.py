@@ -5,11 +5,7 @@ import sys, os
 #PROJECT_ROOT = Path(r"C:\Users\krp\OneDrive - Syddansk Universitet\PycharmProjects\LID1\LIDBagging2")
 
 PROJECT_ROOT = Path(r"C:\Users\User\PycharmProjects\LID\LIDBagging2")
-
-# Optional: make it the current working directory (helps with relative file paths)
 os.chdir(PROJECT_ROOT)
-
-# Ensure it's first on the Python import search path
 p = str(PROJECT_ROOT)
 if p not in sys.path:
     sys.path.insert(0, p)
@@ -18,9 +14,9 @@ if p not in sys.path:
 from LIDBagging.Plotting.Plots.SpiderCharts import *
 from LIDBagging.RunningEstimators.Running2 import *
 ######################################################################################################################################################################
-import os, structlog
-_devnull = open(os.devnull, "w")
-structlog.configure(logger_factory=structlog.PrintLoggerFactory(file=_devnull))
+#import os, structlog
+#_devnull = open(os.devnull, "w")
+#structlog.configure(logger_factory=structlog.PrintLoggerFactory(file=_devnull))
 
 if __name__ == "__main__":
     #directory = r'C:\Users\krp\OneDrive - Syddansk Universitet\PycharmProjects\LID1\LIDBagging2\pkls'
