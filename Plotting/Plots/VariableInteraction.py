@@ -31,7 +31,7 @@ def plot_experiment_heatmaps(
     figsize: tuple[float, float] | None = None,
     base_fontsize: int | float | None = None,
     cmap: str = "bwr",
-    save_name: str = "heat",
+    save_prefix: str = "heat",
     save_dir: str | Path = "./plots",
     formats: Tuple[str, ...] = ("pdf",),
     show: bool = False,
@@ -225,7 +225,7 @@ def plot_experiment_heatmaps(
             else:
                 inlogsavename = ''
             for fmt in formats:
-                out = save_dir / f"{save_name}_{met_key}_{type}{logsavename}{inlogsavename}.{fmt}"
+                out = save_dir / f"{save_prefix}_{met_key}_{type}{logsavename}{inlogsavename}.{fmt}"
                 fig.savefig(out, bbox_inches="tight")
                 print(f"[SAVED] {out}")
             if show:

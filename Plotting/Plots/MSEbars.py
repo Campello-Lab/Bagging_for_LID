@@ -23,7 +23,7 @@ def plot_experiment_mse_bars(
     base_fontsize: int | float | None = None,
     colors: Tuple[str, str] = ("tab:green", "tab:red"),
     label_every: int = 1,
-    save_name: str = "exp_mse_bar_plot",
+    save_prefix: str = "exp_mse_bar_plot",
     save_dir: str | Path = "./plots",
     formats: Tuple[str, ...] = ("pdf",),
     show: bool = False,
@@ -146,7 +146,7 @@ def plot_experiment_mse_bars(
         fig.suptitle(f'{title}')
         fig.tight_layout()
         for fmt in formats:
-            out = save_dir / f"{save_name}.{fmt}"
+            out = save_dir / f"{save_prefix}.{fmt}"
             fig.savefig(out, bbox_inches="tight")
             print(f"[SAVED] {out}")
         if show:

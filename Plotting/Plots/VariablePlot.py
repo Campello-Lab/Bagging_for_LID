@@ -29,7 +29,7 @@ def plot_experiment_metric_curves(
     grid: bool = True,
     figsize: tuple[float, float] | None = None,
     base_fontsize: int | float | None = None,
-    save_name: str = "exp_metric_plot",
+    save_prefix: str = "exp_metric_plot",
     save_dir: str | Path = "./plots",
     formats: tuple[str, ...] = ("pdf",),
     show: bool = False,
@@ -169,7 +169,7 @@ def plot_experiment_metric_curves(
             fig.tight_layout()
 
             for fmt in formats:
-                out = save_dir / f"{save_name}_{met_key}.{fmt}"
+                out = save_dir / f"{save_prefix}_{met_key}.{fmt}"
                 fig.savefig(out, bbox_inches="tight")
                 print(f"[SAVED] {out}")
             if show:

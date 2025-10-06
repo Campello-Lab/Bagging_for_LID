@@ -29,7 +29,7 @@ def plot_radar_from_results(
     save: bool = True,
     export_format: str = "pdf",
     save_prefix: str = "radar_best",
-    outdir: Path | str = "./plots",
+    save_dir: Path | str = "./plots",
     fill: bool = True,
     height_per_row: int = 450,
     width_per_col: int = 450,
@@ -44,65 +44,43 @@ def plot_radar_from_results(
     _fmt_val     = globals().get("_fmt_val", lambda k, v: f"{v}")
     _normalize   = globals().get("_normalize", lambda x: x)
     modify_label = globals().get("modify_label", lambda s: s)
-
     def pretty_metric_name(key: str) -> str:
         if metric_label_map and key in metric_label_map:
             return metric_label_map[key]
         base = key[6:] if key.startswith("total_") else key
         return {"mse": "MSE", "bias2": "Bias²", "var": "Variance"}.get(base, base.upper())
-
     colour_cycle = px.colors.qualitative.Plotly
-
-    # We'll render one figure per metric key
     for met_key, (params_df, values_df) in results.items():
         if not isinstance(values_df, pd.DataFrame) or not isinstance(params_df, pd.DataFrame):
             raise TypeError(f"results['{met_key}'] must be a (params_df, values_df) pair of DataFrames.")
-
-        # Align shapes (defensive)
         if not values_df.index.equals(params_df.index) or not values_df.columns.equals(params_df.columns):
             raise ValueError(f"Index/columns mismatch for '{met_key}' between params_df and values_df.")
-
-        datasets = list(values_df.index)             # theta order
-        method_sigs = list(values_df.columns)        # one trace per method
-
-        # Figure out which params actually differ across methods (for labels)
+        datasets = list(values_df.index)
+        method_sigs = list(values_df.columns)
         diff_params: set[str] = set()
         if len(method_sigs) > 1:
-            # all columns are tuples like ((p1,v1),(p2,v2),...)
-            # assume ordering is consistent (as produced by sorted_experiments)
             for idx in range(len(method_sigs[0])):
                 pname = method_sigs[0][idx][0]
                 uniq_vals = {sig[idx][1] for sig in method_sigs}
                 if len(uniq_vals) > 1:
                     diff_params.add(pname)
-
-        # Prepare numeric values
         vals = values_df.astype(float).copy()
-
-        # Optional log10 (apply before normalization, like the original)
         if log:
             with np.errstate(divide="ignore", invalid="ignore"):
                 vals = np.log10(vals.astype(float))
-        # Optional per-dataset normalization (row-wise)
         if normalize_data:
             for ds in vals.index:
                 vals.loc[ds] = _normalize(vals.loc[ds].to_numpy(dtype=float))
-
-        # Build Plotly figure
         fig = go.Figure()
         radial_range = [-inner_radius, 1] if normalize_data else None
 
         for idx, sig in enumerate(method_sigs):
-            # Legend label from differing params only
             label = " | ".join(f"{k}:{_fmt_val(k, v)}" for k, v in sig if k in diff_params) or "default"
             label = modify_label(label)
 
             colour = colour_cycle[idx % len(colour_cycle)]
             r, g, b = [int(c) for c in px.colors.hex_to_rgb(colour)]
-
-            # Each trace is the method’s values across datasets
             r_vals = vals.iloc[:, idx].to_list()
-            # Close the polar loop
             fig.add_trace(go.Scatterpolar(
                 r=r_vals + [r_vals[0] if len(r_vals) else None],
                 theta=datasets + [datasets[0]] if datasets else [],
@@ -122,12 +100,9 @@ def plot_radar_from_results(
                         print(f"   {ds}: MISSING")
                     else:
                         print(f"   {ds}: metric={v:.4g}, params={p}")
-
-        # Title
         est_txt = _fmt_val("estimator_name", estimator_name.upper()) if (estimator_name and hasattr(estimator_name, "upper")) else (estimator_name or "")
         met_label = pretty_metric_name(met_key)
         title_txt = f"{met_label}" + (f" | Estimator:{est_txt}" if est_txt else "")
-
         fig.update_layout(
             title=dict(text=title_txt, x=0.5, y=0.95),
             template="plotly_white",
@@ -140,10 +115,9 @@ def plot_radar_from_results(
             legend=dict(orientation="h", x=0.5, y=-0.15, xanchor="center"),
             margin=dict(t=80, b=100, l=80, r=80),
         )
-
         if save:
-            Path(outdir).mkdir(parents=True, exist_ok=True)
-            out_path = Path(outdir) / f"{save_prefix}_{met_key}.{export_format}"
+            Path(save_dir).mkdir(parents=True, exist_ok=True)
+            out_path = Path(save_dir) / f"{save_prefix}_{met_key}.{export_format}"
             img = fig.to_image(format=export_format, engine="kaleido",
                                width=width_per_col, height=height_per_row)
             out_path.write_bytes(img)
@@ -161,7 +135,7 @@ def plot_radar_best_of_sweep(
     save: bool = True,
     export_format: str = "pdf",
     save_prefix: str = "radar_best",
-    outdir: Path | str = "./plots",
+    save_dir: Path | str = "./plots",
     fill: bool = True,
     height_per_row: int = 450,
     width_per_col: int = 450,
@@ -175,7 +149,7 @@ def plot_radar_best_of_sweep(
     save=save,
     export_format=export_format,
     save_prefix=save_prefix,
-    outdir=outdir,
+    save_dir=save_dir,
     fill=fill,
     height_per_row=height_per_row,
     width_per_col=width_per_col,
