@@ -138,13 +138,13 @@ def plot_experiment_mse_bars(
                 else:  # vary_param == "sr"
                     sort_key = (float("+inf"), "baseline")  # rightmost
                     x_val_for_label = label
-
-                data_by_ds[ds_name].append({
-                    "x_val": x_val_for_label,
-                    "sort_key": sort_key,
-                    "bias2": _get(chosen_base, "total_bias2"),
-                    "var": _get(chosen_base, "total_var"),
-                })
+                if np.array([_get(e, 'sr')!=1 for e in variants]).all():
+                    data_by_ds[ds_name].append({
+                        "x_val": x_val_for_label,
+                        "sort_key": sort_key,
+                        "bias2": _get(chosen_base, "total_bias2"),
+                        "var": _get(chosen_base, "total_var"),
+                    })
 
         else:
             # Not varying Nbag/sr: include ALL baselines, ignore their sr/Nbag for labeling
@@ -181,7 +181,11 @@ def plot_experiment_mse_bars(
     if figsize is None:
         figsize = (4 * n_cols, 3 * n_rows)
     if title is None:
-        title = "MSE decompositions for estimator: " + str(experiments[0].estimator_name).upper()
+        if vary_param == 'sr':
+            paranname = 'sampling rate'
+        elif vary_param == 'Nbag':
+            paranname = 'number of bags'
+        title = f"MSE decompositions for changing {paranname}. \nBaseline Estimator: {_get(experiments[0],'estimator_name').upper()}"
     if xlabel is None:
         xlabel = f"{vary_param}"
     bfs = auto_fontsize(figsize, base_fontsize)

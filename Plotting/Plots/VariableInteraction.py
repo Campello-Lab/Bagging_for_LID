@@ -72,9 +72,9 @@ def plot_experiment_heatmaps(
         figsize = (4 * cols, 3.5 * rows)
     bfs = auto_fontsize(figsize, base_fontsize)
     rc = {
-        "axes.titlesize": bfs * 1.4,
-        "axes.labelsize": bfs * 1.3,
-        "xtick.labelsize": bfs * 1.1,
+        "axes.titlesize": bfs * 1.8,
+        "axes.labelsize": bfs * 1.6,
+        "xtick.labelsize": bfs * 1,
         "ytick.labelsize": bfs * 1.2,
     }
 
@@ -214,7 +214,7 @@ def plot_experiment_heatmaps(
                             cbar.ax.set_ylabel(f"{met_label}\nbagged")
 
             if fig_title:
-                fig.suptitle(fig_title, y=1.02, fontsize=bfs * 1.15)
+                fig.suptitle(fig_title, y=1.02, fontsize=bfs * 3)
             fig.tight_layout()
             if log:
                 logsavename = '_log'

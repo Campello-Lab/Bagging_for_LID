@@ -1,21 +1,7 @@
 #-----------------------------------------------------------------------------------------------------------------------
 #External imports
-from pathlib import Path
-import sys, os
-from functools import partial
-import gc
-import matplotlib.pyplot as plt
 #-----------------------------------------------------------------------------------------------------------------------
 #Internal imports
-from LIDBagging.Plotting.Plots.SpiderCharts import *
-from LIDBagging.Plotting.Plots.Tables import *
-from LIDBagging.Plotting.Plots.VariablePlot import *
-from LIDBagging.Plotting.Plots.VariableInteraction import *
-from LIDBagging.Plotting.Plots.MSEbars import *
-from LIDBagging.RunningEstimators.Running2 import *
-from LIDBagging.run_files.geom_prog import *
-from LIDBagging.run_files.parameter_combinations import *
-from LIDBagging.run_files.error_safe_running import *
 from LIDBagging.run_files.final_tasks import *
 #-----------------------------------------------------------------------------------------------------------------------
 #Setup directories

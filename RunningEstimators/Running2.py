@@ -93,15 +93,9 @@ def new_result_generator(param_dicts, multiprocess=False, load=False, load_data=
 def general_result_generator(param_dicts_dict, multiprocess=False, load=False, load_data=False, worker_count=None, save_name='res', use_LIDkit=False, use_Ricardo=False, directory=r'C:\Users\User\PycharmProjects\pythonProject3\LIDstuff\saved_results\pkls2'):
     results_dict = {}
     for key, value in param_dicts_dict.items():
-        if key == 'interaction_sr_k_heatmap_test_mle_variable':
-            result = new_result_generator(value, multiprocess=multiprocess, load=True, load_data=load_data, worker_count=worker_count,
-                                 save_name=f'{save_name}_{key}', use_LIDkit=use_LIDkit, use_Ricardo=use_Ricardo,
-                                 directory=directory)
-            print('success')
-        else:
-            result = new_result_generator(value, multiprocess=multiprocess, load=load, load_data=load_data, worker_count=worker_count,
-                                 save_name=f'{save_name}_{key}', use_LIDkit=use_LIDkit, use_Ricardo=use_Ricardo,
-                                 directory=directory)
+        result = new_result_generator(value, multiprocess=multiprocess, load=load, load_data=load_data, worker_count=worker_count,
+                             save_name=f'{save_name}_{key}', use_LIDkit=use_LIDkit, use_Ricardo=use_Ricardo,
+                             directory=directory)
         results_dict[f'{save_name}_{key}'] = result
     return results_dict
 

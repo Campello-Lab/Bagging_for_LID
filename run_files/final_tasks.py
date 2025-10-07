@@ -53,25 +53,25 @@ plot_tasks = {
                                         log=False, metric_label_map=None, save_dir="./plots/table")),
     ],
     "Number_of_bags_test": [
-        (plot_experiment_mse_bars, dict(vary_param='Nbag', grid=True, figsize=(8, 8),
-                                        base_fontsize=4, label_every=3, save_dir="./plots/msebar")),
+        (plot_experiment_mse_bars, dict(vary_param='Nbag', grid=True, figsize=(12, 12),
+                                        base_fontsize=6, label_every=1, save_dir="./plots/msebar")),
     ],
     "Sampling_rate_test": [
-        (plot_experiment_mse_bars, dict(vary_param='sr', grid=True, figsize=(8, 8),
-                                        base_fontsize=4, label_every=3, save_dir="./plots/msebar")),
+        (plot_experiment_mse_bars, dict(vary_param='sr', grid=True, figsize=(12, 12),
+                                        base_fontsize=6, label_every=1, save_dir="./plots/msebar")),
     ],
     "Interaction_of_sampling_rate_and_number_of_bags_test": [
         (plot_experiment_heatmaps, dict(x_param='sr', y_param='Nbag', reverse_x=False, reverse_y=False,
                                         metrics=("mse", "bias2", "var"), label_every=1, grid=True,
-                                        figsize=(10, 8), base_fontsize=9, cmap="RdBu",
+                                        figsize=(28, 24), base_fontsize=10, cmap="RdBu",
                                         save_dir="./plots/interaction",
-                                        log=True, type='difference', inlog=False)),
+                                        log=True, type='difference', inlog=False, fig_title='Interaction of sampling rate and number of bags heatmap. \nBaseline Estimator: MLE')),
     ],
-    "Interaction_of_k_and_sampling_rate_and_number_of_bags_test": [
+    "Interaction_of_k_and_sampling_rate_test": [
         (plot_experiment_heatmaps, dict(x_param='sr', y_param='k', reverse_x=False, reverse_y=False,
                                         metrics=("mse", "bias2", "var"), label_every=1, grid=True,
-                                        figsize=(10, 8), base_fontsize=9, cmap="RdBu",
+                                        figsize=(28, 24), base_fontsize=10, cmap="RdBu",
                                         save_dir="./plots/interaction",
-                                        log=True, type='difference', inlog=False)),
+                                        log=True, type='difference', inlog=False, fig_title='Interaction of sampling rate and k heatmap. \nBaseline Estimator: MLE')),
     ],
 }
