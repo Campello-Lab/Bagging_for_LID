@@ -64,13 +64,13 @@ def plot_experiment_heatmaps(
             vals = {getattr(e, p) for e in experiments}
             if len(vals) == 1:
                 fixed_global[p] = vals.pop()
-        fig_title = " | ".join(f"{k}:{_fmt_val(k,v)}" for k, v in fixed_global.items())
+        fig_title = " | ".join(f"{k}:{fmt_val(k,v)}" for k, v in fixed_global.items())
 
     #automatically set up the layout, fonts -------------------------------------------------
-    rows, cols = _auto_grid(len(ds_runs)) if grid and len(ds_runs) > 1 else (len(ds_runs), 1)
+    rows, cols = auto_grid(len(ds_runs)) if grid and len(ds_runs) > 1 else (len(ds_runs), 1)
     if figsize is None:
         figsize = (4 * cols, 3.5 * rows)
-    bfs = _auto_fontsize(figsize, base_fontsize)
+    bfs = auto_fontsize(figsize, base_fontsize)
     rc = {
         "axes.titlesize": bfs * 1.4,
         "axes.labelsize": bfs * 1.3,
@@ -169,12 +169,12 @@ def plot_experiment_heatmaps(
                 # ticks --------------------------------------------------
                 ax.set_xticks(range(len(xs_sorted)))
                 ax.set_xticklabels([
-                    _fmt_val(x_param, v) if (i % label_every == 0 or i in {0, len(xs_sorted)-1}) else ""
+                    fmt_val(x_param, v) if (i % label_every == 0 or i in {0, len(xs_sorted)-1}) else ""
                     for i, v in enumerate(xs_sorted)
                 ], rotation=45, ha="right")
                 ax.set_yticks(range(len(ys_sorted)))
                 ax.set_yticklabels([
-                    _fmt_val(y_param, v) if (i % label_every == 0 or i in {0, len(ys_sorted)-1}) else ""
+                    fmt_val(y_param, v) if (i % label_every == 0 or i in {0, len(ys_sorted)-1}) else ""
                     for i, v in enumerate(ys_sorted)
                 ])
 

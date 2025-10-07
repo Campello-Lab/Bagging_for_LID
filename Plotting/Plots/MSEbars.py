@@ -95,7 +95,7 @@ def plot_experiment_mse_bars(
                     })
 
             ds_names = sorted(data_by_ds)
-            n_rows, n_cols = (_auto_grid(len(ds_names))
+            n_rows, n_cols = (auto_grid(len(ds_names))
                               if grid and len(ds_names) > 1 else (len(ds_names), 1))
 
     #default figsize, fontsize, global title, label for varying parameter we try to automatically set these up well enough
@@ -105,7 +105,7 @@ def plot_experiment_mse_bars(
         title = "MSE decompositions for estimator: " + str(experiments[0].estimator_name).upper()
     if xlabel is None:
         xlabel = f'{vary_param}' # This parameter's name will be put on the x-axis, but only if some other description is not prespecificed
-    bfs = _auto_fontsize(figsize, base_fontsize)
+    bfs = auto_fontsize(figsize, base_fontsize)
     rc = {
         "axes.titlesize": bfs * 1.2,
         "axes.labelsize": bfs,

@@ -4,7 +4,7 @@ from typing import Any
 import numpy as np
 
 #This figures out how to arrange the per dataset subplots so that it's not too wide
-def _auto_grid(n: int) -> tuple[int, int]:
+def auto_grid(n: int) -> tuple[int, int]:
     cols = int(np.floor(np.sqrt(n))) or 1
     rows = int(np.ceil(n / cols))
     while rows < cols:
@@ -13,11 +13,11 @@ def _auto_grid(n: int) -> tuple[int, int]:
     return rows, cols
 
 #Tries to figure out fontsize
-def _auto_fontsize(figsize: tuple[float, float], base: int | float | None) -> float:
+def auto_fontsize(figsize: tuple[float, float], base: int | float | None) -> float:
     return float(base) if base is not None else max(6.0, 0.9 * min(figsize) + 2)
 
 #This is just for different labeling of different varying params (where to cut the decimals)
-def _fmt_val(p: str, v: Any) -> str:
+def fmt_val(p: str, v: Any) -> str:
     if v is None:
         return "None"
     if p in {"sr", "t"}:

@@ -102,7 +102,7 @@ Nbag_test_base_param_dict = {'dataset_name': dataset_name_strings,
                     't': 1}
 
 variable_variants_test_types = ['variable']
-variable_estimator_names = ['mle', 'mada']
+variable_estimator_names = ['mle']
 
 #Sampling rate test (mse bar charts)
 sr_prog_test_base_param_dict = {'dataset_name': dataset_name_strings,

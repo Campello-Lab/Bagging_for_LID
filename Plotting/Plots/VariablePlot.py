@@ -74,7 +74,7 @@ def plot_experiment_metric_curves(
         vals = {getattr(e, p) for e in experiments}
         if len(vals) == 1:
             fixed_global[p] = vals.pop()
-    fig_title = " | ".join(f"{k}:{_fmt_val(k, v)}" for k, v in fixed_global.items())
+    fig_title = " | ".join(f"{k}:{fmt_val(k, v)}" for k, v in fixed_global.items())
 
     # ── helper to generate subplot curves ───────────────────────────
     def _signature(exp: Any) -> tuple[tuple[str, Any], ...]:
@@ -90,10 +90,10 @@ def plot_experiment_metric_curves(
     # ── iterate over metrics ────────────────────────────────────────
     metrics = [("mse", "MSE"), ("bias2", "Bias²"), ("var", "Variance")]
 
-    rows, cols = _auto_grid(len(ds_map)) if grid and len(ds_map) > 1 else (len(ds_map), 1)
+    rows, cols = auto_grid(len(ds_map)) if grid and len(ds_map) > 1 else (len(ds_map), 1)
     if figsize is None:
         figsize = (4 * cols, 3 * rows)
-    bfs = _auto_fontsize(figsize, base_fontsize)
+    bfs = auto_fontsize(figsize, base_fontsize)
     rc = {
         "axes.titlesize": bfs * 1.2,
         "axes.labelsize": bfs,
@@ -133,7 +133,7 @@ def plot_experiment_metric_curves(
                     ys = [getattr(r, f"total_{met_key}") for r in runs]
                     if log:
                         ys = [np.log10(y) for y in ys]
-                    label = " | ".join(f"{p}:{_fmt_val(p, v)}" for p, v in sig if p in diff_params) or "default"
+                    label = " | ".join(f"{p}:{fmt_val(p, v)}" for p, v in sig if p in diff_params) or "default"
                     label = modify_label(label)
                     ax.plot(
                         xs,
@@ -156,7 +156,7 @@ def plot_experiment_metric_curves(
                 tick_lbls = []
                 for idx, val in enumerate(xs_all):
                     show = idx == 0 or idx == len(xs_all) - 1 or idx % label_every == 0
-                    tick_lbls.append(_fmt_val(vary_param, val) if show else "")
+                    tick_lbls.append(fmt_val(vary_param, val) if show else "")
                 ax.set_xticklabels(tick_lbls)
                 ax.set_xlabel(vary_param)
                 ax.set_ylabel("log₁₀(" + met_label + ")" if log else met_label)
