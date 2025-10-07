@@ -245,3 +245,14 @@ def reorder_sorted_experiments(df, order=None, keep_rest=True):
     # 👇 prevent pandas from interpreting the key as a 3D array
     key = pd.Index(ordered + the_rest, dtype=object)
     return df.loc[:, key]
+
+def reassing_placeholder_value(experiments):
+    def _get(exp, attr, default=None):
+        return getattr(exp, attr, default)
+
+    for i in range(len(experiments)):
+        if _get(experiments[i], 'pre_smooth') is None:
+            experiments[i].pre_smooth = False
+        if _get(experiments[i], 'post_smooth') is None:
+            experiments[i].pre_smooth = False
+    return experiments

@@ -139,6 +139,7 @@ def plot_radar_best_of_sweep(
     width_per_col: int = 450,
     verbose: bool = False,
 ):
+    experiments = reassing_placeholder_value(experiments)
     results = result_extraction(experiments, sweep_params, metric_keys=None)
     estimator_name = experiments[0].estimator_name
     plot_radar_from_results(results=results, normalize_data=normalize_data,

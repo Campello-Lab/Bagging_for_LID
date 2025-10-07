@@ -402,6 +402,7 @@ def plot_table_best_of_sweep(
     colorbar_thickness_px: int = 8,
     savedf=False
 ):
+    experiments = reassing_placeholder_value(experiments)
     results = result_extraction(experiments, sweep_params, metric_keys=None, directory=save_dir, save=savedf)
     estimator_name = experiments[0].estimator_name
     plot_tables_from_results(
