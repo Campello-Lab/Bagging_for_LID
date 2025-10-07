@@ -254,5 +254,5 @@ def reassing_placeholder_value(experiments):
         if _get(experiments[i], 'pre_smooth') is None:
             experiments[i].pre_smooth = False
         if _get(experiments[i], 'post_smooth') is None:
-            experiments[i].pre_smooth = False
+            experiments[i].post_smooth = False
     return experiments
