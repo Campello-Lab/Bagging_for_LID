@@ -28,7 +28,7 @@ def normalize(values):
     max_val = np.max(values)
     return [(1 - (x - min_val) / (max_val - min_val)) if max_val != min_val else 0 for x in values]
 
-def _normalize(arr):
+def Normalize(arr):
     a = np.asarray(arr, dtype=float)
     return 1 - (a - a.min()) / (a.max() - a.min()) if a.ptp() else np.zeros_like(a)
 

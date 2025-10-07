@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 from LIDBagging.Plotting.plotting_helpers import *
 from LIDBagging.Plotting.optimize_across_parameter_results import *
 from LIDBagging.Plotting.colormap_helpers import *
+from LIDBagging.Helper.Other import *
 
 #As opposed to the other plotting functions, plot_radar_from_results and plot_tables_from_results does not take all the experiments as input.
 #Instead, only the neceassry data extracted from optimal ones are given to it, which have been determined as such by the helper functions from optimize_across_parameter_results.
@@ -42,9 +43,6 @@ def plot_tables_from_results(
     if mode not in {"combined", "values", "params"}:
         raise ValueError("mode must be one of {'combined','values','params'}")
 
-    _fmt_val     = globals().get("_fmt_val", lambda k, v: f"{v}")
-    _normalize   = globals().get("_normalize", lambda x: x)
-    modify_label = globals().get("modify_label", lambda s: s)
     def pretty_metric_name(key: str) -> str:
         if metric_label_map and key in metric_label_map:
             return metric_label_map[key]
@@ -69,7 +67,7 @@ def plot_tables_from_results(
         col_headers = ["Dataset"]
         for sig in method_sigs:
             if isinstance(sig, tuple):
-                lbl = " | ".join(f"{k}:{_fmt_val(k, v)}" for k, v in sig if k in diff_params) or "default"
+                lbl = " | ".join(f"{k}:{fmt_val(k, v)}" for k, v in sig if k in diff_params) or "default"
                 mod = modify_label(lbl)
                 col_headers.append((mod if mod is not None else str(sig)).replace(" | ", "<br>"))
             else:
@@ -82,7 +80,7 @@ def plot_tables_from_results(
         if normalize_data:
             arr = vals.to_numpy(dtype=float)
             for i in range(arr.shape[0]):
-                arr[i, :] = _normalize(arr[i, :])
+                arr[i, :] = Normalize(arr[i, :])
             vals = pd.DataFrame(arr, index=values_df.index, columns=values_df.columns)
         metric_label = pretty_metric_name(met_key)
         cell_matrix: list[list[str]] = []
@@ -97,9 +95,9 @@ def plot_tables_from_results(
                     if not isinstance(p, dict) or not p:
                         txt = "—"
                     else:
-                        txt = ", ".join(f"{k}:{_fmt_val(k, p[k])}" for k in sorted(p))
+                        txt = ", ".join(f"{k}:{fmt_val(k, p[k])}" for k in sorted(p))
                 else:  # combined
-                    top = ", ".join(f"{k}:{_fmt_val(k, p[k])}" for k in sorted(p)) if isinstance(p, dict) and p else ""
+                    top = ", ".join(f"{k}:{fmt_val(k, p[k])}" for k in sorted(p)) if isinstance(p, dict) and p else ""
                     bot = f"{metric_label}:{float_fmt.format(float(v))}" if (v is not None and np.isfinite(float(v))) else ""
                     txt = f"{top}<br>{bot}" if (top and bot) else (top or bot or "—")
                 row.append(txt)

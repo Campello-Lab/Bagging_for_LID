@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 ###################################################OWN IMPORT###################################################
 from LIDBagging.Plotting.plotting_helpers import *
 from LIDBagging.Plotting.optimize_across_parameter_results import *
+from LIDBagging.Helper.Other import *
 ###############################################################################################################################SPIDER CHARTS###############################################################################################################################
 _NUMERIC_PARAMS = {"n", "k", "sr", "Nbag", "lid", "dim", "t"}
 _DATASET_SPECIFIC = {"dataset_name", "n", "lid", "dim"}
@@ -41,9 +42,6 @@ def plot_radar_from_results(
     Plot radar charts using the output of `result_extraction`.
     """
 
-    _fmt_val     = globals().get("_fmt_val", lambda k, v: f"{v}")
-    _normalize   = globals().get("_normalize", lambda x: x)
-    modify_label = globals().get("modify_label", lambda s: s)
     def pretty_metric_name(key: str) -> str:
         if metric_label_map and key in metric_label_map:
             return metric_label_map[key]
@@ -70,12 +68,12 @@ def plot_radar_from_results(
                 vals = np.log10(vals.astype(float))
         if normalize_data:
             for ds in vals.index:
-                vals.loc[ds] = _normalize(vals.loc[ds].to_numpy(dtype=float))
+                vals.loc[ds] = Normalize(vals.loc[ds].to_numpy(dtype=float))
         fig = go.Figure()
         radial_range = [-inner_radius, 1] if normalize_data else None
 
         for idx, sig in enumerate(method_sigs):
-            label = " | ".join(f"{k}:{_fmt_val(k, v)}" for k, v in sig if k in diff_params) or "default"
+            label = " | ".join(f"{k}:{fmt_val(k, v)}" for k, v in sig if k in diff_params) or "default"
             label = modify_label(label)
 
             colour = colour_cycle[idx % len(colour_cycle)]
@@ -100,7 +98,7 @@ def plot_radar_from_results(
                         print(f"   {ds}: MISSING")
                     else:
                         print(f"   {ds}: metric={v:.4g}, params={p}")
-        est_txt = _fmt_val("estimator_name", estimator_name.upper()) if (estimator_name and hasattr(estimator_name, "upper")) else (estimator_name or "")
+        est_txt = fmt_val("estimator_name", estimator_name.upper()) if (estimator_name and hasattr(estimator_name, "upper")) else (estimator_name or "")
         met_label = pretty_metric_name(met_key)
         title_txt = f"{met_label}" + (f" | Estimator:{est_txt}" if est_txt else "")
         fig.update_layout(

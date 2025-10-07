@@ -221,7 +221,7 @@ def plot_experiment_mse_bars(
             disp_lbl = [lbls if lbls is not None else experiments[0].estimator_name for lbls in disp_lbl] #The none case corresponds to something that generally shouldn't happen, we will just plot the estimator name in this case
             ax.set_xticklabels(disp_lbl, rotation=45, ha="right")
             ax.set_ylabel("MSE") #This plot is fixed to the mse
-            ax.set_xlabel(f"{xlabel}") #
+            ax.set_xlabel(f"{xlabel}", labelpad=0) #
             ax.set_title(f"Data set: {ds}")
             ax.grid(axis="y", linestyle="--", alpha=0.4)
             ax.legend()

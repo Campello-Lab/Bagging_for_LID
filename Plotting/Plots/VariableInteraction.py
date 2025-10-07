@@ -74,7 +74,7 @@ def plot_experiment_heatmaps(
     rc = {
         "axes.titlesize": bfs * 1.8,
         "axes.labelsize": bfs * 1.6,
-        "xtick.labelsize": bfs * 1,
+        "xtick.labelsize": bfs * 0.8,
         "ytick.labelsize": bfs * 1.2,
     }
 

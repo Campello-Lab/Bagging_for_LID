@@ -63,14 +63,14 @@ plot_tasks = {
     "Interaction_of_sampling_rate_and_number_of_bags_test": [
         (plot_experiment_heatmaps, dict(x_param='sr', y_param='Nbag', reverse_x=False, reverse_y=False,
                                         metrics=("mse", "bias2", "var"), label_every=1, grid=True,
-                                        figsize=(28, 24), base_fontsize=10, cmap="RdBu",
+                                        figsize=(25, 25), base_fontsize=10, cmap="RdBu",
                                         save_dir="./plots/interaction",
                                         log=True, type='difference', inlog=False, fig_title='Interaction of sampling rate and number of bags heatmap. \nBaseline Estimator: MLE')),
     ],
     "Interaction_of_k_and_sampling_rate_test": [
         (plot_experiment_heatmaps, dict(x_param='sr', y_param='k', reverse_x=False, reverse_y=False,
                                         metrics=("mse", "bias2", "var"), label_every=1, grid=True,
-                                        figsize=(28, 24), base_fontsize=10, cmap="RdBu",
+                                        figsize=(25, 25), base_fontsize=10, cmap="RdBu",
                                         save_dir="./plots/interaction",
                                         log=True, type='difference', inlog=False, fig_title='Interaction of sampling rate and k heatmap. \nBaseline Estimator: MLE')),
     ],
