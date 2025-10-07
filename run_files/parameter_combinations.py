@@ -45,7 +45,7 @@ def param_dicts_general(base_param_dict, variants_test_types, estimator_names, t
     return param_dicts_dict
 #-----------------------------------------------------------------------------------------------------------------------
 #Just for data generation
-param_dicts_data = {'dataset_name': all,
+param_dicts_data = {'dataset_name': dataset_name_strings,
                     'n': 2500,
                     'lid': None,
                     'dim': None,
@@ -79,6 +79,8 @@ effectiveness_test_base_param_dict = {'dataset_name': dataset_name_strings,
                     't': 1}
 
 effectiveness_variants_test_types = ['weight', 'smooth']
+#effectiveness_variants_test_types = ['weight']
+#effectiveness_estimator_names = ['mle']
 effectiveness_estimator_names = ['mle', 'tle', 'mada']
 
 #Variable tests
@@ -100,7 +102,7 @@ Nbag_test_base_param_dict = {'dataset_name': dataset_name_strings,
                     't': 1}
 
 variable_variants_test_types = ['variable']
-variable_estimator_names = ['mle', 'tle', 'mada']
+variable_estimator_names = ['mle', 'mada']
 
 #Sampling rate test (mse bar charts)
 sr_prog_test_base_param_dict = {'dataset_name': dataset_name_strings,

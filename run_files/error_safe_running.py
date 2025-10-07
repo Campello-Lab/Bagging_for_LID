@@ -1,5 +1,6 @@
 import logging
 import time
+from LIDBagging.RunningEstimators.Running2 import *
 
 def setup_logging(log_file: str = "run.log") -> None:
     logging.basicConfig(
@@ -22,3 +23,8 @@ def run_task_safely(func, *args, **kwargs):
         print(f"[ERROR] {name} failed: {e}")
         logging.exception("Task %s failed with an exception", name)
         return False, None
+
+def consume_and_plot(task_key, result_dict, plot_tasks):
+    for plot_fn, plot_kwargs in plot_tasks.get(task_key, []):
+        plotting_across_results_dict(result_dict, plot_fn, **plot_kwargs)
+        plt.close('all')

@@ -52,6 +52,7 @@ class LID_experiment:
     def __init__(self, n=2500, k=10, sr=0.3, Nbag=10, dataset_name="uniform", lid=2, dim=3, pre_smooth=False,
                  post_smooth=False, t=1, estimator='mle', bagging_method=None, submethod_0=None, submethod_error=None, param_string=None, params=None, set_dim_to_lid=False):
         self.used_params = data_defaults()
+        self.set_dim_to_lid = set_dim_to_lid
         if params is None and param_string is None:
             self.n = n
             self.k = k
@@ -81,7 +82,6 @@ class LID_experiment:
                            'pre_smooth': self.pre_smooth,
                            'post_smooth': self.post_smooth,
                            't': self.t}
-            self.set_dim_to_lid = set_dim_to_lid
         elif params is None and param_string is not None:
             params = self.get_params(param_string)
             self.set_class_vars(params)
