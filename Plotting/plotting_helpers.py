@@ -36,21 +36,3 @@ def isfloat(num):
             return False
     else:
         return False
-
-#hThese handle kaleido for saving figures
-def _write_figure(fig, path, fmt, **size_kw):
-    img_bytes = fig.to_image(format=fmt, engine="kaleido", **size_kw)
-    if not img_bytes:
-        raise RuntimeError("Kaleido returned zero bytes – export aborted.")
-    with open(path, "wb") as fh:
-        fh.write(img_bytes)
-
-def _check_versions():
-    pv = tuple(map(int, _imeta.version("plotly").split(".")[:2]))
-    kv = tuple(map(int, _imeta.version("kaleido").split(".")[:2]))
-    if pv >= (6, 0) and kv < (0, 2):          # Plotly ≥ 6 wants Kaleido ≥ 0.2
-        raise RuntimeError(
-            f"Plotly {pv} requires Kaleido ≥ 0.2.*, "
-            f"but Kaleido {kv} is installed. "
-            "Run  pip install -U 'kaleido>=0.2.1,<1'."
-        )
