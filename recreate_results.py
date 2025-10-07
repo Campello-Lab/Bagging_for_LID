@@ -45,54 +45,22 @@ if __name__ == "__main__":
                                         directory=directory)
     print('Data generation complete')
     # -----------------------------------------------------------------------------------------------------------------------
-    #Run MAIN results
+    #Setup MAIN result generation
 
     #Effectiveness of bagging (baseline, simple bagging, weighted bagging, neighborhood size adjustment)
     #Bagging and smoothing (baseline, baseline with smoothing, simple bagging, simple bagging with pre or/and post smoothing)
-
     #Number of bags test (mse bar charts)
-
     #Sampling rate test (mse bar charts)
-
     #Interaction of sampling rate and number of bags (mse difference heatmaps)
-
     #Interaction of k and sampling rate (mse difference heatmaps)
 
-
-    #task_dict = {"effectiveness_test": effectiveness_test_general_param_dict,
-    #             "Number_of_bags_test": Nbag_test_general_param_dict,
-    #             "Sampling_rate_test": sr_test_general_param_dict,
-    #             "Interaction_of_sampling_rate_and_number_of_bags_test": interaction_sr_Nbag_test_general_param_dict,
-    #             "Interaction_of_k_and_sampling_rate_test": interaction_sr_k_test_general_param_dict}
-    #tasks = setup_tasks(task_dict, multiprocess=multiprocess, load=load, load_data=load_data, worker_count=worker_count, save_name=save_name, directory=directory)
-
-    task_dict = {"Interaction_of_k_and_sampling_rate_test": interaction_sr_k_test_general_param_dict}
+    task_dict = {"effectiveness_test": effectiveness_test_general_param_dict,
+                 "Number_of_bags_test": Nbag_test_general_param_dict,
+                 "Sampling_rate_test": sr_test_general_param_dict,
+                 "Interaction_of_sampling_rate_and_number_of_bags_test": interaction_sr_Nbag_test_general_param_dict,
+                 "Interaction_of_k_and_sampling_rate_test": interaction_sr_k_test_general_param_dict}
     tasks = setup_tasks(task_dict, multiprocess=multiprocess, load=load, load_data=load_data, worker_count=worker_count, save_name=save_name, directory=directory)
 
-    #tasks = [
-    #    ("effectiveness_test",
-    #     partial(general_result_generator, effectiveness_test_general_param_dict, multiprocess=multiprocess, load=load,
-    #                              load_data=load_data, worker_count=worker_count,
-    #                              save_name=save_name, directory=directory), (), {}),
-    #    ("Number_of_bags_test",
-    #     partial(general_result_generator,Nbag_test_general_param_dict, multiprocess=multiprocess, load=load, load_data=load_data, worker_count=worker_count,
-    #                         save_name=save_name, directory=directory), (), {}),
-    #    ("Sampling_rate_test",
-    #     partial(general_result_generator,sr_test_general_param_dict, multiprocess=multiprocess, load=load, load_data=load_data, worker_count=worker_count,
-    #                         save_name=save_name, directory=directory), (), {}),
-    #    ("Interaction_of_sampling_rate_and_number_of_bags_test",
-    #     partial(general_result_generator,interaction_sr_Nbag_test_general_param_dict, multiprocess=multiprocess, load=load, load_data=load_data, worker_count=worker_count,
-    #                         save_name=save_name, directory=directory), (), {}),
-    #    ("Interaction_of_k_and_sampling_rate_and_number_of_bags_test",
-    #     partial(general_result_generator,interaction_sr_k_test_general_param_dict, multiprocess=multiprocess, load=load, load_data=load_data, worker_count=worker_count,
-    #                         save_name=save_name, directory=directory), (), {}),
-    #]
-
-    #tasks = [
-    #    ("Interaction_of_k_and_sampling_rate_and_number_of_bags_test",
-    #     partial(general_result_generator,interaction_sr_k_test_general_param_dict, multiprocess=multiprocess, load=load, load_data=load_data, worker_count=worker_count,
-    #                         save_name=save_name, directory=directory), (), {}),
-    #]
     # -----------------------------------------------------------------------------------------------------------------------
     #Run results and plotting at the same time to save RAM
     for key, func, args, kwargs in tasks:

@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Iterable, Sequence, Tuple, Union, Mapping, Any
 import matplotlib.pyplot as plt
 import numpy as np
+import warnings
 from LIDBagging.Plotting.plotting_helpers import *
 ##############################################################################################################################MSE BAR PLOT#############################
 
@@ -35,11 +36,11 @@ def plot_experiment_mse_bars(
 
     # Sometimes we want to have the baseline before or after the bagged variants for reference.
     # But it's a bit annoying to handle this automatically, so we just redefine it as a bagged experiment, with 1 bag that has a sr of 1, as that would be identical.
-    for experiment in experiments:
-        if experiment.bagging_method == None:
-            experiment.sr = 1
-            experiment.bagging_method = 'bag'
-            experiment.Nbag = int(1)
+    #for experiment in experiments:
+    #    if experiment.bagging_method == None:
+    #        experiment.sr = 1
+    #        experiment.bagging_method = 'bag'
+    #        experiment.Nbag = int(1)
 
     #This is just for different labeling of different varying params (where to cut the decimals)
     if vary_param == 'Nbag':
@@ -48,8 +49,8 @@ def plot_experiment_mse_bars(
         deci = 3
 
     #Selects a class attribute
-    def _get(exp, attr):
-        return getattr(exp, attr, None)
+    def _get(exp, attr, default=None):
+        return getattr(exp, attr, default)
 
     #separate experiments based on dataset
     by_ds: dict[str, list[Any]] = defaultdict(list)
@@ -73,38 +74,116 @@ def plot_experiment_mse_bars(
     elif vary_param not in ALLOWED_PARAMS:
         raise ValueError(f"'{vary_param}' not in allowed parameters: {ALLOWED_PARAMS}")
 
+    #These functions handle the annoying case where the input had multiple baseline experiments (with maybe diffrerent sr or Nbag which are also irrelevant)
+    def _params_consistent(ref, e, ignore: set[str]):
+        for p in (ALLOWED_PARAMS - ignore):
+            ref_val = _get(ref, p)
+            e_val = _get(e, p)
+            if p in {"sr", "Nbag"}:
+                if _get(ref, "bagging_method") is None or _get(e, "bagging_method") is None:
+                    continue
+            if ref_val != e_val:
+                return False, p
+        return True, None
+
+    def _pick_single_baseline(baselines: list[Any]):
+        if not baselines:
+            return None
+        sr1 = [b for b in baselines if _get(b, "sr") == 1]
+        if sr1:
+            return sr1[0]
+        nb1 = [b for b in baselines if _get(b, "Nbag") == 1]
+        if nb1:
+            return nb1[0]
+        return baselines[0]
+
+
     #across all the experiments, we to figure out if other than the (possibly prespecified varying parameter) are the other ones changing (which would invalidate the experimet, as this signals that the input data was wrong)
     #then we extract a more focused data dictionary, which only cares about the numbers necessary for plotting
+    data_by_ds: dict[str, list[dict]] = defaultdict(list)
+
     for ds_name, exps in by_ds.items():
-        ref = exps[0]
-        for e in exps[1:]:
-            for p in ALLOWED_PARAMS - {vary_param}:
-                if _get(e, p) != _get(ref, p):
-                    raise ValueError(f"Dataset '{ds_name}': parameter '{p}' differs while varying '{vary_param}'.")
+        if not exps:
+            continue
 
-            data_by_ds: dict[str, list[dict]] = defaultdict(list)
-            for ds_name, exps in by_ds.items():
-                for exp in exps:
-                    x_val = _get(exp, vary_param)
-                    sort_key = float(x_val) if isinstance(x_val, (int, float)) else str(x_val)
-                    data_by_ds[ds_name].append({
-                        "x_val": x_val,
-                        "sort_key": sort_key,
-                        "bias2": exp.total_bias2,
-                        "var": exp.total_var,
-                    })
+        # pick a non-baseline as reference if possible, else any
+        non_base = [e for e in exps if _get(e, "bagging_method") is not None]
+        ref = non_base[0] if non_base else exps[0]
 
-            ds_names = sorted(data_by_ds)
-            n_rows, n_cols = (auto_grid(len(ds_names))
-                              if grid and len(ds_names) > 1 else (len(ds_names), 1))
+        # validate outside of variable consistency vs reference
+        for e in exps:
+            ok, p_bad = _params_consistent(ref, e, ignore={vary_param})
+            if not ok:
+                warnings.warn(
+                    f"Dataset '{ds_name}': parameter '{p_bad}' differs while varying '{vary_param}'. "
+                    "Proceeding anyway.",
+                    category=UserWarning,
+                    stacklevel=2,
+                )
+                print(f"Warning: Dataset '{ds_name}': parameter '{p_bad}' differs while varying '{vary_param}'. {_get(e, p_bad)} differs from {_get(ref, p_bad)}"
+                    "Proceeding anyway.")
 
+        baselines = [e for e in exps if _get(e, "bagging_method") is None]
+        variants = [e for e in exps if _get(e, "bagging_method") is not None]
+
+        # If varying Nbag or sr: include exactly one baseline (placed leftmost/rightmost)
+        if vary_param in {"Nbag", "sr"}:
+            chosen_base = _pick_single_baseline(baselines)
+            if chosen_base is not None:
+                label = "Baseline"
+                # Force sort position via sentinel sort_key
+                if vary_param == "Nbag":
+                    sort_key = (float("-inf"), "baseline")  # leftmost
+                    x_val_for_label = label
+                else:  # vary_param == "sr"
+                    sort_key = (float("+inf"), "baseline")  # rightmost
+                    x_val_for_label = label
+
+                data_by_ds[ds_name].append({
+                    "x_val": x_val_for_label,
+                    "sort_key": sort_key,
+                    "bias2": _get(chosen_base, "total_bias2"),
+                    "var": _get(chosen_base, "total_var"),
+                })
+
+        else:
+            # Not varying Nbag/sr: include ALL baselines, ignore their sr/Nbag for labeling
+            for i, b in enumerate(baselines, start=1):
+                label = "Baseline" if i == 1 else f"Baseline({i})"
+                # Put baselines first to the left in stable order
+                data_by_ds[ds_name].append({
+                    "x_val": label,
+                    "sort_key": (-1, f"baseline{i:03d}"),
+                    "bias2": _get(b, "total_bias2"),
+                    "var": _get(b, "total_var"),
+                })
+
+        # Add the variant (bagged) experiments; sort by actual varying param
+        for e in variants:
+            x_val = _get(e, vary_param)
+            if isinstance(x_val, (int, float)):
+                sort_key = (0, float(x_val))
+                x_lab = f"{x_val:.{deci}f}"
+            else:
+                sort_key = (0, str(x_val))
+                x_lab = str(x_val)
+            data_by_ds[ds_name].append({
+                "x_val": x_lab,
+                "sort_key": sort_key,
+                "bias2": _get(e, "total_bias2"),
+                "var": _get(e, "total_var"),
+            })
+    # Figure layout
+    ds_names = sorted(data_by_ds)
+    n_rows, n_cols = (auto_grid(len(ds_names))
+                      if grid and len(ds_names) > 1 else (len(ds_names), 1))
     #default figsize, fontsize, global title, label for varying parameter we try to automatically set these up well enough
     if figsize is None:
         figsize = (4 * n_cols, 3 * n_rows)
     if title is None:
         title = "MSE decompositions for estimator: " + str(experiments[0].estimator_name).upper()
     if xlabel is None:
-        xlabel = f'{vary_param}' # This parameter's name will be put on the x-axis, but only if some other description is not prespecificed
+        xlabel = f"{vary_param}"
     bfs = auto_fontsize(figsize, base_fontsize)
     rc = {
         "axes.titlesize": bfs * 1.2,
@@ -127,7 +206,7 @@ def plot_experiment_mse_bars(
 
         for ax, ds in zip(axes, ds_names):
             entries = sorted(data_by_ds[ds], key=lambda d: d["sort_key"]) #We sort the results along the x-axis in increasing order of the varying parameter, (e.g.,like sr, number of bags).
-            labels = [f'{e["x_val"]:.{deci}f}' if isfloat(e["x_val"]) else e["x_val"] for e in entries]
+            labels = [e["x_val"] for e in entries]
             b_vals = [e["bias2"] for e in entries]
             v_vals = [e["var"] for e in entries]
             x = np.arange(len(entries))
