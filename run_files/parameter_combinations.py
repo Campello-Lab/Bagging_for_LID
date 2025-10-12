@@ -81,7 +81,7 @@ effectiveness_test_base_param_dict = {'dataset_name': dataset_name_strings,
 effectiveness_variants_test_types = ['weight', 'smooth']
 #effectiveness_variants_test_types = ['weight']
 #effectiveness_estimator_names = ['mle']
-effectiveness_estimator_names = ['mle', 'tle', 'mada']
+effectiveness_estimator_names = ['mle', 'mada', 'tle']
 
 #Variable tests
 
@@ -102,7 +102,7 @@ Nbag_test_base_param_dict = {'dataset_name': dataset_name_strings,
                     't': 1}
 
 variable_variants_test_types = ['variable']
-variable_estimator_names = ['mle']
+variable_estimator_names = ['mle', 'mada', 'tle']
 
 #Sampling rate test (mse bar charts)
 sr_prog_test_base_param_dict = {'dataset_name': dataset_name_strings,

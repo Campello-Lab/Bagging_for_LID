@@ -45,6 +45,9 @@ if __name__ == "__main__":
                  "Sampling_rate_test": sr_test_general_param_dict,
                  "Interaction_of_sampling_rate_and_number_of_bags_test": interaction_sr_Nbag_test_general_param_dict,
                  "Interaction_of_k_and_sampling_rate_test": interaction_sr_k_test_general_param_dict}
+    del task_dict["effectiveness_test"]
+    del task_dict["Number_of_bags_test"]
+    del task_dict["Sampling_rate_test"]
     tasks = setup_tasks(task_dict, multiprocess=multiprocess, load=load, load_data=load_data, worker_count=worker_count, save_name=save_name, directory=directory)
 
     # -----------------------------------------------------------------------------------------------------------------------
