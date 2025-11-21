@@ -4,8 +4,8 @@ import multiprocessing
 import pickle
 import os
 ###################################################OWN IMPORT###################################################
-from LIDBagging.RunningEstimators.Collecting import fast_skdim_estimators
-from LIDBagging.Helper.ComparrisonMeasures import get_lollipop_comparrison_measures
+from Bagging_for_LID.RunningEstimators.Collecting import fast_skdim_estimators
+from Bagging_for_LID.Helper.ComparrisonMeasures import get_lollipop_comparrison_measures
 #from LIDBagging.Datasets.DatasetGeneration import get_datasets
 ###############################################################################################################################RUNNING ESTIMATORS###############################################################################################################################
 def save_to_df(d, save_name):

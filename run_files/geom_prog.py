@@ -1,13 +1,31 @@
+import numpy as np
 #-----------------------------------------------------------------------------------------------------------------------
 #Function to make a simple geometric progression
 #(note that for integer sequences, we have to round, and sometimes further modify (round up, or down) for low numbers,
 # in order to avoid duplicates)
-def geom_prog(min=1, max=100, step=20, integer=False):
-    a = (max/min)**(1/(step-1))
+def geom_prog(min=1, max=100, step=None, integer=False):
+    if step is None:
+        a = 2
+        step = int(np.log2(max/min)+1)
+    else:
+        a = (max/min)**(1/(step-1))
     if integer:
         l = [round(min*a**i) for i in range(step)]
     else:
         l = [min*a**i for i in range(step)]
+    return l
+
+#A linear progression as well, in case we would want that
+def linear_prog(min=1, max=100, step=None, integer=False):
+    if step is None:
+        a = min
+        step = int(max/min)
+    else:
+        a = (max-min)/(step-1)
+    if integer:
+        l = [round(min+a*i) for i in range(step)]
+    else:
+        l = [min+a*i for i in range(step)]
     return l
 #-----------------------------------------------------------------------------------------------------------------------
 #Progressions for MAIN Paper results
@@ -60,5 +78,7 @@ LID_prog_ =  [1, 2, 3, 4, 5, 6, 7, 8, 10, 13, 16, 19, 24, 29, 36, 44, 54, 66, 81
 
 t_prog_ = [0.1, 0.11707799137227792, 0.13707256063767184, 0.16048180071713386, 0.18788886879768224, 0.219976513600421, 0.25754408361413866, 0.3015274399935735, 0.35302227018072646, 0.4133113830244106, 0.483896665357962, 0.5665364961185353, 0.6632895500464645, 0.7765660821766207, 0.9091879706907806, 1.064459013883141, 1.2462472324355385, 1.4590812272681322, 1.7082629933755105, 2]
 
+t_prog_small = [0.1, 0.14542154334489538, 0.21147425268811282, 0.3075291220361376, 0.44721359549995787, 0.6503449126242363, 0.9457416090031757, 1.3753120438672641, 1.9999999999999998]
 
-
+if __name__ == "__main__":
+    print(geom_prog(min=0.1, max=2, step=9))

@@ -7,15 +7,15 @@ import gc
 import matplotlib.pyplot as plt
 #-----------------------------------------------------------------------------------------------------------------------
 #Internal Imports
-from LIDBagging.Plotting.Plots.SpiderCharts import *
-from LIDBagging.Plotting.Plots.Tables import *
-from LIDBagging.Plotting.Plots.VariablePlot import *
-from LIDBagging.Plotting.Plots.VariableInteraction import *
-from LIDBagging.Plotting.Plots.MSEbars import *
-from LIDBagging.RunningEstimators.Running2 import *
-from LIDBagging.run_files.geom_prog import *
-from LIDBagging.run_files.parameter_combinations import *
-from LIDBagging.run_files.error_safe_running import *
+from Bagging_for_LID.Plotting.Plots.SpiderCharts import *
+from Bagging_for_LID.Plotting.Plots.Tables import *
+from Bagging_for_LID.Plotting.Plots.VariablePlot import *
+from Bagging_for_LID.Plotting.Plots.VariableInteraction import *
+from Bagging_for_LID.Plotting.Plots.MSEbars import *
+from Bagging_for_LID.RunningEstimators.Running2 import *
+from Bagging_for_LID.run_files.geom_prog import *
+from Bagging_for_LID.run_files.parameter_combinations import *
+from Bagging_for_LID.run_files.error_safe_running import *
 #-----------------------------------------------------------------------------------------------------------------------
 #Function to collect test runs
 def setup_tasks(task_dict, multiprocess=False, load=False, load_data=False, worker_count=1, save_name='result', directory=r"C:\pkls"):
@@ -26,21 +26,34 @@ def setup_tasks(task_dict, multiprocess=False, load=False, load_data=False, work
 
 #-----------------------------------------------------------------------------------------------------------------------
 #Setup parameter dictionaries for main tests
-effectiveness_test_general_param_dict = param_dicts_general(effectiveness_test_base_param_dict,
-                                                            effectiveness_variants_test_types,
-                                                            effectiveness_estimator_names,
+effectiveness_test_general_param_dict = param_dicts_general(base_param_dict=effectiveness_test_base_param_dict,
+                                                            variants_test_types=effectiveness_variants_test_types,
+                                                            estimator_names=effectiveness_estimator_names,
+                                                            changing_vars=['k', 'sr'],
                                                             test_name='effectiveness_test')
-Nbag_test_general_param_dict = param_dicts_general(Nbag_test_base_param_dict, variable_variants_test_types,
-                                                   variable_estimator_names, test_name='Nbag_barchart_test')
-sr_test_general_param_dict = param_dicts_general(sr_prog_test_base_param_dict, variable_variants_test_types,
-                                                 variable_estimator_names, test_name='sr_barchart_test')
-interaction_sr_Nbag_test_general_param_dict = param_dicts_general(interaction_sr_Nbag_test_base_param_dict,
-                                                                  variable_variants_test_types,
-                                                                  variable_estimator_names,
+
+Nbag_test_general_param_dict = param_dicts_general(base_param_dict=Nbag_test_base_param_dict,
+                                                   variants_test_types=variable_variants_test_types,
+                                                   estimator_names=variable_estimator_names,
+                                                   changing_vars=['Nbag'],
+                                                   test_name='Nbag_barchart_test')
+
+sr_test_general_param_dict = param_dicts_general(base_param_dict=sr_prog_test_base_param_dict,
+                                                 variants_test_types=variable_variants_test_types,
+                                                 estimator_names=variable_estimator_names,
+                                                 changing_vars=['sr'],
+                                                 test_name='sr_barchart_test')
+
+interaction_sr_Nbag_test_general_param_dict = param_dicts_general(base_param_dict=interaction_sr_Nbag_test_base_param_dict,
+                                                                  variants_test_types=variable_variants_test_types,
+                                                                  estimator_names=variable_estimator_names,
+                                                                  changing_vars=['sr', 'Nbag'],
                                                                   test_name='interaction_sr_Nbag_heatmap_test')
-interaction_sr_k_test_general_param_dict = param_dicts_general(interaction_sr_k_test_base_param_dict,
-                                                               variable_variants_test_types,
-                                                               variable_estimator_names,
+
+interaction_sr_k_test_general_param_dict = param_dicts_general(base_param_dict=interaction_sr_k_test_base_param_dict,
+                                                               variants_test_types=variable_variants_test_types,
+                                                               estimator_names=variable_estimator_names,
+                                                               changing_vars=['sr', 'k'],
                                                                test_name='interaction_sr_k_heatmap_test')
 #-----------------------------------------------------------------------------------------------------------------------
 #Setup plotting
@@ -48,30 +61,43 @@ plot_tasks = {
     "effectiveness_test": [
         (plot_radar_best_of_sweep, dict(sweep_params=['k', 'sr'], normalize_data=True, log=False,
                                         save=True, height_per_row=450, width_per_col=450,
-                                        verbose=False, save_dir="./plots/radar")),
+                                        verbose=False, save_dir="./plots/radar", decomposition_param='full')),
         (plot_table_best_of_sweep, dict(sweep_params=['k', 'sr'], mode="combined", normalize_data=False,
-                                        log=False, metric_label_map=None, save_dir="./plots/table")),
+                                        log=False, metric_label_map=None, save_dir="./plots/table",
+                                        best_font_color = "black", heatmap_colorscale=red_blue_bright,
+                                        heatmap_cells=True, decomposition_param=['combined'], combined=True)),
     ],
     "Number_of_bags_test": [
         (plot_experiment_mse_bars, dict(vary_param='Nbag', grid=True, figsize=(12, 12),
-                                        base_fontsize=6, label_every=1, save_dir="./plots/msebar")),
+                                        base_fontsize=6, label_every=1, save_dir="./plots/msebar", fig_title=False)),
     ],
     "Sampling_rate_test": [
         (plot_experiment_mse_bars, dict(vary_param='sr', grid=True, figsize=(12, 12),
-                                        base_fontsize=6, label_every=1, save_dir="./plots/msebar")),
+                                        base_fontsize=6, label_every=1, save_dir="./plots/msebar", fig_title=False)),
     ],
     "Interaction_of_sampling_rate_and_number_of_bags_test": [
         (plot_experiment_heatmaps, dict(x_param='sr', y_param='Nbag', reverse_x=False, reverse_y=False,
                                         metrics=("mse", "bias2", "var"), label_every=1, grid=True,
                                         figsize=(25, 25), base_fontsize=10, cmap="RdBu",
                                         save_dir="./plots/interaction",
-                                        log=True, type='difference', inlog=False, fig_title='Interaction of sampling rate and number of bags heatmap. \nBaseline Estimator: MLE')),
+                                        log=True, type='difference', inlog=False, fig_title=False)),
     ],
     "Interaction_of_k_and_sampling_rate_test": [
         (plot_experiment_heatmaps, dict(x_param='sr', y_param='k', reverse_x=False, reverse_y=False,
                                         metrics=("mse", "bias2", "var"), label_every=1, grid=True,
                                         figsize=(25, 25), base_fontsize=10, cmap="RdBu",
                                         save_dir="./plots/interaction",
-                                        log=True, type='difference', inlog=False, fig_title='Interaction of sampling rate and k heatmap. \nBaseline Estimator: MLE')),
+                                        log=True, type='difference', inlog=False, fig_title=False)),
     ],
+    "t_test_bar": [(plot_experiment_mse_bars, dict(vary_param='t', grid=True, figsize=(12, 12),
+                                        base_fontsize=6, label_every=1, save_dir="./plots/msebar")),],
+    "effectiveness_test_with_t": [
+        (plot_radar_best_of_sweep, dict(sweep_params=['k', 'sr', 't'], normalize_data=True, log=False,
+                                        save=True, height_per_row=450, width_per_col=450,
+                                        verbose=False, save_dir="./plots/radar", decomposition_param='full')),
+        (plot_table_best_of_sweep, dict(sweep_params=['k', 'sr', 't'], mode="combined", normalize_data=False,
+                                        log=False, metric_label_map=None, best_font_color = "black",
+                                        save_dir="./plots/table", heatmap_colorscale=red_blue_bright,
+                                        heatmap_cells=True, decomposition_param=['combined'], combined=True)),
+    ]
 }

@@ -1,17 +1,10 @@
 ###################################################OWN IMPORT###################################################
-from LIDBagging.Datasets.DatasetGeneration import *
-from LIDBagging.Helper.Other import *
-from LIDBagging.Helper.ComparrisonMeasures import *
-#from LIDBagging.RunningEstimators.BaseEstimators import *
-from LIDBagging.RunningEstimators.Collecting import *
-from LIDBagging.RunningEstimators.Running import *
-from cleaning_bin.OLD_Code.new_plots import *
-#from LIDBagging.Plotting.Plots.K_plots import *
-#from LIDBagging.Plotting.Plots.BarPlots import *
-from cleaning_bin.oldplots.KNN_Graph import *
-from cleaning_bin.oldplots.LocalPlot import *
-#from LIDBagging.Plotting.Plots.SpiderCharts import *
-from LIDBagging.Datasets.Uniform_Generator import *
+from Bagging_for_LID.Datasets.DatasetGeneration import *
+from Bagging_for_LID.Helper.Other import *
+from Bagging_for_LID.Helper.ComparrisonMeasures import *
+from Bagging_for_LID.RunningEstimators.Collecting import *
+from Bagging_for_LID.RunningEstimators.Running import *
+from Bagging_for_LID.Datasets.Uniform_Generator import *
 import itertools
 from collections.abc import Iterable
 ###################################################################################################################
@@ -195,9 +188,7 @@ class LID_experiment:
         self.data = data
         return data
 
-    def estimate(self, bounds=None, use_LIDkit=False, use_Ricardo=False):
-        if use_LIDkit and use_Ricardo:
-            ValueError(f'Only one of use_LIDkit or use_Ricardo can be true at the same time')
+    def estimate(self, bounds=None):
         if isinstance(self.estimator_name, list):
             estimator_names = self.estimator_name
         elif isinstance(self.estimator_name, str):
@@ -207,24 +198,11 @@ class LID_experiment:
         data_sets = {self.dataset_name: self.data}
         result_dictionary = {estimator_names[i]: {} for i in range(len(estimator_names))}
         for key in data_sets:
-            if use_LIDkit:
-                estimators_dict, avg_estimator_dict = LIDkit_complete_estimators(data_sets[key][0], self.k, self.sr, self.Nbag,
-                                                                          self.pre_smooth, self.post_smooth, self.t,
-                                                                          self.estimator_name, self.bagging_method,
-                                                                          self.submethod_0, self.submethod_error,
-                                                                          progress_bar=False, correct=True)
-            elif use_Ricardo:
-                estimators_dict, avg_estimator_dict = Ricardo_complete_estimators(data_sets[key][0], self.k, self.sr, self.Nbag,
-                                                                          self.pre_smooth, self.post_smooth, self.t,
-                                                                          self.estimator_name, self.bagging_method,
-                                                                          self.submethod_0, self.submethod_error,
-                                                                          progress_bar=False, correct=True)
-            else:
-                estimators_dict, avg_estimator_dict = complete_estimators(data_sets[key][0], self.k, self.sr, self.Nbag,
-                                                                          self.pre_smooth, self.post_smooth, self.t,
-                                                                          self.estimator_name, self.bagging_method,
-                                                                          self.submethod_0, self.submethod_error,
-                                                                          progress_bar=False, correct=True)
+            estimators_dict, avg_estimator_dict = complete_estimators(data_sets[key][0], self.k, self.sr, self.Nbag,
+                                                                      self.pre_smooth, self.post_smooth, self.t,
+                                                                      self.estimator_name, self.bagging_method,
+                                                                      self.submethod_0, self.submethod_error,
+                                                                      progress_bar=False, correct=True)
             for name in estimator_names:
                 result_dictionary[name][key] = (estimators_dict[name], avg_estimator_dict[name])
         self.result_dictionary = result_dictionary

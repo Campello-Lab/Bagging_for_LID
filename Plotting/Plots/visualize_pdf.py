@@ -417,6 +417,9 @@ r"C:\Users\krp\OneDrive - Syddansk Universitet\PycharmProjects\LID1\LIDBagging2\
     names = names2
     paths= paths2
 
+    paths = [r'C:\Users\krp\OneDrive - Syddansk Universitet\PycharmProjects\LID1\LIDBagging2\LIDBagging\Plotting\Plots\uniform_4d.html']
+    names = [r'uniform_3d.pdf']
+
     for i in range(len(paths)):
         path = paths[i]
         name = names[i]

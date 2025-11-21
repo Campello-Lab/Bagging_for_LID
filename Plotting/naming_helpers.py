@@ -36,7 +36,7 @@ def modify_label(label):
     return label
 
 #!!Hard coded part!! This if for reordering experiments, so that different plots get the same colored spider chart lines (based on method variants), and they are arranged in a logical order in the table, instead of random.
-def reorder_sorted_experiments(df, order=None, keep_rest=True):
+def reorder_sorted_experiments(df, order=None, keep_rest=True, sweep_params=None):
     order_mle = [(('Nbag', 10),
                   ('bagging_method', None),
                   ('estimator_name', 'mle'),
@@ -236,13 +236,40 @@ def reorder_sorted_experiments(df, order=None, keep_rest=True):
                                                                                                        'submethod_error',
                                                                                                        'log_diff'),
                                                                                                        ('t', 1))]
+    order_mle[1], order_mle[2] = order_mle[2], order_mle[1]
+    order_mada[1], order_mada[2] = order_mada[2], order_mada[1]
+    order_tle[1], order_tle[2] = order_tle[2], order_tle[1]
+
     default_order = order_mle + order_tle + order_mada
     order = default_order if order is None else order
 
-    ordered = [c for c in order if c in df.columns]
-    the_rest = [c for c in df.columns if c not in order] if keep_rest else []
+    #This is to handle missing parts
+    sweep_set = set(sweep_params or [])
+    def _reduced(tpl):
+        return tuple(pair for pair in tpl if pair[0] not in sweep_set)
 
-    # 👇 prevent pandas from interpreting the key as a 3D array
+    cols_list = list(df.columns)
+    cols_set = set(cols_list)
+
+    seen = set()
+    ordered = []
+
+    for tpl in order:
+        # Prefer an exact match if it exists
+        if tpl in cols_set and tpl not in seen:
+            ordered.append(tpl)
+            seen.add(tpl)
+            continue
+
+        # Otherwise, try the reduced version
+        r = _reduced(tpl)
+        if r in cols_set and r not in seen:
+            ordered.append(r)
+            seen.add(r)
+
+    the_rest = [c for c in cols_list if c not in seen] if keep_rest else []
+
+    # prevent pandas from interpreting the key as a 3D array
     key = pd.Index(ordered + the_rest, dtype=object)
     return df.loc[:, key]
 

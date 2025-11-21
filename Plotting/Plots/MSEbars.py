@@ -6,7 +6,7 @@ from typing import Iterable, Sequence, Tuple, Union, Mapping, Any
 import matplotlib.pyplot as plt
 import numpy as np
 import warnings
-from LIDBagging.Plotting.plotting_helpers import *
+from Bagging_for_LID.Plotting.plotting_helpers import *
 ##############################################################################################################################MSE BAR PLOT#############################
 
 #allow the testing of MSE changes when one of these are changing
@@ -30,6 +30,7 @@ def plot_experiment_mse_bars(
     show: bool = False,
     xlabel: str | None = None,
     title: str | None = None,
+    fig_title: bool = False,
 ):
     """Stacked-bar MSE decomposition for a *list* of ``LID_experiment`` objects.
     """
@@ -185,9 +186,14 @@ def plot_experiment_mse_bars(
             paranname = 'sampling rate'
         elif vary_param == 'Nbag':
             paranname = 'number of bags'
+        else:
+            paranname = vary_param
         title = f"MSE decompositions for changing {paranname}. \nBaseline Estimator: {_get(experiments[0],'estimator_name').upper()}"
     if xlabel is None:
-        xlabel = f"{vary_param}"
+        if vary_param == 'Nbag':
+            xlabel = 'Number of Bags (B)'
+        else:
+            xlabel = f"{vary_param}"
     bfs = auto_fontsize(figsize, base_fontsize)
     rc = {
         "axes.titlesize": bfs * 1.2,
@@ -224,9 +230,13 @@ def plot_experiment_mse_bars(
             ax.set_xlabel(f"{xlabel}", labelpad=0) #
             ax.set_title(f"Data set: {ds}")
             ax.grid(axis="y", linestyle="--", alpha=0.4)
-            ax.legend()
+            if ds == 'uniform':
+                ax.legend(loc="lower right")
+            else:
+                ax.legend(loc="upper right")
 
-        fig.suptitle(f'{title}')
+        if fig_title:
+            fig.suptitle(f'{title}')
         fig.tight_layout()
         for fmt in formats:
             out = save_dir / f"{save_prefix}.{fmt}"

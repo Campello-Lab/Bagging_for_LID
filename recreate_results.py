@@ -1,12 +1,10 @@
 #-----------------------------------------------------------------------------------------------------------------------
-#External imports
-#-----------------------------------------------------------------------------------------------------------------------
 #Internal imports
-from LIDBagging.run_files.final_tasks import *
+from Bagging_for_LID.run_files.final_tasks import *
 #-----------------------------------------------------------------------------------------------------------------------
 #Setup directories
-#PROJECT_ROOT = Path(r"C:\Users\krp\OneDrive - Syddansk Universitet\PycharmProjects\LID1\LIDBagging2")
-PROJECT_ROOT = Path(r"C:\Users\User\PycharmProjects\LID\LIDBagging2")
+PROJECT_ROOT = Path(r"C:\Users\krp\OneDrive - Syddansk Universitet\PycharmProjects\LID1\LIDBagging2")
+#PROJECT_ROOT = Path(r"C:\Users\User\PycharmProjects\LID\LIDBagging2")
 os.chdir(PROJECT_ROOT)
 p = str(PROJECT_ROOT)
 if p not in sys.path:
@@ -14,12 +12,12 @@ if p not in sys.path:
 #-----------------------------------------------------------------------------------------------------------------------
 #Setup computation
 multiprocess=True
-load=False
+load=True
 load_data=True
-worker_count=5
-save_name='result'
-#directory = r'C:\Users\krp\OneDrive - Syddansk Universitet\PycharmProjects\LID1\LIDBagging2\pkls'
-directory = r"G:\pkls2\new\RESULTS"
+worker_count=7
+save_name='mergedresult'
+directory = r'C:\pkls'
+#directory = r"G:\pkls2\new\RESULTS"
 #directory=r'C:\Users\User\PycharmProjects\pythonProject3\LIDstuff\saved_results\pkls2'
 if __name__ == "__main__":
     setup_logging()
@@ -27,7 +25,7 @@ if __name__ == "__main__":
     #Generate datasets (to be reused in different experiments)
     results_data = new_result_generator(param_dicts_data, multiprocess=False, load=True, load_data=True,
                                         worker_count=None,
-                                        save_name='data_generation',
+                                        save_name='data_generation_uniform',
                                         directory=directory)
     print('Data generation complete')
     # -----------------------------------------------------------------------------------------------------------------------
@@ -39,16 +37,52 @@ if __name__ == "__main__":
     #Sampling rate test (mse bar charts)
     #Interaction of sampling rate and number of bags (mse difference heatmaps)
     #Interaction of k and sampling rate (mse difference heatmaps)
+    #dataset_name_strings = ['uniform']
+    base_param_dict = {'dataset_name': dataset_name_strings,
+                    'n': 2500,
+                    'lid': None,
+                    'dim': None,
+                    'estimator_name': None,
+                    'bagging_method': 'bagwth',
+                    'submethod_0': '0',
+                    'submethod_error': 'log_diff',
+                    'k': 7,
+                    'sr': 0.1,
+                    'Nbag': 10,
+                    'pre_smooth': False,
+                    'post_smooth': False,
+                    't': t_prog_small}
+
+    test_types = ['extra_variable']
+    effectiveness_estimator_names = ['mle']
+    t_test_dict = param_dicts_general(base_param_dict,
+                                      test_types,
+                                      effectiveness_estimator_names,
+                                      changing_vars=['t'],
+                                      test_name='t_test_bar')
+    effectiveness_test_with_t_general_param_dict = param_dicts_general(base_param_dict=effectiveness_test_with_t_base_param_dict,
+                                                                variants_test_types=['weight_with_t'],
+                                                                estimator_names=['mle'],
+                                                                changing_vars=['k', 'sr', 't'],
+                                                                test_name="effectiveness_test_with_t")
+
+    task_dict2 = {'t_test_bar': t_test_dict}
+    task_dict3 = {'effectiveness_test_with_t': effectiveness_test_with_t_general_param_dict}
 
     task_dict = {"effectiveness_test": effectiveness_test_general_param_dict,
                  "Number_of_bags_test": Nbag_test_general_param_dict,
                  "Sampling_rate_test": sr_test_general_param_dict,
                  "Interaction_of_sampling_rate_and_number_of_bags_test": interaction_sr_Nbag_test_general_param_dict,
                  "Interaction_of_k_and_sampling_rate_test": interaction_sr_k_test_general_param_dict}
-    del task_dict["effectiveness_test"]
-    del task_dict["Number_of_bags_test"]
-    del task_dict["Sampling_rate_test"]
-    tasks = setup_tasks(task_dict, multiprocess=multiprocess, load=load, load_data=load_data, worker_count=worker_count, save_name=save_name, directory=directory)
+
+    task_dict0 = {"Interaction_of_sampling_rate_and_number_of_bags_test": interaction_sr_Nbag_test_general_param_dict,
+                 "Interaction_of_k_and_sampling_rate_test": interaction_sr_k_test_general_param_dict}
+
+    task_dict5 = {"effectiveness_test": effectiveness_test_general_param_dict}
+
+    task_dict6 = {"Number_of_bags_test": Nbag_test_general_param_dict}
+
+    tasks = setup_tasks(task_dict6, multiprocess=multiprocess, load=load, load_data=load_data, worker_count=worker_count, save_name=save_name, directory=directory)
 
     # -----------------------------------------------------------------------------------------------------------------------
     #Run results and plotting at the same time to save RAM

@@ -5,9 +5,9 @@ from typing import Sequence, Iterable
 import plotly.express as px
 import plotly.graph_objects as go
 ###################################################OWN IMPORT###################################################
-from LIDBagging.Plotting.plotting_helpers import *
-from LIDBagging.Plotting.optimize_across_parameter_results import *
-from LIDBagging.Helper.Other import *
+from Bagging_for_LID.Plotting.plotting_helpers import *
+from Bagging_for_LID.Plotting.optimize_across_parameter_results import *
+from Bagging_for_LID.Helper.Other import *
 ###############################################################################################################################SPIDER CHARTS###############################################################################################################################
 _NUMERIC_PARAMS = {"n", "k", "sr", "Nbag", "lid", "dim", "t"}
 _DATASET_SPECIFIC = {"dataset_name", "n", "lid", "dim"}
@@ -133,14 +133,15 @@ def plot_radar_best_of_sweep(
     save: bool = True,
     export_format: str = "pdf",
     save_prefix: str = "radar_best",
-    save_dir: Path | str = "./plots",
+    save_dir: str = "./plots",
     fill: bool = True,
     height_per_row: int = 450,
     width_per_col: int = 450,
     verbose: bool = False,
+    decomposition_param: str | None = None
 ):
     experiments = reassing_placeholder_value(experiments)
-    results = result_extraction(experiments, sweep_params, metric_keys=None)
+    results = result_extraction(experiments, sweep_params, metric_keys=None, decomposition_param=decomposition_param)
     estimator_name = experiments[0].estimator_name
     plot_radar_from_results(results=results, normalize_data=normalize_data,
     log=log,

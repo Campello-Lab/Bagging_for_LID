@@ -3,10 +3,9 @@ from itertools import repeat
 from tqdm import tqdm
 import logging, traceback
 ###################################################OWN IMPORT###################################################
-from LIDBagging.RunningEstimators.Collecting import fast_skdim_estimators
-from LIDBagging.Helper.ComparrisonMeasures import get_lollipop_comparrison_measures
-#from LIDBagging.Datasets.DatasetGeneration import get_datasets
-from LIDBagging.experiment_class import *
+from Bagging_for_LID.RunningEstimators.Collecting import fast_skdim_estimators
+from Bagging_for_LID.Helper.ComparrisonMeasures import get_lollipop_comparrison_measures
+from Bagging_for_LID.experiment_class import *
 ###############################################################################################################################RUNNING ESTIMATORS###################################
 def save_results2(results, directory, save_name):
     os.makedirs(directory, exist_ok=True)
@@ -102,6 +101,26 @@ def general_result_generator(param_dicts_dict, multiprocess=False, load=False, l
 def plotting_across_results_dict(results_dict, plotting_function, **kwargs):
     for key, value in results_dict.items():
         plotting_function(experiments=value, save_prefix=key, **kwargs)
+
+def merge_experiment_lists(directory, save_name1, save_name2, replace_dataset_key=None, save=True):
+    results1 = load_results2(directory=directory, save_name=save_name1)
+    results2 = load_results2(directory=directory, save_name=save_name2)
+    if replace_dataset_key is None:
+        results_merged = results1 + results2
+    else:
+        results_merged = []
+        for experiment in results1:
+            if experiment.dataset_name != replace_dataset_key:
+                results_merged.append(experiment)
+        for experiment in results2:
+            if experiment.dataset_name == replace_dataset_key:
+                results_merged.append(experiment)
+    if save:
+        save_results2(results_merged, directory=directory, save_name='merged'+save_name1)
+    return results_merged
+
+
+
 
 
 

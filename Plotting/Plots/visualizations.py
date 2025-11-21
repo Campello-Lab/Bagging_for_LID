@@ -652,12 +652,14 @@ def lollipop_map(P_or_s, r=None, u=None, t=None):
 
     return np.c_[X, Y]
 
-def uniform(x0, x1):
+def uniform(x0, x1, x2, x3):
     X = x0
-    Y = x0
-    return np.c_[X, Y]
+    Y = x1
+    Z = x1
+    W = x1
+    return np.c_[X, Y, Z, W]
 
 if __name__ == "__main__":
 
-    visualize_unit_cube_map_plotly(uniform, n_params=2, samples=80000, axes=(0,1), color_dim=2,
-                               title="uniform_1d", seed=3, save_html="uniform_1d.html")
+    visualize_unit_cube_map_plotly(uniform, n_params=4, samples=80000, axes=(0,1,2), color_dim=3,
+                               title="uniform_4d", seed=3, save_html="uniform_4d.html")

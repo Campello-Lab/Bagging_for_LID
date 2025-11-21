@@ -18,13 +18,14 @@ class MADA(LocalEstimator):
             dists1 = np.sort(np.array(dists_list[i]))
             k_q = len(dists1)
             if k_q < 2:
-                ests[i] = np.nan
-                continue
-            k_half = int(np.floor(k_q / 2))
-            rk = dists1[k_q - 1]
-            rk2 = dists1[k_half - 1]
-            if rk2 == 0 or rk == rk2:
-                ests[i] = np.nan
+                print('Less than 2 knn distances were found, estimation is not possible. This should only occur in the OOB, when using adjustment, otherwise it is a true error. In the OOB case, the inf estimate value is separately handled.')
+                ests[i] = np.inf
             else:
-                ests[i] = np.log(2) / np.log(rk / rk2)
+                k_half = int(np.floor(k_q / 2))
+                rk = dists1[k_q - 1]
+                rk2 = dists1[k_half - 1]
+                if rk2 == 0 or rk == rk2:
+                    raise ValueError('Less than 2 different, non-zero knn distances were found, estimation is not possible.')
+                else:
+                    ests[i] = np.log(2) / np.log(rk / rk2)
         return ests

@@ -3,11 +3,14 @@ import pathlib
 from typing import Mapping, Literal
 from pathlib import Path
 import plotly.graph_objects as go
+from multiprocess.dummy import Value
+from soupsieve.css_parser import VALUE
+
 ###################################################OWN IMPORT###################################################
-from LIDBagging.Plotting.plotting_helpers import *
-from LIDBagging.Plotting.optimize_across_parameter_results import *
-from LIDBagging.Plotting.colormap_helpers import *
-from LIDBagging.Helper.Other import *
+from Bagging_for_LID.Plotting.plotting_helpers import *
+from Bagging_for_LID.Plotting.optimize_across_parameter_results import *
+from Bagging_for_LID.Plotting.colormap_helpers import *
+from Bagging_for_LID.Helper.Other import *
 
 #As opposed to the other plotting functions, plot_radar_from_results and plot_tables_from_results does not take all the experiments as input.
 #Instead, only the neceassry data extracted from optimal ones are given to it, which have been determined as such by the helper functions from optimize_across_parameter_results.
@@ -38,6 +41,7 @@ def plot_tables_from_results(
     export_format: str = "pdf",
     save_prefix: str = "table_best",
     save_dir: str | pathlib.Path = "./plots",
+    combined: bool = False,
 ) -> dict[str, go.Figure]:
 
     if mode not in {"combined", "values", "params"}:
@@ -48,6 +52,36 @@ def plot_tables_from_results(
             return metric_label_map[key]
         base = key[6:] if key.startswith("total_") else key
         return {"mse": "MSE", "bias2": "Bias²", "var": "Variance"}.get(base, base.upper())
+    def to_float(x):
+        if isinstance(x, list):
+            return [float(v) for v in x]  # keep list, make elems float
+        if isinstance(x, tuple):
+            return tuple(float(v) for v in x)  # preserve tuple type, too
+        if isinstance(x, np.ndarray):
+            return x.astype(float)  # keep as ndarray
+        return float(x)
+    def logify(x):
+        if isinstance(x, np.ndarray):
+            return np.log10(x.astype(float))
+        if isinstance(x, (list, tuple)):
+            arr = np.asarray(x, dtype=float)
+            logged = np.log10(arr)
+            if isinstance(x, list):
+                return logged.tolist()
+            else:
+                return tuple(logged.tolist())
+        try:
+            return float(np.log10(float(x)))
+        except Exception:
+            return np.nan
+    def first_elem(x):
+        if isinstance(x, list):
+            return x[0] if x else np.nan
+        if isinstance(x, tuple):
+            return x[0] if x else np.nan
+        if isinstance(x, np.ndarray):
+            return x.flat[0] if x.size else np.nan
+        return x
     def _lines(s: str) -> int:
         return 1 + str(s).count("<br>") + str(s).count("\n") if s is not None else 1
     figs: dict[str, go.Figure] = {}
@@ -72,16 +106,29 @@ def plot_tables_from_results(
                 col_headers.append((mod if mod is not None else str(sig)).replace(" | ", "<br>"))
             else:
                 col_headers.append(str(sig))
-        vals = values_df.astype(float).copy()
-        if log:
-            with np.errstate(divide="ignore", invalid="ignore"):
-                vals = np.log10(vals.to_numpy(dtype=float))
-            vals = pd.DataFrame(vals, index=values_df.index, columns=values_df.columns)
-        if normalize_data:
-            arr = vals.to_numpy(dtype=float)
-            for i in range(arr.shape[0]):
-                arr[i, :] = Normalize(arr[i, :])
-            vals = pd.DataFrame(arr, index=values_df.index, columns=values_df.columns)
+        if combined:
+            vals = values_df.applymap(to_float).copy()
+            if log:
+                with np.errstate(divide="ignore", invalid="ignore"):
+                    vals = values_df.applymap(logify).copy()
+            if normalize_data:
+                NotImplementedError('The combined option does not work with normalize. The mse error decomposition would be anyway lost.')
+            if met_key == 'combined':
+                met_key = 'total_mse'
+            else:
+                ValueError('The combined option can only be used with "combined" metric key')
+        else:
+            vals = values_df.astype(float).copy()
+            if log:
+                with np.errstate(divide="ignore", invalid="ignore"):
+                    vals = np.log10(vals.to_numpy(dtype=float))
+                vals = pd.DataFrame(vals, index=values_df.index, columns=values_df.columns)
+            if normalize_data:
+                arr = vals.to_numpy(dtype=float)
+                for i in range(arr.shape[0]):
+                    arr[i, :] = Normalize(arr[i, :])
+                vals = pd.DataFrame(arr, index=values_df.index, columns=values_df.columns)
+
         metric_label = pretty_metric_name(met_key)
         cell_matrix: list[list[str]] = []
         for ds in datasets:
@@ -96,17 +143,29 @@ def plot_tables_from_results(
                         txt = "—"
                     else:
                         txt = ", ".join(f"{k}:{fmt_val(k, p[k])}" for k in sorted(p))
-                else:  # combined
+                elif combined:
+                    top = ", ".join(f"{k}:{fmt_val(k, p[k])}" for k in sorted(p)) if isinstance(p, dict) and p else ""
+                    bottom_texts = []
+                    metric_labels = [pretty_metric_name('total_mse'), pretty_metric_name('total_var'), pretty_metric_name('total_bias2')]
+                    for i in range(len(metric_labels)):
+                        bot = f"{metric_labels[i]}:{float_fmt.format(float(v[i]))}" if (v[i] is not None and np.isfinite(float(v[i]))) else ""
+                        bottom_texts.append(bot)
+                    txt = f"{top}<br>{bottom_texts[0]}<br>{bottom_texts[1]}<br>{bottom_texts[2]}" if (top and bottom_texts) else (top or bottom_texts or "—")
+                else:
                     top = ", ".join(f"{k}:{fmt_val(k, p[k])}" for k in sorted(p)) if isinstance(p, dict) and p else ""
                     bot = f"{metric_label}:{float_fmt.format(float(v))}" if (v is not None and np.isfinite(float(v))) else ""
                     txt = f"{top}<br>{bot}" if (top and bot) else (top or bot or "—")
                 row.append(txt)
             cell_matrix.append(row)
-        columns = list(map(list, zip(*cell_matrix))) if cell_matrix else [[] for _ in col_headers]
         n_rows = len(datasets)
         font_colors_per_column: list[list[str]] = []
         font_colors_per_column.append(["black"] * n_rows)
+        font_weights_per_column: list[list[str]] = []
+        font_weights_per_column.append(["normal"] * n_rows)
         metric_base = met_key[6:] if met_key.startswith("total_") else met_key
+        if combined:
+            vals = values_df.applymap(first_elem)
+            vals = vals.apply(pd.to_numeric, errors="coerce")
         if best_mark:
             if best_by == "auto":
                 criterion = "min" if metric_base in {"mse", "bias2", "var"} else "min"
@@ -124,7 +183,12 @@ def plot_tables_from_results(
                 is_best = np.isclose(row_vals, target, equal_nan=False)
                 for c, ok in enumerate(is_best):
                     if ok and finite[c]:
+                        v = cell_matrix[r][c + 1]
                         font_colors_per_column[c + 1][r] = best_font_color
+                        if isinstance(v, str):
+                            cell_matrix[r][c + 1] = v if v.startswith("<b>") else f"<b>{v}</b>"
+                        else:
+                            cell_matrix[r][c + 1] = f"<b>{v}</b>"
         else:
             for _ in method_sigs:
                 font_colors_per_column.append(["black"] * n_rows)
@@ -137,7 +201,10 @@ def plot_tables_from_results(
                 return 0.5
             return (v - vmin) / (vmax - vmin)
         if heatmap_cells:
-            tbl_vals = values_df.astype(float).to_numpy(copy=True)
+            if combined:
+                tbl_vals = vals.astype(float).to_numpy(copy=True)
+            else:
+                tbl_vals = values_df.astype(float).to_numpy(copy=True)
             if color_scale_mode == "log":
                 with np.errstate(divide="ignore", invalid="ignore"):
                     tbl_vals = np.log10(tbl_vals)
@@ -235,11 +302,11 @@ def plot_tables_from_results(
         row_lines = [max((_lines(c) for c in row), default=1) for row in cell_matrix]
         hmax = max((len(h) for h in col_headers), default=1)/10
         HEADER_LINE_PX = 28
-        ROW_LINE_PX    = 26
+        ROW_LINE_PX    = 20
         TOP_PX, BOT_PX = 30, 0
         SIDE_PX        = 10
         hmax_PX        = 10
-        table_h = TOP_PX + header_lines * HEADER_LINE_PX + sum(max(1, n) * ROW_LINE_PX for n in row_lines) + BOT_PX + hmax_PX * hmax
+        table_h = TOP_PX + header_lines * HEADER_LINE_PX + sum(max(1, n) * ROW_LINE_PX for n in row_lines) + BOT_PX + hmax_PX * hmax - 150
         n_methods = max(0, len(col_headers) - 1)
         table_w = 260 + 160 * n_methods
         extra_w = 0
@@ -254,6 +321,7 @@ def plot_tables_from_results(
         HEADER_BLUE = "paleturquoise"
         ROW_HEADER_BLUE = "aliceblue"
         header_height_px = HEADER_LINE_PX * header_lines
+        columns = list(map(list, zip(*cell_matrix))) if cell_matrix else [[] for _ in col_headers]
         fig = go.Figure(
             data=[go.Table(
                 header=dict(values=col_headers, align="left", font=dict(size=12), height=header_height_px, line=dict(color="darkgrey", width=1)),
@@ -264,12 +332,12 @@ def plot_tables_from_results(
                     line=dict(color="darkgrey", width=1),
                     fill_color=([ [ROW_HEADER_BLUE] * n_rows ] + fill_colors_per_column[1:]) if isinstance(fill_colors_per_column, list)
                    else [ [ROW_HEADER_BLUE] * n_rows ] + [fill_colors_per_column]*(len(col_headers)-1),
-                    height=ROW_LINE_PX,  # <-- uniform row height; critical for alignment
+                    height=ROW_LINE_PX,
                 ),
-                domain=dict(x=[0.0, table_domain_right], y=[0.0, 1.0]),  # <-- leaves a strip on the right
+                domain=dict(x=[0.0, table_domain_right], y=[0.0, 1.0]),
             )]
         )
-        title_txt = (", ".join([p for p in (title_prefix, f'Optimized for: {metric_label}') if p])) if title_prefix else f'Optimized for: {metric_label}'
+        title_txt = (", ".join([p for p in (title_prefix, f'Optimized for: MSE') if p])) if title_prefix else f'Optimized for: MSE' #set {metric_label} instead of MSE only if we optimize for something else
         fig.update_layout(
             title=title_txt,
             margin=dict(l=SIDE_PX, r=max(SIDE_PX, colorbar_gap_px), t=TOP_PX, b=BOT_PX),
@@ -370,6 +438,8 @@ def plot_tables_from_results(
 
 reds_bright = truncate_and_stretch("Reds", cut_top=0.33)
 
+red_blue_bright = truncate_and_stretch("RdBu_r", cut_top=0.33, cut_bottom=0.33)
+
 #Wrapper for the above function to work off of experiment lists
 def plot_table_best_of_sweep(
     experiments,
@@ -384,7 +454,7 @@ def plot_table_best_of_sweep(
     save: bool = True,
     export_format: str = "pdf",
     save_prefix: str = "table_best",
-    save_dir: str | Path = "./plots",
+    save_dir: str = "./plots",
     font_size: int = 10,
     cell_pad: float = 0.4,
     header_pad: float = 0.6,
@@ -400,10 +470,12 @@ def plot_table_best_of_sweep(
     colorbar_len_px: int = 70,
     colorbar_gap_px: int = 7,
     colorbar_thickness_px: int = 8,
-    savedf=False
+    savedf: bool =False,
+    decomposition_param: str | None = None,
+    combined: bool = False,
 ):
     experiments = reassing_placeholder_value(experiments)
-    results = result_extraction(experiments, sweep_params, metric_keys=None, directory=save_dir, save=savedf)
+    results = result_extraction(experiments, sweep_params, metric_keys=None, directory=save_dir, save=savedf, decomposition_param=decomposition_param)
     estimator_name = experiments[0].estimator_name
     plot_tables_from_results(
     results = results,
@@ -428,4 +500,5 @@ def plot_table_best_of_sweep(
     colorbar_len_px = colorbar_len_px,
     colorbar_gap_px = colorbar_gap_px,
     colorbar_thickness_px = colorbar_thickness_px,
+    combined=combined,
     )

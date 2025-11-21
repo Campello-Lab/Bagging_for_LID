@@ -1,6 +1,5 @@
 ###################################################OWN IMPORT###################################################
-from LIDKit.core._experimental.bagging.numpy import *
-from LIDBagging.RunningEstimators.BaseEstimators import *
+from Bagging_for_LID.RunningEstimators.BaseEstimators import *
 ##############################################################################################################################################################################################################################################################
 def simple_bagging_skdim(estimator, Q, X, n_bags=10, k=10, sampling_rate=None,
                          progress_bar=False, estimators=None, estimator_names=None,
@@ -130,52 +129,3 @@ def simple_bagging_skdim(estimator, Q, X, n_bags=10, k=10, sampling_rate=None,
                 bagging_estimator_dictionary[estimator_names[i]], _ = smoothing(X, bagging_estimator_dictionary[estimator_names[i]], k=k, dists=None, knnidx=None, geo=geo)
             avg_bagging_estimator_dictionary = {estimator_names[i]: np.mean(bagging_estimator_dictionary[estimator_names[i]]) for i in range(len(estimator_names))}
         return bagging_estimator_dictionary, avg_bagging_estimator_dictionary
-
-
-def simple_bagging_LIDkit(estimator, Q, X, n_bags=10, k=10, sampling_rate=None, progress_bar=False,
-                         estimators=None, estimator_names=None, paralell_estimation=False, w=None,
-                         indexuse=None, pre_smooth=False, geo=None, post_smooth=False, log_level = "INFO", seed=42):
-    n = Q.shape[0]
-    LIDkit_estimator = NumpyBaggingLIDEstimator(k=k, num_bags = n_bags, samples_per_bag=np.ceil(sampling_rate*n).astype(int), log_level=log_level)
-    if (len(estimator_names) == 1) and (estimator_names[0] == 'mle') and (estimator is None):
-        result_components = {estimator_names[i]: LIDkit_estimator.estimate(query_points=Q, reference=X, pooling_method = 'linear', loss_function = 'quadratic', pre_smooth=pre_smooth) for i in range(len(estimator_names))}
-        bagging_estimator_dictionary = {estimator_names[i]: result_components[estimator_names[i]].lids for i in range(len(estimator_names))}
-        avg_bagging_estimator_dictionary = {estimator_names[i]: np.mean(bagging_estimator_dictionary[estimator_names[i]]) for i in range(len(estimator_names))}
-    else:
-        NotImplementedError('Wrong estimator type safeguard. Only mle works for now.')
-    if post_smooth:
-        for i in range(len(estimator_names)):
-            smoothedi, _ = smoothing(X, bagging_estimator_dictionary[estimator_names[i]], k=k, dists=None, knnidx=None, geo=geo)
-            bagging_estimator_dictionary[estimator_names[i]] = smoothedi
-        avg_bagging_estimator_dictionary = {estimator_names[i]: np.mean(bagging_estimator_dictionary[estimator_names[i]]) for i in range(len(estimator_names))}
-    return bagging_estimator_dictionary, avg_bagging_estimator_dictionary
-
-def lid_Bagging_wrapper(data_array, *, ensemble_size=30, subsample_rate=0.3, rand_gen_seed=None, estimator_name="two_NN_LID_Estimator", **kwargs):
-    if estimator_name == 'mle':
-        estimator = MLE_LID_Estimator
-    elif estimator_name == 'mom':
-        estimator = MM_LID_Estimator
-    elif estimator_name == 'tle':
-        estimator = TLE_LID_Estimator
-    elif estimator_name == 'mada':
-        estimator = sk_MADA
-    elif estimator_name == 'ess':
-        estimator = sk_ESS
-    elif estimator_name == '2nn':
-        estimator = two_NN_LID_Estimator
-    LID_estimates, _, _, _ = lid_Bagging(data_array=data_array, ensemble_size=ensemble_size, subsample_rate=subsample_rate, rand_gen_seed=rand_gen_seed, lid_Estimator=estimator, **kwargs)
-    return LID_estimates
-
-def simple_bagging_Ricardo(estimator, Q, X, n_bags=10, k=10, sampling_rate=None, progress_bar=False,
-                         estimators=None, estimator_names=None, paralell_estimation=False, w=None,
-                         indexuse=None, pre_smooth=False, geo=None, post_smooth=False, log_level = "INFO", seed = 42):
-    n = Q.shape[0]
-    result_components = {estimator_names[i]: lid_Bagging_wrapper(data_array=Q, ensemble_size=n_bags, subsample_rate=sampling_rate, rand_gen_seed=seed, estimator_name=estimator_names[i], neighbourhood_size=k, return_smoothed=pre_smooth, simple_smooth=False, geo=None) for i in range(len(estimator_names))}
-    bagging_estimator_dictionary = {estimator_names[i]: result_components[estimator_names[i]] for i in range(len(estimator_names))}
-    avg_bagging_estimator_dictionary = {estimator_names[i]: np.mean(bagging_estimator_dictionary[estimator_names[i]]) for i in range(len(estimator_names))}
-    if post_smooth:
-        for i in range(len(estimator_names)):
-            smoothedi, _ = smoothing(X, bagging_estimator_dictionary[estimator_names[i]], k=k, dists=None, knnidx=None, geo=geo)
-            bagging_estimator_dictionary[estimator_names[i]] = smoothedi
-        avg_bagging_estimator_dictionary = {estimator_names[i]: np.mean(bagging_estimator_dictionary[estimator_names[i]]) for i in range(len(estimator_names))}
-    return bagging_estimator_dictionary, avg_bagging_estimator_dictionary
