@@ -15,3 +15,4 @@ pandas
 kaleido == 0.1.0.post1
 scikit-learn
 playwright
+PyPDF2

@@ -2,6 +2,7 @@ import numpy as np
 import plotly.graph_objects as go
 import os
 from typing import Optional, Sequence
+from pathlib import Path
 ###################################################OWN IMPORT###########################################################
 from Bagging_for_LID.Plotting.naming_helpers import *
 from Bagging_for_LID.Plotting.Plots.merge_pdf import *
@@ -168,10 +169,14 @@ def visualize_coords_plotly(
 
         marker["colorbar"] = {
             **marker.get("colorbar", {}),
-            "thickness": 32,  # thinner
-            "len": 0.6,  # 40% of height instead of 100%
-            "xpad": 0,  # zero horizontal padding
-            "ypad": 0,
+            "orientation": "h",
+            "x": 0.5,
+            "y": -0.25,
+            "xanchor": "center",
+            "len": 1,
+            "thickness": 30,
+            "title": "|Log₂(LID_Est/LID_GT)|",
+            "title_side": "top"
         }
 
         scene = dict(
@@ -208,6 +213,19 @@ def visualize_coords_plotly(
     # --- Colorbar for linear case ---
     if colors is not None and scale == "linear" and show_colorbar:
         cbar = marker.get("colorbar", {})
+
+        # --- horizontal bottom colorbar ---
+        cbar.update({
+            "orientation": "h",
+            "x": 0.5,
+            "y": -0.25,
+            "xanchor": "center",
+            "len": 1,
+            "thickness": 30,
+            "title": "|Log₂(LID_Est/LID_GT)|",
+            "title_side": "top"
+        })
+
         cbar.setdefault("title", "|Log₂(LID_Est/LID_GT)|")
         fig.data[0].marker.colorbar = cbar
 
@@ -326,7 +344,7 @@ def visualize_experiment_results(experiments, difference_function = log_mae, xyz
         #title = f'{title_template}_{character_string}'
         title = ''
         save_name = os.path.join(save_path, f'{character_string}.html')
-        show_colorbar = i == len(sample_object_list)-1
+        show_colorbar = i == len(sample_object_list)
         visualize_coords_plotly(
         sample_object[0],
         sample_object[1],
@@ -358,7 +376,7 @@ if __name__ == "__main__":
                         'sr': 0.3,
                         'Nbag': 10,
                         'pre_smooth': False,
-                        'post_smooth': [True, False],
+                        'post_smooth': [False, True],
                         't': 1}
 
     param_dicts2 = {'dataset_name': 'M13a_Scurve',
@@ -372,8 +390,8 @@ if __name__ == "__main__":
                         'k': 10,
                         'sr': 0.3,
                         'Nbag': 10,
-                        'pre_smooth': [True, False],
-                        'post_smooth': [True, False],
+                        'pre_smooth': [False, True],
+                        'post_smooth': [False, True],
                         't': 1}
 
 
@@ -383,6 +401,10 @@ if __name__ == "__main__":
                          save_name='res', directory=r'C:\Users\krp\PycharmProjects\FinalFixLIDGit\plots')
 
     save_path = r'C:\Users\krp\PycharmProjects\FinalFixLIDGit\plots'
+
+    experiments = [experiments[1], experiments[5], experiments[0], experiments[4], experiments[3], experiments[2]]
+    for experiment in experiments:
+        print(f'{experiment.bagging_method}_{experiment.pre_smooth}_{experiment.post_smooth}')
 
     save_names, character_strings = visualize_experiment_results(experiments, difference_function = log_mae, xyz = (0,1,2), scale = "linear",
                                               marker_size=2, title_template='', save_path=save_path, opacity=0.8,
@@ -408,5 +430,24 @@ if __name__ == "__main__":
     save_name_path = r'C:\Users\krp\PycharmProjects\FinalFixLIDGit'
     savenames = [os.path.join(save_name_path, f'{character_strings[i]}.pdf') for i in range(len(character_strings))]
 
-    merge_side_by_side_mupdf(savenames, os.path.join(save_name_path, 'main_image.pdf'), padding=0.0, margin=0.0)
+    for i in range(len(savenames)):
+        if i < len(savenames):
+            crop_pdf(savenames[i],
+            trim_left=0.20,
+            trim_right=0.20,
+            trim_top=0.25,
+            trim_bottom=0.05,
+            overwrite=True,
+            )
+        else:
+            crop_pdf(savenames[i],
+            trim_left=0.20,
+            trim_right=0.20,
+            trim_top=0.25,
+            trim_bottom=0,
+            overwrite=True,
+            )
 
+    merge_pdfs_grid_mupdf(savenames, os.path.join(save_name_path, 'main_image.pdf'),
+                          cols=3, rows=2, padding=0.0, margin=0.0,
+                          order="row")

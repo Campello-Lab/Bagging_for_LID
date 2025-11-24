@@ -1,7 +1,57 @@
 # pip install pymupdf
 import math
 from typing import Iterable, Optional, Tuple
-import fitz  # PyMuPDF
+from PyPDF2 import PdfReader, PdfWriter
+import fitz
+from pathlib import Path
+
+def crop_pdf(
+    pdf_path: str,
+    *,
+    trim_left: float = 0.05,
+    trim_right: float = 0.05,
+    trim_top: float = 0.05,
+    trim_bottom: float = 0.05,
+    overwrite: bool = True,
+) -> str:
+
+    input_path = Path(pdf_path)
+    if not input_path.exists():
+        raise FileNotFoundError(input_path)
+
+    reader = PdfReader(str(input_path))
+    writer = PdfWriter()
+
+    for page in reader.pages:
+        media_box = page.mediabox
+
+        x0 = float(media_box.left)
+        y0 = float(media_box.bottom)
+        x1 = float(media_box.right)
+        y1 = float(media_box.top)
+
+        width = x1 - x0
+        height = y1 - y0
+
+        new_x0 = x0 + trim_left   * width
+        new_x1 = x1 - trim_right  * width
+        new_y0 = y0 + trim_bottom * height
+        new_y1 = y1 - trim_top    * height
+
+        page.mediabox.lower_left  = (new_x0, new_y0)
+        page.mediabox.upper_right = (new_x1, new_y1)
+
+        writer.add_page(page)
+
+    if overwrite:
+        output_path = input_path
+    else:
+        output_path = input_path.with_name(input_path.stem + "_cropped.pdf")
+
+    with open(output_path, "wb") as f:
+        writer.write(f)
+
+    return str(output_path)
 
 
 def merge_pdfs_grid_mupdf(
@@ -10,21 +60,15 @@ def merge_pdfs_grid_mupdf(
     *,
     cols: Optional[int] = None,
     rows: Optional[int] = None,
-    padding: float = 0.0,   # space between tiles (points)
-    margin: float = 0.0,    # outer margin (points)
-    order: str = "row",     # "row" (L→R, top→bottom) or "col" (top→bottom, L→R)
-    align: str = "center",  # how to place inside each cell if aspect ratios differ: "center", "top", "bottom", "left", "right"
+    padding: float = 0.0,
+    margin: float = 0.0,
+    order: str = "row",
+    align: str = "center",
 ) -> Tuple[float, float]:
-    """
-    Compose single-page PDFs into one PDF page arranged in a grid.
-    Returns (out_width, out_height) in points (1 pt = 1/72").
-    """
     paths = list(pdf_paths)
     if not paths:
         raise ValueError("No input PDFs provided.")
 
-    # Probe first page size to propose a pleasant default cell size.
-    # We'll still scale each input to the computed cell rect.
     first_doc = fitz.open(paths[0])
     try:
         first_page = first_doc[0]
@@ -49,12 +93,10 @@ def merge_pdfs_grid_mupdf(
         if cols * rows < n:
             raise ValueError("cols × rows is smaller than number of PDFs.")
 
-    # Output page size: tile the "prototype" size (w0×h0) in the grid.
     cell_w, cell_h = w0, h0
     out_w = 2 * margin + cols * cell_w + (cols - 1) * padding
     out_h = 2 * margin + rows * cell_h + (rows - 1) * padding
 
-    # Create output doc + page
     out_doc = fitz.open()
     out_page = out_doc.new_page(width=out_w, height=out_h)
 
@@ -68,19 +110,15 @@ def merge_pdfs_grid_mupdf(
         return r, c
 
     def place_rect(r: int, c: int) -> fitz.Rect:
-        # Note: PDF coords origin at top-left in PyMuPDF's page coordinate system (y increases downward),
-        # but we can work in this system directly.
         x0 = margin + c * (cell_w + padding)
         y0 = margin + r * (cell_h + padding)
         return fitz.Rect(x0, y0, x0 + cell_w, y0 + cell_h)
 
     def aligned_rect(dst: fitz.Rect, src_size: Tuple[float, float]) -> fitz.Rect:
         sw, sh = src_size
-        # scale to fit inside dst (preserve aspect)
         scale = min(dst.width / sw, dst.height / sh)
         w = sw * scale
         h = sh * scale
-        # alignment inside the cell
         x = dst.x0
         y = dst.y0
         if "right" in align:
@@ -94,19 +132,16 @@ def merge_pdfs_grid_mupdf(
             y = dst.y0 + (dst.height - h) / 2
         return fitz.Rect(x, y, x + w, y + h)
 
-    # Draw each source page into its cell
     for k, pth in enumerate(paths):
         r, c = rc_for(k)
         cell = place_rect(r, c)
 
         src_doc = fitz.open(pth)
         try:
-            sp = src_doc[0]  # first (and only) page
-            src_rect = sp.rect  # its natural size
+            sp = src_doc[0]
+            src_rect = sp.rect
             target = aligned_rect(cell, (src_rect.width, src_rect.height))
-
-            # This call draws the full vector page as a Form XObject into the target rect
-            out_page.show_pdf_page(target, src_doc, 0)  # pno=0
+            out_page.show_pdf_page(target, src_doc, 0)
         finally:
             src_doc.close()
 
