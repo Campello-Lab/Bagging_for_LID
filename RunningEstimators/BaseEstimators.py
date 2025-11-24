@@ -1,5 +1,6 @@
 from tqdm import tqdm
 import sys
+import skdim
 cloned_folders = [
     r"C:\Users\User\PycharmProjects\pythonProject3\LIDstuff\lidl",
 ]
@@ -8,6 +9,7 @@ for folder in cloned_folders:
         sys.path.append(folder)
 ###################################################OWN IMPORT###################################################
 from Bagging_for_LID.RunningEstimators.RewrittenRawEstimators.MADA import *
+from Bagging_for_LID.RunningEstimators.BaggingSmoothing.Smoothing import *
 ###############################################################################################################################BASE ESTIMATORS###############################################################################################################################
 def sk_MLE(X, dists, knnidx, k=10, correct=True, w=None, return_ks=False, use_w='direct', smooth=False, geo=None,
            smooth_style='code2', bag_indices=None):
@@ -73,16 +75,17 @@ def sk_TLE(X, dists, knnidx, k=10, w=None, return_ks=False, use_w='indirect', sm
             else:
                 return lid_estimates, np.mean(lid_estimates)
     elif use_w == 'indirect':
-        n = X.shape[0]
-        lid_estimates = np.empty(n)
-        ks = np.empty(n)
-        tle = TLE()
-        tle._fit(X, dists_list=dists, knnidx_list=knnidx)
-        lid_estimates = tle.dimension_pw_
-        if return_ks:
-            return lid_estimates, np.mean(lid_estimates), ks
-        else:
-            return lid_estimates, np.mean(lid_estimates)
+        #n = X.shape[0]
+        #lid_estimates = np.empty(n)
+        #ks = np.empty(n)
+        #tle = TLE()
+        #tle._fit(X, dists_list=dists, knnidx_list=knnidx)
+        #lid_estimates = tle.dimension_pw_
+        #if return_ks:
+        #    return lid_estimates, np.mean(lid_estimates), ks
+        #else:
+        #    return lid_estimates, np.mean(lid_estimates)
+        NotImplemented(f"Not implemented use_w: {use_w}")
     else:
         NotImplemented(f"Not implemented use_w: {use_w}")
 
@@ -216,16 +219,17 @@ def sk_2NN(X, dists, knnidx, k = 10, correct = True, w = None, return_ks = False
             else:
                 return lid_estimates, np.mean(lid_estimates)
     elif use_w == 'indirect':
-        n = X.shape[0]
-        lid_estimates = np.empty(n)
-        ks = np.empty(n)
-        twonn = skdim.id.TwoNN()
-        twonn = fit_pw_with_list(twonn, X, knnidx, smooth=False)
-        lid_estimates = twonn.dimension_pw_
-        if return_ks:
-            return lid_estimates, np.mean(lid_estimates), ks
-        else:
-            return lid_estimates, np.mean(lid_estimates)
+        #n = X.shape[0]
+        #lid_estimates = np.empty(n)
+        #ks = np.empty(n)
+        #twonn = skdim.id.TwoNN()
+        #twonn = fit_pw_with_list(twonn, X, knnidx, smooth=False)
+        #lid_estimates = twonn.dimension_pw_
+        #if return_ks:
+        #    return lid_estimates, np.mean(lid_estimates), ks
+        #else:
+        #    return lid_estimates, np.mean(lid_estimates)
+        NotImplemented(f"Not implemented use_w: {use_w}")
     else:
         NotImplemented(f"Not implemented use_w: {use_w}")
 
@@ -249,16 +253,17 @@ def sk_ESS(X, dists, knnidx, k = 10, correct = True, w=None, return_ks = False, 
             else:
                 return lid_estimates, np.mean(lid_estimates)
     elif use_w == 'indirect':
-        n = X.shape[0]
-        lid_estimates = np.empty(n)
-        ks = np.empty(n)
-        est_ess = ESS()
-        est_ess._fit(X, dists=dists, knnidx=knnidx)
-        lid_estimates = est_ess.dimension_pw_
-        if return_ks:
-            return lid_estimates, np.mean(lid_estimates), ks
-        else:
-            return lid_estimates, np.mean(lid_estimates)
+        #n = X.shape[0]
+        #lid_estimates = np.empty(n)
+        #ks = np.empty(n)
+        #est_ess = ESS()
+        #est_ess._fit(X, dists=dists, knnidx=knnidx)
+        #lid_estimates = est_ess.dimension_pw_
+        #if return_ks:
+        #    return lid_estimates, np.mean(lid_estimates), ks
+        #else:
+        #    return lid_estimates, np.mean(lid_estimates)
+        NotImplemented(f"Not implemented use_w: {use_w}")
     else:
         NotImplemented(f"Not implemented use_w: {use_w}")
 

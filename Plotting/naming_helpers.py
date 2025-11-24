@@ -1,4 +1,7 @@
 import pandas as pd
+###################################################OWN IMPORT###########################################################
+from Bagging_for_LID.Plotting.plotting_helpers import *
+from Bagging_for_LID.Plotting.optimize_across_parameter_results import *
 
 #!!Hard coded part!! This is for changing the full, class parameter based identifiers into the expressive naming conventiones used in the paper.
 def unordered_lookup(query, original_map = None, sep= '|'):
@@ -283,3 +286,4 @@ def reassing_placeholder_value(experiments):
         if _get(experiments[i], 'post_smooth') is None:
             experiments[i].post_smooth = False
     return experiments
+

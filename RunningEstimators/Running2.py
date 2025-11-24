@@ -25,13 +25,13 @@ def run_experiment1(args, load=False, use_LIDkit=False, directory=r"C:\pkls"):
     params, load, use_LIDkit, use_Ricardo, directory = args
     experiment = LID_experiment(params=params)
     experiment.generate_data(load=load, directory=directory)
-    experiment.estimate(bounds=None, use_LIDkit=use_LIDkit, use_Ricardo=use_Ricardo)
+    experiment.estimate(bounds=None)
     return experiment
 
 def run_experiment2(params, load=False, use_LIDkit=False, use_Ricardo=False, directory=r"C:\pkls"):
     experiment = LID_experiment(params=params)
     experiment.generate_data(load=load, directory=directory)
-    experiment.estimate(bounds=None, use_LIDkit=use_LIDkit, use_Ricardo=use_Ricardo)
+    experiment.estimate(bounds=None)
     return experiment
 
 def _run_star(args):

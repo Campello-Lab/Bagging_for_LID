@@ -32,6 +32,12 @@ effectiveness_test_general_param_dict = param_dicts_general(base_param_dict=effe
                                                             changing_vars=['k', 'sr'],
                                                             test_name='effectiveness_test')
 
+effectiveness_test_with_t_general_param_dict = param_dicts_general(base_param_dict=effectiveness_test_with_t_base_param_dict,
+                                                                   variants_test_types=['weight_with_t'],
+                                                                   estimator_names=['mle'],
+                                                                   changing_vars=['k', 'sr', 't'],
+                                                                   test_name="effectiveness_test_with_t")
+
 Nbag_test_general_param_dict = param_dicts_general(base_param_dict=Nbag_test_base_param_dict,
                                                    variants_test_types=variable_variants_test_types,
                                                    estimator_names=variable_estimator_names,

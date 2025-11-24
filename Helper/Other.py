@@ -30,7 +30,7 @@ def normalize(values):
 
 def Normalize(arr):
     a = np.asarray(arr, dtype=float)
-    return 1 - (a - a.min()) / (a.max() - a.min()) if a.ptp() else np.zeros_like(a)
+    return 1 - (a - a.min()) / (a.max() - a.min()) if np.ptp(a) else np.zeros_like(a)
 
 def load_from_df(load_path):
     df = pd.read_csv(load_path, index_col=0)

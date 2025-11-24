@@ -1,3 +1,4 @@
+import skdim
 ###################################################OWN IMPORT###################################################
 from Bagging_for_LID.RunningEstimators.BaggingSmoothing.SimpleBagging import *
 from Bagging_for_LID.RunningEstimators.BaggingSmoothing.WeightedBagging import *
@@ -31,30 +32,10 @@ def sk_estimators(X, k = 10, correct = True, estimator_names=None, smooth=False,
             lid_estimates, mean_estimate = sk_2NN_full(X, k=k, correct=correct, dists=dists, knnidx=knnidx, smooth=smooth, geo=geo)
             estimate_dict[name] = lid_estimates
             avg_dict[name] = mean_estimate
-        if name == 'lidl':
-            lid_estimates, mean_estimate = LIDL_full(X, k=k, correct=correct, dists=dists, knnidx=knnidx, model_type="gm", smooth=smooth, geo=geo)
-            estimate_dict[name] = lid_estimates
-            avg_dict[name] = mean_estimate
-    return estimate_dict, avg_dict
-
-def Ricardo_estimators(X, k = 10, correct = True, estimator_names=None, smooth=False, geo=None):
-    estimate_dict = {}
-    avg_dict = {}
-    for name in estimator_names:
-        if name == 'mle':
-            lid_estimates = MLE_LID_Estimator(data_array=X, subsample_indexes = None, neighbourhood_size = k, return_smoothed = smooth, simple_smooth=False, geo = geo)
-            estimate_dict[name] = lid_estimates
-            avg_dict[name] = np.mean(lid_estimates)
-        if name == 'tle':
-            lid_estimates = TLE_LID_Estimator(data_array=X, subsample_indexes=None, neighbourhood_size=k,
-                                              return_smoothed=smooth, simple_smooth=False, geo=geo)
-            estimate_dict[name] = lid_estimates
-            avg_dict[name] = np.mean(lid_estimates)
-        if name == 'mada':
-            lid_estimates = MADA_LID_Estimator(data_array=X, subsample_indexes=None, neighbourhood_size=k,
-                                              return_smoothed=smooth, simple_smooth=False, geo=geo)
-            estimate_dict[name] = lid_estimates
-            avg_dict[name] = np.mean(lid_estimates)
+        #if name == 'lidl':
+        #    lid_estimates, mean_estimate = LIDL_full(X, k=k, correct=correct, dists=dists, knnidx=knnidx, model_type="gm", smooth=smooth, geo=geo)
+        #    estimate_dict[name] = lid_estimates
+        #    avg_dict[name] = mean_estimate
     return estimate_dict, avg_dict
 
 def fast_skdim_estimators(data_set, estimator_names, method_type=None, n_bags=10, sampling_rate = 0.5, k=10, progress_bar=False, correct = True):
