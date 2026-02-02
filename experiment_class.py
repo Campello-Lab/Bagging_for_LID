@@ -2,20 +2,11 @@
 from LIDBagging.Datasets.DatasetGeneration import *
 from LIDBagging.Helper.Other import *
 from LIDBagging.Helper.ComparrisonMeasures import *
-#from LIDBagging.RunningEstimators.BaseEstimators import *
 from LIDBagging.RunningEstimators.Collecting import *
-from LIDBagging.RunningEstimators.Running import *
-from cleaning_bin.OLD_Code.new_plots import *
-#from LIDBagging.Plotting.Plots.K_plots import *
-#from LIDBagging.Plotting.Plots.BarPlots import *
-from cleaning_bin.oldplots.KNN_Graph import *
-from cleaning_bin.oldplots.LocalPlot import *
-#from LIDBagging.Plotting.Plots.SpiderCharts import *
 from LIDBagging.Datasets.Uniform_Generator import *
 import itertools
 from collections.abc import Iterable
 ###################################################################################################################
-#directory = r'C:\Users\User\PycharmProjects\pythonProject3\LIDstuff\saved_results\pkls2'
 
 def save_dict(data, directory, filename):
     os.makedirs(directory, exist_ok=True)  # Ensure directory exists
@@ -120,6 +111,11 @@ class LID_experiment:
         self.log_subset_measures = None
         self.log_subsets = None
 
+        self.knn_dists = None
+        self.point_avg_knn_dists = None
+        self.bag_avg_knn_dists = None
+        self.point_bag_avg_knn_dists = None
+
     def get_character_string(self, params):
         string = ''
         for key, value in params.items():
@@ -207,24 +203,11 @@ class LID_experiment:
         data_sets = {self.dataset_name: self.data}
         result_dictionary = {estimator_names[i]: {} for i in range(len(estimator_names))}
         for key in data_sets:
-            if use_LIDkit:
-                estimators_dict, avg_estimator_dict = LIDkit_complete_estimators(data_sets[key][0], self.k, self.sr, self.Nbag,
-                                                                          self.pre_smooth, self.post_smooth, self.t,
-                                                                          self.estimator_name, self.bagging_method,
-                                                                          self.submethod_0, self.submethod_error,
-                                                                          progress_bar=False, correct=True)
-            elif use_Ricardo:
-                estimators_dict, avg_estimator_dict = Ricardo_complete_estimators(data_sets[key][0], self.k, self.sr, self.Nbag,
-                                                                          self.pre_smooth, self.post_smooth, self.t,
-                                                                          self.estimator_name, self.bagging_method,
-                                                                          self.submethod_0, self.submethod_error,
-                                                                          progress_bar=False, correct=True)
-            else:
-                estimators_dict, avg_estimator_dict = complete_estimators(data_sets[key][0], self.k, self.sr, self.Nbag,
-                                                                          self.pre_smooth, self.post_smooth, self.t,
-                                                                          self.estimator_name, self.bagging_method,
-                                                                          self.submethod_0, self.submethod_error,
-                                                                          progress_bar=False, correct=True)
+            estimators_dict, avg_estimator_dict = complete_estimators(data_sets[key][0], self.k, self.sr, self.Nbag,
+                                                                      self.pre_smooth, self.post_smooth, self.t,
+                                                                      self.estimator_name, self.bagging_method,
+                                                                      self.submethod_0, self.submethod_error,
+                                                                      progress_bar=False, correct=True)
             for name in estimator_names:
                 result_dictionary[name][key] = (estimators_dict[name], avg_estimator_dict[name])
         self.result_dictionary = result_dictionary
@@ -250,6 +233,14 @@ class LID_experiment:
             self.log_subset_measures = self.log_estimators_results[4]
             self.log_subsets = self.log_estimators_results[5]
         return result_dictionary, estimators_results_dictionary
+
+    def calc_knn_dists(self):
+        knn_dists = complete_knn_distances(self.data[0], k=self.k, sr=self.sr, Nbag=self.Nbag, bagging_method=self.bagging_method)
+        self.knn_dists = knn_dists
+        self.point_avg_knn_dists = np.mean(knn_dists, axis=0)
+        self.bag_avg_knn_dists = np.mean(knn_dists, axis=2)
+        self.point_bag_avg_knn_dists = np.mean(self.point_avg_knn_dists, axis=1)
+        return knn_dists
 
 
 

@@ -16,13 +16,11 @@ def _parse_rgba(col: str):
     if col.lower().startswith("rgb"):
         a = col[col.find("(")+1:col.find(")")].split(",")
         return (int(float(a[0])), int(float(a[1])), int(float(a[2])), 1.0)
-    # named colors → fallback via small scale
     return _parse_rgba(get_colorscale([(0.0, col), (1.0, col)])[-1][1])
 
 def _lerp(a, b, t): return a + (b - a) * t
 
 def _color_at(stops, p):
-    """linear interpolate color on stops at position p ∈ [0,1]"""
     p = max(0.0, min(1.0, float(p)))
     for i in range(len(stops)-1):
         p0, c0 = stops[i]
@@ -37,25 +35,15 @@ def _color_at(stops, p):
     return f"rgba({r},{g},{b},{a:.3f})"
 
 def truncate_and_stretch(cs_like="Reds", cut_top=0.20):
-    """
-    Make a colorscale like Plotly 'Reds' but with the darkest tail removed.
-    cut_top = 0.20 drops the top 20% (dark maroon) and stretches the rest to 1.0.
-    Returns: list of (pos, color) stops usable anywhere Plotly expects a colorscale.
-    """
-    # base stops
     base = get_colorscale(cs_like) if isinstance(cs_like, str) else list(cs_like)
     base = sorted([(float(p), str(c)) for p,c in base], key=lambda x: x[0])
-
-    alpha = max(1e-6, 1.0 - float(cut_top))   # keep [0, alpha] of the original
-    # remap existing stops up to alpha
+    alpha = max(1e-6, 1.0 - float(cut_top))
     kept = [(p/alpha, c) for (p,c) in base if p <= alpha]
-    # ensure we end exactly at 1.0 with the color that was at alpha
     end_col = _color_at(base, alpha)
     if not kept or kept[-1][0] < 1.0 - 1e-9:
         kept.append((1.0, end_col))
     else:
         kept[-1] = (1.0, end_col)
-    # ensure we start at pure white (optional but matches your request)
     start_col = _color_at(base, 0.0)
-    kept[0] = (0.0, "rgba(255,255,255,1.0)")  # force true white start
+    kept[0] = (0.0, "rgba(255,255,255,1.0)")
     return kept

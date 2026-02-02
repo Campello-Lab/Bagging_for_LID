@@ -1,5 +1,4 @@
 import skdim
-import sys
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import dijkstra
 import numpy as np

@@ -3,9 +3,6 @@ from itertools import repeat
 from tqdm import tqdm
 import logging, traceback
 ###################################################OWN IMPORT###################################################
-from LIDBagging.RunningEstimators.Collecting import fast_skdim_estimators
-from LIDBagging.Helper.ComparrisonMeasures import get_lollipop_comparrison_measures
-#from LIDBagging.Datasets.DatasetGeneration import get_datasets
 from LIDBagging.experiment_class import *
 ###############################################################################################################################RUNNING ESTIMATORS###################################
 def save_results2(results, directory, save_name):
@@ -35,12 +32,33 @@ def run_experiment2(params, load=False, use_LIDkit=False, use_Ricardo=False, dir
     experiment.estimate(bounds=None, use_LIDkit=use_LIDkit, use_Ricardo=use_Ricardo)
     return experiment
 
+def run_experiment_knn_dist1(args):
+    params, load, directory = args
+    experiment = LID_experiment(params=params)
+    experiment.generate_data(load=load, directory=directory)
+    experiment.calc_knn_dists()
+    return experiment
+
+def run_experiment_knn_dist(params, load=False, directory=r"C:\pkls"):
+    experiment = LID_experiment(params=params)
+    experiment.generate_data(load=load, directory=directory)
+    experiment.calc_knn_dists()
+    return experiment
+
 def _run_star(args):
     try:
         exp = run_experiment2(*args)
         return {"ok": True, "value": exp}
     except Exception:
         return {"ok": False, "traceback": traceback.format_exc()}
+
+def _run_star_knn_dist(args):
+    try:
+        exp = run_experiment_knn_dist(*args)
+        return {"ok": True, "value": exp}
+    except Exception:
+        return {"ok": False, "traceback": traceback.format_exc()}
+
 
 def run_several_experiments_multiprocess(
     params_lists,
@@ -71,10 +89,44 @@ def run_several_experiments_multiprocess(
     logging.info("Completed %d/%d experiments (failed: %d).", len(results), len(params_lists), failures)
     return results
 
+def run_several_knn_dist_experiments_multiprocess(
+    params_lists,
+    worker_count=None,
+    load=False,
+    directory=r"C:\pkls",
+):
+    if worker_count is None:
+        worker_count = mp.cpu_count()
+    tasks = zip(params_lists, repeat(load), repeat(directory))
+    results = []
+    failures = 0
+    with mp.Pool(worker_count) as pool:
+        for res in tqdm(
+            pool.imap_unordered(_run_star_knn_dist, tasks),
+            total=len(params_lists),
+            desc="running experiments",
+            unit="exp",
+        ):
+            if res["ok"]:
+                results.append(res["value"])
+            else:
+                failures += 1
+                print(f"[ERROR] experiment failed ({failures} so far). See log for traceback.")
+                logging.error("Experiment failed with traceback:\n%s", res["traceback"])
+    logging.info("Completed %d/%d experiments (failed: %d).", len(results), len(params_lists), failures)
+    return results
+
 def run_several_experiments_sequential(params_lists, load=False, use_LIDkit=False, use_Ricardo=False, directory=r"C:\pkls"):
     results = []
     for params in tqdm(params_lists):
         experiment = run_experiment1(args=(params, load, use_LIDkit, use_Ricardo, directory))
+        results.append(experiment)
+    return results
+
+def run_several_knn_dist_experiments_sequential(params_lists, load=False, directory=r"C:\pkls"):
+    results = []
+    for params in tqdm(params_lists):
+        experiment = run_experiment_knn_dist1(args=(params, load, directory))
         results.append(experiment)
     return results
 
@@ -98,6 +150,18 @@ def general_result_generator(param_dicts_dict, multiprocess=False, load=False, l
                              directory=directory)
         results_dict[f'{save_name}_{key}'] = result
     return results_dict
+
+def new_knn_dist_result_generator(param_dicts, multiprocess=False, load=False, load_data=False, worker_count=None, save_name='res', directory=r'C:\Users\User\PycharmProjects\pythonProject3\LIDstuff\saved_results\pkls2'):
+    if not load:
+        params_lists = expand_param_dicts(param_dicts)
+        if multiprocess:
+            results = run_several_knn_dist_experiments_multiprocess(params_lists, worker_count=worker_count, load=load_data, directory=directory)
+        else:
+            results = run_several_knn_dist_experiments_sequential(params_lists, load=load_data, directory=directory)
+        save_results2(results, directory=directory, save_name=save_name)
+    else:
+        results = load_results2(directory=directory, save_name=save_name)
+    return results
 
 def plotting_across_results_dict(results_dict, plotting_function, **kwargs):
     for key, value in results_dict.items():

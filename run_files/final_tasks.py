@@ -1,10 +1,6 @@
 #-----------------------------------------------------------------------------------------------------------------------
 #External imports
-from pathlib import Path
-import sys, os
 from functools import partial
-import gc
-import matplotlib.pyplot as plt
 #-----------------------------------------------------------------------------------------------------------------------
 #Internal Imports
 from LIDBagging.Plotting.Plots.SpiderCharts import *

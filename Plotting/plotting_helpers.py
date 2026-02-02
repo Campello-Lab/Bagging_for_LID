@@ -1,5 +1,4 @@
 from __future__ import annotations
-import importlib.metadata as _imeta
 from typing import Any
 import numpy as np
 

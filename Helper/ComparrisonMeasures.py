@@ -72,19 +72,6 @@ def get_correct_measures(data_sets, estimators, log_comparrison=False, bounds = 
         result[key] = [np.mean(estimators[key][0]), total_mse, total_bias2, total_var, subset_measures, subsets]
     return result
 
-def get_lollipop_comparrison_measures(data_sets, estimators, test_types = None, bounds = None):
-    if test_types is None:
-        result = get_correct_measures(data_sets, estimators, bounds)
-    else:
-        subset_datas = {}
-        for key in data_sets:
-            subset_data = subset_estimates(data_sets[key], key, estimators[key], test_types=test_types, bounds=bounds[key])
-            subset_datas = subset_datas | subset_data
-        result = dict([(key, [np.mean(subset_datas[key][1]), np.mean((subset_datas[key][1] - subset_datas[key][0][1]) ** 2),
-                          np.mean(subset_datas[key][1] - subset_datas[key][0][1]) ** 2, np.var(subset_datas[key][1])]) for key in
-                   subset_datas])
-    return result
-
 def get_comparrison_measures(data_sets, estimators, log_comparrison=False, bounds = None):
     result = get_correct_measures(data_sets, estimators, log_comparrison=log_comparrison, bounds=bounds)
     return result

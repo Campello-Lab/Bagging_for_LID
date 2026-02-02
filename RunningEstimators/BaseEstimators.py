@@ -1,5 +1,7 @@
 from tqdm import tqdm
 import sys
+import numpy as np
+import skdim
 cloned_folders = [
     r"C:\Users\User\PycharmProjects\pythonProject3\LIDstuff\lidl",
 ]
@@ -11,8 +13,7 @@ from cleaning_bin.RemovedFromMainCodeFiles.RewrittenRawEstimators.TLE import *
 from LIDBagging.RunningEstimators.RewrittenRawEstimators.MADA import *
 from cleaning_bin.RemovedFromMainCodeFiles.RewrittenRawEstimators.ESS import *
 from cleaning_bin.RemovedFromMainCodeFiles.RewrittenRawEstimators.TwoNN import *
-from LIDKit.core.estimators.numpy.tle import *
-from cleaning_bin.random_things.LID_Bagging_and_Bayesian_Incomplete import *
+from LIDBagging.RunningEstimators.BaggingSmoothing.Smoothing import *
 ###############################################################################################################################BASE ESTIMATORS###############################################################################################################################
 def sk_MLE(X, dists, knnidx, k=10, correct=True, w=None, return_ks=False, use_w='direct', smooth=False, geo=None,
            smooth_style='code2', bag_indices=None):
@@ -301,98 +302,3 @@ def sk_ESS_full(X, k = 10, correct = True, dists = None, knnidx= None, w=None, s
         return lid_smoothed_estimates, np.mean(lid_smoothed_estimates)
     else:
         return lid_estimates, np.mean(lid_estimates)
-
-def LIDL_full(X, k = 10, correct = True, dists = None, knnidx= None, model_type="gm", w=None, smooth=False, geo=None):
-    gm = dim_estimators.LIDL(model_type=model_type)
-    # the more deltas, the more accurate the estimate
-    deltas = [0.025, 0.02835781, 0.03216662, 0.036487, 0.04138766,0.04694655,\
-              0.05325205, 0.06040447, 0.06851755, 0.07772031, 0.08815913, 0.1]
-    result = gm(deltas, X, X)
-    lid_estimates = np.array(result)
-    if smooth:
-        lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=None, knnidx=None, geo=geo)
-        return lid_smoothed_estimates, np.mean(lid_smoothed_estimates)
-    else:
-        return lid_estimates, np.mean(lid_estimates)
-
-def LIDkit_TLE(data_array, subsample_indexes = None, k = 10, w=None, return_ks=False, use_w='indirect', smooth=False, geo=None):
-    tle = LIDEstimatorTleNumpy(k=k)
-    if subsample_indexes is not None:
-        reference = data_array[subsample_indexes]
-    else:
-        reference = data_array
-    if w is None:
-        tle.estimate(query_points=data_array, reference=reference, k=k)
-        lid_estimates = tle.lids
-        if return_ks:
-            ks = np.repeat(k, data_array.shape[0])
-            if smooth:
-                lid_smoothed_estimates, _ = smoothing(data_array, lid_estimates, k=k, dists=None, knnidx=None, geo=geo)
-                return lid_smoothed_estimates
-            else:
-                return lid_estimates
-        else:
-            if smooth:
-                lid_smoothed_estimates, _ = smoothing(data_array, lid_estimates, k=k, dists=None, knnidx=None, geo=geo)
-                return lid_smoothed_estimates
-            else:
-                return lid_estimates
-    else:
-        NotImplemented(f"Not implemented use_w: {use_w}")
-
-def Ricardo_TLE(X, dists, knnidx, k = 10, w=None, return_ks=False, use_w='indirect', smooth=False, geo=None, **kwargs):
-    if w is None:
-        lid_estimates = TLE_LID_Estimator(data_array=X, neighbourhood_size=k, return_smoothed=False, simple_smooth=False, geo=False, nn_dist=dists, KNN_indices=knnidx, **kwargs)
-        if return_ks:
-            ks = np.repeat(k, X.shape[0])
-            if smooth:
-                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=None, knnidx=None, geo=geo)
-                return lid_smoothed_estimates, np.mean(lid_smoothed_estimates), ks
-            else:
-                return lid_estimates, np.mean(lid_estimates), ks
-        else:
-            if smooth:
-                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=None, knnidx=None, geo=geo)
-                return lid_smoothed_estimates, np.mean(lid_smoothed_estimates)
-            else:
-                return lid_estimates, np.mean(lid_estimates)
-    else:
-        NotImplemented(f"Not implemented use_w: {use_w}")
-
-def Ricardo_MLE(X, dists, knnidx, k = 10, w=None, return_ks=False, use_w='indirect', smooth=False, geo=None, **kwargs):
-    if w is None:
-        lid_estimates = MLE_LID_Estimator(data_array=X, neighbourhood_size=k, return_smoothed=False, simple_smooth=False, geo=False, nn_dist=dists, KNN_indices=knnidx, **kwargs)
-        if return_ks:
-            ks = np.repeat(k, X.shape[0])
-            if smooth:
-                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=None, knnidx=None, geo=geo)
-                return lid_smoothed_estimates, np.mean(lid_smoothed_estimates), ks
-            else:
-                return lid_estimates, np.mean(lid_estimates), ks
-        else:
-            if smooth:
-                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=None, knnidx=None, geo=geo)
-                return lid_smoothed_estimates, np.mean(lid_smoothed_estimates)
-            else:
-                return lid_estimates, np.mean(lid_estimates)
-    else:
-        NotImplemented(f"Not implemented use_w: {use_w}")
-
-def Ricardo_MADA(X, dists, knnidx, k = 10, w=None, return_ks=False, use_w='indirect', smooth=False, geo=None, **kwargs):
-    if w is None:
-        lid_estimates = MADA_LID_Estimator(data_array=X, neighbourhood_size=k, return_smoothed=False, simple_smooth=False, geo=False, nn_dist=dists, KNN_indices=knnidx, **kwargs)
-        if return_ks:
-            ks = np.repeat(k, X.shape[0])
-            if smooth:
-                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=None, knnidx=None, geo=geo)
-                return lid_smoothed_estimates, np.mean(lid_smoothed_estimates), ks
-            else:
-                return lid_estimates, np.mean(lid_estimates), ks
-        else:
-            if smooth:
-                lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=None, knnidx=None, geo=geo)
-                return lid_smoothed_estimates, np.mean(lid_smoothed_estimates)
-            else:
-                return lid_estimates, np.mean(lid_estimates)
-    else:
-        NotImplemented(f"Not implemented use_w: {use_w}")

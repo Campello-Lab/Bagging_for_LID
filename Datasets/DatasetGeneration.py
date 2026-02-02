@@ -1,20 +1,5 @@
 import skdim
-#from pathlib import Path
-#import os
-#import yaml
 import numpy as np
-#from data.datasets.generated import LIDSyntheticDataset
-#from data.distributions.lollipop import Lollipop
-#from data.distributions.swiss_roll import SwissRoll
-#from data.distributions.torus import Torus
-#from data.distributions.mondrian import Mondrian
-#from data.distributions.multiscale_gaussian import MultiscaleGaussian
-#from data.distributions.von_mises import VonMisesEuclidean
-#from data.distributions.manifold_mixture import (
-#    ManifoldMixture,
-#    AffineManifoldMixture,
-#    SquigglyManifoldMixture,
-#)
 ###############################################################################################################################DATASET GENERATION###############################################################################################################################
 def lollipop_dataset(bs, seed=0):
     np.random.seed(seed)

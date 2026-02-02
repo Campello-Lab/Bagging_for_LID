@@ -249,7 +249,6 @@ def reorder_sorted_experiments(df, order=None, keep_rest=True):
 def reassing_placeholder_value(experiments):
     def _get(exp, attr, default=None):
         return getattr(exp, attr, default)
-
     for i in range(len(experiments)):
         if _get(experiments[i], 'pre_smooth') is None:
             experiments[i].pre_smooth = False

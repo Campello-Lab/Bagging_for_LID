@@ -1,5 +1,4 @@
 from __future__ import annotations
-import pandas as pd
 from LIDBagging.Plotting.naming_helpers import *
 
 def sorted_experiments(experiments, sweep_params):
@@ -43,7 +42,6 @@ def sorted_experiments(experiments, sweep_params):
                         f"Found values: {sorted(vals)}"
                     )
     return df
-
 
 def extract_params(df, params):
     datasets = df.index

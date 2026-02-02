@@ -1,5 +1,3 @@
-import logging
-import time
 from LIDBagging.RunningEstimators.Running2 import *
 
 def setup_logging(log_file: str = "run.log") -> None:
