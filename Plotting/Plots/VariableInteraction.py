@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Sequence, Tuple, Union, Mapping
 import matplotlib.pyplot as plt
 import numpy as np
-from LIDBagging.Plotting.plotting_helpers import *
+from Bagging_for_LID.Plotting.plotting_helpers import *
 
 _NUMERIC_PARAMS = {"n", "k", "sr", "Nbag", "lid", "dim", "t"} # class parameters that can change for bagged estimators
 _BASELINE_PARAMS = {"n", "k", "lid", "dim"}            # class parameters that can change for baseline estimator
@@ -38,7 +38,7 @@ def plot_experiment_heatmaps(
     log=False,
     type='difference',
     inlog = False,
-    fig_title = None
+    fig_title = False,
 ):
     """Draw baseline‑vs‑bagged metric differences as 2‑D heat‑maps, where the two axes represent varying parameters."""
 
@@ -57,7 +57,15 @@ def plot_experiment_heatmaps(
     for e in experiments:
         ds_runs[e.dataset_name].append(e)
 
-    #Figure out the global title that explains all the used parameters, unless a title is provided --------------------------------------------
+    #Figure out the global title that explains all the used parameters, unless a title is provided, or compute pretty
+    # title, somewhat hard coded to the main experiments  --------------------------------------------------------------
+    def param_name(param_str):
+        if param_str == 'sr':
+            return 'sampling rate'
+        elif param_str == 'Nbag':
+            return 'number of bags'
+        elif param_str == 'k':
+            return 'k'
     if fig_title is None:
         fixed_global = {}
         for p in _ALL_PARAMS - {x_param, y_param, "bagging_method", "dataset_name"}:
@@ -65,6 +73,12 @@ def plot_experiment_heatmaps(
             if len(vals) == 1:
                 fixed_global[p] = vals.pop()
         fig_title = " | ".join(f"{k}:{fmt_val(k,v)}" for k, v in fixed_global.items())
+    elif fig_title == 'auto':
+        x_param_name = param_name(x_param)
+        y_param_name = param_name(y_param)
+
+        fig_title = f'Interaction of {x_param_name} and {y_param_name} heatmap. \nBaseline Estimator: {experiments[0].estimator_name.upper()}'
+
 
     #automatically set up the layout, fonts -------------------------------------------------
     rows, cols = auto_grid(len(ds_runs)) if grid and len(ds_runs) > 1 else (len(ds_runs), 1)
@@ -177,9 +191,14 @@ def plot_experiment_heatmaps(
                     fmt_val(y_param, v) if (i % label_every == 0 or i in {0, len(ys_sorted)-1}) else ""
                     for i, v in enumerate(ys_sorted)
                 ])
-
-                ax.set_xlabel(x_param)
-                ax.set_ylabel(y_param)
+                if x_param == 'Nbag':
+                    ax.set_xlabel('Number of Bags (B)')
+                else:
+                    ax.set_xlabel(x_param)
+                if y_param == 'Nbag':
+                    ax.set_ylabel('Number of Bags (B)')
+                else:
+                    ax.set_ylabel(y_param)
                 ax.set_title(ds_name)
                 cbar = fig.colorbar(im, ax=ax, shrink=0.8)
                 if inlog:

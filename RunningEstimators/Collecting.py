@@ -1,6 +1,7 @@
+import skdim
 ###################################################OWN IMPORT###################################################
-from LIDBagging.RunningEstimators.BaggingSmoothing.SimpleBagging import *
-from LIDBagging.RunningEstimators.BaggingSmoothing.WeightedBagging import *
+from Bagging_for_LID.RunningEstimators.BaggingSmoothing.SimpleBagging import *
+from Bagging_for_LID.RunningEstimators.BaggingSmoothing.WeightedBagging import *
 ###############################################################################################################################COLLECTING ESTIMATORS###############################################################################################################################
 def sk_estimators(X, k = 10, correct = True, estimator_names=None, smooth=False, geo=None):
     dists, knnidx = skdim._commonfuncs.get_nn(X, k=k, n_jobs=1)
@@ -31,6 +32,10 @@ def sk_estimators(X, k = 10, correct = True, estimator_names=None, smooth=False,
             lid_estimates, mean_estimate = sk_2NN_full(X, k=k, correct=correct, dists=dists, knnidx=knnidx, smooth=smooth, geo=geo)
             estimate_dict[name] = lid_estimates
             avg_dict[name] = mean_estimate
+        #if name == 'lidl':
+        #    lid_estimates, mean_estimate = LIDL_full(X, k=k, correct=correct, dists=dists, knnidx=knnidx, model_type="gm", smooth=smooth, geo=geo)
+        #    estimate_dict[name] = lid_estimates
+        #    avg_dict[name] = mean_estimate
     return estimate_dict, avg_dict
 
 def fast_skdim_estimators(data_set, estimator_names, method_type=None, n_bags=10, sampling_rate = 0.5, k=10, progress_bar=False, correct = True):
@@ -222,6 +227,7 @@ def complete_estimators(dataset, k, sr, Nbag, pre_smooth, post_smooth, t, estima
                                                                                      geo=None, pre_smooth=pre_smooth,
                                                                                      post_smooth=post_smooth, error_type=submethod_error)
     return estimators_dict, avg_estimator_dict
+
 
 def complete_knn_distances(dataset, k, sr, Nbag, bagging_method=None):
     if bagging_method is None:

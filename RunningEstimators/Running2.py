@@ -3,7 +3,9 @@ from itertools import repeat
 from tqdm import tqdm
 import logging, traceback
 ###################################################OWN IMPORT###################################################
-from LIDBagging.experiment_class import *
+from Bagging_for_LID.RunningEstimators.Collecting import fast_skdim_estimators
+from Bagging_for_LID.Helper.ComparrisonMeasures import get_lollipop_comparrison_measures
+from Bagging_for_LID.experiment_class import *
 ###############################################################################################################################RUNNING ESTIMATORS###################################
 def save_results2(results, directory, save_name):
     os.makedirs(directory, exist_ok=True)
@@ -23,13 +25,13 @@ def run_experiment1(args, load=False, use_LIDkit=False, directory=r"C:\pkls"):
     params, load, use_LIDkit, use_Ricardo, directory = args
     experiment = LID_experiment(params=params)
     experiment.generate_data(load=load, directory=directory)
-    experiment.estimate(bounds=None, use_LIDkit=use_LIDkit, use_Ricardo=use_Ricardo)
+    experiment.estimate(bounds=None)
     return experiment
 
 def run_experiment2(params, load=False, use_LIDkit=False, use_Ricardo=False, directory=r"C:\pkls"):
     experiment = LID_experiment(params=params)
     experiment.generate_data(load=load, directory=directory)
-    experiment.estimate(bounds=None, use_LIDkit=use_LIDkit, use_Ricardo=use_Ricardo)
+    experiment.estimate(bounds=None)
     return experiment
 
 def run_experiment_knn_dist1(args):
@@ -166,6 +168,26 @@ def new_knn_dist_result_generator(param_dicts, multiprocess=False, load=False, l
 def plotting_across_results_dict(results_dict, plotting_function, **kwargs):
     for key, value in results_dict.items():
         plotting_function(experiments=value, save_prefix=key, **kwargs)
+
+def merge_experiment_lists(directory, save_name1, save_name2, replace_dataset_key=None, save=True):
+    results1 = load_results2(directory=directory, save_name=save_name1)
+    results2 = load_results2(directory=directory, save_name=save_name2)
+    if replace_dataset_key is None:
+        results_merged = results1 + results2
+    else:
+        results_merged = []
+        for experiment in results1:
+            if experiment.dataset_name != replace_dataset_key:
+                results_merged.append(experiment)
+        for experiment in results2:
+            if experiment.dataset_name == replace_dataset_key:
+                results_merged.append(experiment)
+    if save:
+        save_results2(results_merged, directory=directory, save_name='merged'+save_name1)
+    return results_merged
+
+
+
 
 
 

@@ -1,4 +1,4 @@
-from LIDBagging.RunningEstimators.Running2 import *
+from Bagging_for_LID.RunningEstimators.Running2 import *
 
 def setup_logging(log_file: str = "run.log") -> None:
     logging.basicConfig(

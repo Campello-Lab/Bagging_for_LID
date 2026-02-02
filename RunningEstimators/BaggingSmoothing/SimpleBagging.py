@@ -1,5 +1,6 @@
+from scipy.spatial.distance import squareform, pdist
 ###################################################OWN IMPORT###################################################
-from LIDBagging.RunningEstimators.BaseEstimators import *
+from Bagging_for_LID.RunningEstimators.BaseEstimators import *
 ##############################################################################################################################################################################################################################################################
 def simple_bagging_skdim(estimator, Q, X, n_bags=10, k=10, sampling_rate=None,
                          progress_bar=False, estimators=None, estimator_names=None,

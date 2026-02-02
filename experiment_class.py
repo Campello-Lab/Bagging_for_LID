@@ -1,12 +1,15 @@
-###################################################OWN IMPORT###################################################
-from LIDBagging.Datasets.DatasetGeneration import *
-from LIDBagging.Helper.Other import *
-from LIDBagging.Helper.ComparrisonMeasures import *
-from LIDBagging.RunningEstimators.Collecting import *
-from LIDBagging.Datasets.Uniform_Generator import *
 import itertools
 from collections.abc import Iterable
+###################################################OWN IMPORT###################################################
+from Bagging_for_LID.Datasets.DatasetGeneration import *
+from Bagging_for_LID.Helper.Other import *
+from Bagging_for_LID.Helper.additional_imports import *
+from Bagging_for_LID.Helper.ComparrisonMeasures import *
+from Bagging_for_LID.RunningEstimators.Collecting import *
+from Bagging_for_LID.RunningEstimators.Running import *
+from Bagging_for_LID.Datasets.Uniform_Generator import *
 ###################################################################################################################
+#directory = r'C:\Users\User\PycharmProjects\pythonProject3\LIDstuff\saved_results\pkls2'
 
 def save_dict(data, directory, filename):
     os.makedirs(directory, exist_ok=True)  # Ensure directory exists
@@ -191,9 +194,7 @@ class LID_experiment:
         self.data = data
         return data
 
-    def estimate(self, bounds=None, use_LIDkit=False, use_Ricardo=False):
-        if use_LIDkit and use_Ricardo:
-            ValueError(f'Only one of use_LIDkit or use_Ricardo can be true at the same time')
+    def estimate(self, bounds=None):
         if isinstance(self.estimator_name, list):
             estimator_names = self.estimator_name
         elif isinstance(self.estimator_name, str):

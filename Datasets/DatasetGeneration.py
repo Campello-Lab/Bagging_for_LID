@@ -67,8 +67,8 @@ def data_defaults():
     keys = all_keys[0:4] + all_keys[5:13] + all_keys[14:17] + all_keys[19:21]
     keys.append("lollipop_")
     keys.append("uniform")
-    d_vals = [10, 3, 4, 4, 2, 6, 2, 12, 20, 10, 17, 24, 2, 20, 2, 18, 24, 2, 2]
-    m_vals = [11, 5, 6, 8, 3, 36, 3, 72, 20, 11, 18, 25, 3, 20, 3, 72, 96, 2, 3]
+    d_vals = [10, 3, 4, 4, 2, 6, 2, 12, 20, 10, 17, 24, 2, 20, 2, 18, 24, 2, 30]
+    m_vals = [11, 5, 6, 8, 3, 36, 3, 72, 20, 11, 18, 25, 3, 20, 3, 72, 96, 2, 100]
     params = [(keys[i], [d_vals[i], m_vals[i]]) for i in range(len(keys))]
     used_params = dict(params)
     return used_params

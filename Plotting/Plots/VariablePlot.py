@@ -5,8 +5,8 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence, Tuple, Union
 import matplotlib.pyplot as plt
 import numpy as np
-from LIDBagging.Plotting.plotting_helpers import *
-from LIDBagging.Plotting.naming_helpers import *
+from Bagging_for_LID.Plotting.plotting_helpers import *
+from Bagging_for_LID.Plotting.naming_helpers import *
 
 #define the variable class parameter, for which this function can sweep over results
 _NUMERIC_PARAMS = {"n", "k", "sr", "Nbag", "lid", "dim", "t"}
@@ -33,7 +33,8 @@ def plot_experiment_metric_curves(
     save_dir: str | Path = "./plots",
     formats: tuple[str, ...] = ("pdf",),
     show: bool = False,
-    xscale='log'
+    xscale='log',
+    fig_title = False
 ):
     """Plot total MSE / Bias² / Variance on the y-axis for *vary_param* on the x-axis, for each dataset.
 
@@ -74,7 +75,8 @@ def plot_experiment_metric_curves(
         vals = {getattr(e, p) for e in experiments}
         if len(vals) == 1:
             fixed_global[p] = vals.pop()
-    fig_title = " | ".join(f"{k}:{fmt_val(k, v)}" for k, v in fixed_global.items())
+    if fig_title:
+        fig_title = " | ".join(f"{k}:{fmt_val(k, v)}" for k, v in fixed_global.items())
 
     # ── helper to generate subplot curves ───────────────────────────
     def _signature(exp: Any) -> tuple[tuple[str, Any], ...]:

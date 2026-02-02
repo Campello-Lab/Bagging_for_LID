@@ -1,12 +1,9 @@
 #-----------------------------------------------------------------------------------------------------------------------
-#External imports
-#-----------------------------------------------------------------------------------------------------------------------
 #Internal imports
-from LIDBagging.run_files.final_tasks import *
+from Bagging_for_LID.run_files.final_tasks import *
 #-----------------------------------------------------------------------------------------------------------------------
 #Setup directories
-#PROJECT_ROOT = Path(r"C:\Users\krp\OneDrive - Syddansk Universitet\PycharmProjects\LID1\LIDBagging2")
-PROJECT_ROOT = Path(r"C:\Users\User\PycharmProjects\LID\LIDBagging2")
+PROJECT_ROOT = Path(r"C:\Users\krp\PycharmProjects\FinalFixLIDGit")
 os.chdir(PROJECT_ROOT)
 p = str(PROJECT_ROOT)
 if p not in sys.path:
@@ -14,12 +11,12 @@ if p not in sys.path:
 #-----------------------------------------------------------------------------------------------------------------------
 #Setup computation
 multiprocess=True
-load=False
+load=True
 load_data=True
-worker_count=5
-save_name='result'
-#directory = r'C:\Users\krp\OneDrive - Syddansk Universitet\PycharmProjects\LID1\LIDBagging2\pkls'
-directory = r"G:\pkls2\new\RESULTS"
+worker_count=7
+save_name='mergedresult'
+directory = r'C:\pkls'
+#directory = r"G:\pkls2\new\RESULTS"
 #directory=r'C:\Users\User\PycharmProjects\pythonProject3\LIDstuff\saved_results\pkls2'
 if __name__ == "__main__":
     setup_logging()
@@ -27,13 +24,14 @@ if __name__ == "__main__":
     #Generate datasets (to be reused in different experiments)
     results_data = new_result_generator(param_dicts_data, multiprocess=False, load=True, load_data=True,
                                         worker_count=None,
-                                        save_name='data_generation',
+                                        save_name='data_generation_uniform',
                                         directory=directory)
     print('Data generation complete')
     # -----------------------------------------------------------------------------------------------------------------------
     #Setup MAIN result generation
 
     #Effectiveness of bagging (baseline, simple bagging, weighted bagging, neighborhood size adjustment)
+    #Effectiveness of bagging t is changing additionally (baseline, simple bagging, weighted bagging, neighborhood size adjustment)
     #Bagging and smoothing (baseline, baseline with smoothing, simple bagging, simple bagging with pre or/and post smoothing)
     #Number of bags test (mse bar charts)
     #Sampling rate test (mse bar charts)
@@ -41,13 +39,12 @@ if __name__ == "__main__":
     #Interaction of k and sampling rate (mse difference heatmaps)
 
     task_dict = {"effectiveness_test": effectiveness_test_general_param_dict,
+                 'effectiveness_test_with_t': effectiveness_test_with_t_general_param_dict,
                  "Number_of_bags_test": Nbag_test_general_param_dict,
                  "Sampling_rate_test": sr_test_general_param_dict,
                  "Interaction_of_sampling_rate_and_number_of_bags_test": interaction_sr_Nbag_test_general_param_dict,
                  "Interaction_of_k_and_sampling_rate_test": interaction_sr_k_test_general_param_dict}
-    del task_dict["effectiveness_test"]
-    del task_dict["Number_of_bags_test"]
-    del task_dict["Sampling_rate_test"]
+
     tasks = setup_tasks(task_dict, multiprocess=multiprocess, load=load, load_data=load_data, worker_count=worker_count, save_name=save_name, directory=directory)
 
     # -----------------------------------------------------------------------------------------------------------------------

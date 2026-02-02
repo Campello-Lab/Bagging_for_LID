@@ -4,11 +4,11 @@ import os
 from typing import Optional, Sequence
 from pathlib import Path
 ###################################################OWN IMPORT###########################################################
-from LIDBagging.Plotting.naming_helpers import *
-from LIDBagging.Plotting.Plots.merge_pdf import *
-from LIDBagging.recreate_results import save_name
-from LIDBagging.run_files.final_tasks import *
-from LIDBagging.Plotting.Plots.visualize_pdf import *
+from Bagging_for_LID.Plotting.naming_helpers import *
+from Bagging_for_LID.Plotting.Plots.merge_pdf import *
+from Bagging_for_LID.recreate_results import save_name
+from Bagging_for_LID.run_files.final_tasks import *
+from Bagging_for_LID.Plotting.Plots.visualize_pdf import *
 
 
 def e(x, y):
@@ -222,11 +222,11 @@ def visualize_coords_plotly(
             "xanchor": "center",
             "len": 1,
             "thickness": 30,
-            "title": "(LID_Est-ID_GT)²",
+            "title": "|Log₂(LID_Est/LID_GT)|",
             "title_side": "top"
         })
 
-        cbar.setdefault("title", "(LID_Est-ID_GT)²")
+        cbar.setdefault("title", "|Log₂(LID_Est/LID_GT)|")
         fig.data[0].marker.colorbar = cbar
 
     # --- Save HTML ---
@@ -398,22 +398,20 @@ if __name__ == "__main__":
     param_dicts = [param_dicts1, param_dicts2]
 
     experiments = new_result_generator(param_dicts, multiprocess=False, load=True, load_data=True, worker_count=None,
-                         save_name='res', directory=r'C:\Users\User\PycharmProjects\LID\LIDBagging2\plots')
+                         save_name='res', directory=r'C:\Users\krp\PycharmProjects\FinalFixLIDGit\plots')
 
-    save_path = r'C:\Users\User\PycharmProjects\LID\LIDBagging2\plots'
+    save_path = r'C:\Users\krp\PycharmProjects\FinalFixLIDGit\plots'
 
-    experiments = [experiments[0], experiments[2], experiments[1], experiments[3], experiments[4], experiments[5]]
-
+    experiments = [experiments[1], experiments[5], experiments[0], experiments[4], experiments[3], experiments[2]]
     for experiment in experiments:
         print(f'{experiment.bagging_method}_{experiment.pre_smooth}_{experiment.post_smooth}')
 
-    save_names, character_strings = visualize_experiment_results(experiments, difference_function=mse, xyz = (0,1,2), scale = "linear",
+    save_names, character_strings = visualize_experiment_results(experiments, difference_function = log_mae, xyz = (0,1,2), scale = "linear",
                                               marker_size=2, title_template='', save_path=save_path, opacity=0.8,
                                               colorscale='RdBu_r', vmin=None, vmax=None)
 
     paths = save_names
     names = [f'{character_strings[i]}.pdf' for i in range(len(character_strings))]
-    print(names)
 
     for i in range(len(paths)):
         path = paths[i]
@@ -429,7 +427,7 @@ if __name__ == "__main__":
             elevation_deg=20
         )
 
-    save_name_path = r'C:\Users\User\PycharmProjects\LID\LIDBagging2'
+    save_name_path = r'C:\Users\krp\PycharmProjects\FinalFixLIDGit'
     savenames = [os.path.join(save_name_path, f'{character_strings[i]}.pdf') for i in range(len(character_strings))]
 
     for i in range(len(savenames)):
@@ -438,7 +436,7 @@ if __name__ == "__main__":
             trim_left=0.20,
             trim_right=0.20,
             trim_top=0.25,
-            trim_bottom=0,
+            trim_bottom=0.05,
             overwrite=True,
             )
         else:

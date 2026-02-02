@@ -1,5 +1,4 @@
-# param_viz.py
-# Visualize random samples of maps f: [0,1]^n_params -> R^d (now supports d ≥ 1, incl. 4D via color)
+# Visualize random samples of maps f: [0,1]^n_params -> R^d
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,8 +6,7 @@ from typing import Callable, Tuple, Optional, Sequence
 import scipy
 
 try:
-    # noqa: F401 - needed to enable 3D projection in matplotlib
-    from mpl_toolkits.mplot3d import Axes3D  # type: ignore
+    from mpl_toolkits.mplot3d import Axes3D
 except Exception:
     pass
 
@@ -16,7 +14,6 @@ import matplotlib.colors as mcolors
 
 
 def _call_map_fn(map_fn: Callable, P: np.ndarray) -> np.ndarray:
-    """Call map_fn either as map_fn(P) or map_fn(*cols)."""
     try:
         Y = map_fn(P)
     except TypeError:
@@ -37,45 +34,26 @@ def visualize_unit_cube_map(
     alpha: float = 0.25,
     seed: int = 0,
     equal_axes: bool = True,
-    # --- New options for 4D/HD projections ---
-    axes: Sequence[int] = (0, 1, 2),   # which components to use as x,y,(z)
-    color_dim: Optional[int] = None,   # which component to color by (e.g., 3 for 4D)
+    axes: Sequence[int] = (0, 1, 2),
+    color_dim: Optional[int] = None,
     cmap: str = "viridis",
     colorbar: bool = True,
 ) -> Tuple[plt.Figure, Optional[str]]:
-    """
-    Sample a map f: [0,1]^n_params -> R^d and plot it.
 
-    Supports:
-      d = 1  -> scatter along index
-      d = 2  -> 2D scatter
-      d = 3  -> 3D scatter
-      d >= 4 -> pick 3 dims via `axes` and use `color_dim` for color
-    Also works for d > 4 if you specify `axes` (length 2 or 3) and optionally `color_dim`.
-
-    map_fn can be written in either style:
-      1) map_fn(P): P is (N, n_params) -> returns (N, d)
-      2) map_fn(x0, x1, ..., x_{n-1}): each is length N -> returns (N, d) or 1-D
-
-    Returns (fig, save_path).
-    """
     rng = np.random.default_rng(seed)
     P = rng.random((samples, n_params))
     Y = _call_map_fn(map_fn, P)
     N, d = Y.shape
 
-    # Choose sensible defaults for projection if not provided
     axes = tuple(axes)
     if len(axes) not in (2, 3):
         raise ValueError("`axes` must have length 2 or 3 (for 2D/3D plotting).")
 
-    # Auto-select color_dim if none and we have an extra dimension
     if color_dim is None and d >= len(axes) + 1:
-        # Use the first component not in axes, otherwise fall back to last
+
         remaining = [i for i in range(d) if i not in axes]
         color_dim = remaining[0] if remaining else d - 1
 
-    # Build plot title
     if title is None:
         base = f"Parametric visualization (n_params={n_params}, d={d})"
         if d >= 4:
@@ -83,13 +61,11 @@ def visualize_unit_cube_map(
         else:
             title = base
 
-    # Extract coordinates and (optional) color
     coords = Y[:, list(axes)]
     C = None
     if color_dim is not None and 0 <= color_dim < d:
         C = Y[:, color_dim]
 
-    # ----- Plotting -----
     if len(axes) == 2:
         fig = plt.figure(figsize=(6, 6))
         scatter_kwargs = dict(s=marker_size, alpha=alpha)
@@ -110,7 +86,7 @@ def visualize_unit_cube_map(
             plt.colorbar(mappable, label=f"dim {color_dim}")
         plt.tight_layout()
 
-    else:  # 3D plot
+    else:
         fig = plt.figure(figsize=(7, 6))
         ax = fig.add_subplot(111, projection="3d")
         scatter_kwargs = dict(s=marker_size, alpha=alpha)
@@ -122,15 +98,12 @@ def visualize_unit_cube_map(
         ax.set_zlabel(f"dim {axes[2]}")
         ax.set_title(title)
 
-        # Equal-ish aspect from data ranges
         if equal_axes and hasattr(ax, "set_box_aspect"):
             ranges = np.ptp(coords, axis=0)
             ranges[ranges == 0] = 1.0
             ax.set_box_aspect(ranges)
 
-        # Colorbar
         if colorbar and C is not None:
-            # Create a dummy mappable just for the colorbar
             mappable = plt.cm.ScalarMappable(
                 norm=mcolors.Normalize(vmin=np.min(C), vmax=np.max(C)),
                 cmap=cmap,
@@ -145,9 +118,6 @@ def visualize_unit_cube_map(
         plt.savefig(save_path, dpi=160)
     plt.show()
     return fig, save_path
-
-
-# ------------------ Plotly (interactive) ------------------
 
 import plotly.graph_objects as go
 
@@ -164,9 +134,7 @@ def visualize_unit_cube_map_plotly(
     opacity: float = 0.35,
     colorscale: str = "Viridis",
 ):
-    """
-    Plotly version (interactive). Supports projecting higher-D outputs with color for a 4th dim.
-    """
+
     rng = np.random.default_rng(seed)
     P = rng.random((samples, n_params))
     Y = _call_map_fn(map_fn, P)
@@ -224,22 +192,15 @@ def visualize_unit_cube_map_plotly(
     fig.show()
     return fig
 
-# -----------------------
-# Example maps you asked for
-# -----------------------
-
-# (cos(2πx0), sin(2πx0))  — unit circle
 def map_circle(x0):
     return np.c_[np.cos(2 * np.pi * x0), np.sin(2 * np.pi * x0)]
 
-# (x1^2 cos(2πx0), x2^2 sin(2πx0))  — filled unit disk
 def map_disk(x0, x1, x2):
     return np.c_[
         (x1 ** 2) * np.cos(2 * np.pi * x0),
         (x2 ** 2) * np.sin(2 * np.pi * x0),
     ]
 
-# (x1^2 cos(2πx0), x2^2 sin(2πx0), x1 + x2 + (x1 - x3)^2)  — 3D dome
 def map_3d(x0, x1, x2, x3):
     X = (x1 ** 2) * np.cos(2 * np.pi * x0)
     Y = (x2 ** 2) * np.sin(2 * np.pi * x0)
@@ -440,11 +401,7 @@ def M10_Cubic(x0, x1, x2, x3):
 
 import numpy as np
 
-# --------------------------------------------------------------------
-# Facet helpers (keep your original style; they all return (N,4) arrays)
-# --------------------------------------------------------------------
 def M10_Cubic(x0, x1, x2, x3):
-    """X=0 face: (0, x1, x2, x3)"""
     X = 0
     Y = x1
     Z = x2
@@ -452,7 +409,6 @@ def M10_Cubic(x0, x1, x2, x3):
     return np.c_[X + 0*np.asarray(Y), Y, Z, W]
 
 def M11_Cubic(x0, x1, x2, x3):
-    """X=1 face: (1, x1, x2, x3)"""
     X = 1
     Y = x1
     Z = x2
@@ -460,7 +416,6 @@ def M11_Cubic(x0, x1, x2, x3):
     return np.c_[X + 0*np.asarray(Y), Y, Z, W]
 
 def M20_Cubic(x0, x1, x2, x3):
-    """Y=0 face: (x0, 0, x2, x3)"""
     X = x0
     Y = 0
     Z = x2
@@ -468,7 +423,6 @@ def M20_Cubic(x0, x1, x2, x3):
     return np.c_[X, Y + 0*np.asarray(X), Z, W]
 
 def M21_Cubic(x0, x1, x2, x3):
-    """Y=1 face: (x0, 1, x2, x3)"""
     X = x0
     Y = 1
     Z = x2
@@ -476,7 +430,6 @@ def M21_Cubic(x0, x1, x2, x3):
     return np.c_[X, Y + 0*np.asarray(X), Z, W]
 
 def M30_Cubic(x0, x1, x2, x3):
-    """Z=0 face: (x0, x1, 0, x3)"""
     X = x0
     Y = x1
     Z = 0
@@ -484,7 +437,6 @@ def M30_Cubic(x0, x1, x2, x3):
     return np.c_[X, Y, Z + 0*np.asarray(X), W]
 
 def M31_Cubic(x0, x1, x2, x3):
-    """Z=1 face: (x0, x1, 1, x3)"""
     X = x0
     Y = x1
     Z = 1
@@ -492,7 +444,6 @@ def M31_Cubic(x0, x1, x2, x3):
     return np.c_[X, Y, Z + 0*np.asarray(X), W]
 
 def M40_Cubic(x0, x1, x2, x3):
-    """W=0 face: (x0, x1, x2, 0)"""
     X = x0
     Y = x1
     Z = x2
@@ -500,56 +451,39 @@ def M40_Cubic(x0, x1, x2, x3):
     return np.c_[X, Y, Z, W + 0*np.asarray(X)]
 
 def M41_Cubic(x0, x1, x2, x3):
-    """W=1 face: (x0, x1, x2, 1)"""
     X = x0
     Y = x1
     Z = x2
     W = 1
     return np.c_[X, Y, Z, W + 0*np.asarray(X)]
 
-
-# --------------------------------------------------------------------
-# Map function compatible with visualize_unit_cube_map_plotly
-# Expects P shape = (N, 4) with columns [s, u, v, w] in [0,1]
-# --------------------------------------------------------------------
 def tesseract_surface_map_M10_Cubic(P: np.ndarray) -> np.ndarray:
-    """
-    Map [0,1]^4 -> union of the 8 facets of the 4D unit cube.
-    P[:,0] (s) selects the facet; P[:,1:4] (u,v,w) are the free coords.
-
-    Returns (N,4) array of 4D points.
-    """
     P = np.asarray(P)
     if P.ndim == 1:
         P = P[None, :]
     if P.shape[1] != 4:
         raise ValueError("tesseract_surface_map expects n_params=4 (columns: s, u, v, w).")
-
     s = P[:, 0]
     u = P[:, 1]
     v = P[:, 2]
     w = P[:, 3]
 
-    # Bin s into 8 facets (avoid s==1 landing outside the range)
     k = np.floor(np.clip(s, 0.0, 1.0 - 1e-12) * 8).astype(np.int64)
 
-    # Preallocate outputs
     X = np.empty_like(s)
     Y = np.empty_like(s)
     Z = np.empty_like(s)
     W = np.empty_like(s)
 
-    # Masks for each of the 8 facets
-    m0 = (k == 0)  # X=0
-    m1 = (k == 1)  # X=1
-    m2 = (k == 2)  # Y=0
-    m3 = (k == 3)  # Y=1
-    m4 = (k == 4)  # Z=0
-    m5 = (k == 5)  # Z=1
-    m6 = (k == 6)  # W=0
-    m7 = (k == 7)  # W=1
+    m0 = (k == 0)
+    m1 = (k == 1)
+    m2 = (k == 2)
+    m3 = (k == 3)
+    m4 = (k == 4)
+    m5 = (k == 5)
+    m6 = (k == 6)
+    m7 = (k == 7)
 
-    # Fill per facet
     X[m0], Y[m0], Z[m0], W[m0] = 0.0, u[m0], v[m0], w[m0]
     X[m1], Y[m1], Z[m1], W[m1] = 1.0, u[m1], v[m1], w[m1]
 
@@ -566,11 +500,7 @@ def tesseract_surface_map_M10_Cubic(P: np.ndarray) -> np.ndarray:
 
 def M12_Norm(P_or_x0, x1=None, x2=None, x3=None):
     from scipy.stats import norm
-    """
-    Map [0,1]^4 -> N(0,1)^4 using the normal inverse CDF.
-    Compatible with both map_fn(P) and map_fn(x0,x1,x2,x3) call styles.
-    """
-    # Accept either a single (N,4) array or 4 separate arrays
+
     if x1 is None and x2 is None and x3 is None:
         P = np.asarray(P_or_x0)
         if P.ndim == 1:
@@ -584,8 +514,7 @@ def M12_Norm(P_or_x0, x1=None, x2=None, x3=None):
         x2 = np.asarray(x2)
         x3 = np.asarray(x3)
 
-    # Clip away from {0,1} to avoid +/-inf from the inverse CDF
-    eps = np.finfo(float).eps  # ~2.22e-16
+    eps = np.finfo(float).eps
     lo = eps
     hi = 1.0 - eps
 
@@ -601,16 +530,6 @@ def M12_Norm(P_or_x0, x1=None, x2=None, x3=None):
     return np.c_[X, Y, Z, W]
 
 def lollipop_map(P_or_s, r=None, u=None, t=None):
-    """
-    Map [0,1]^4 -> R^2 per the 'lollipop' dataset:
-      Candy:  (2 + sqrt(R)*sin Phi, 2 + sqrt(R)*cos Phi),  R~U(0,1), Phi~U(0,2pi)
-      Stick:  (T, T),  T~U(0, 2 - 1/sqrt(2))
-    Selector s in [0,1]: s < 0.5 -> candy, else stick.
-
-    Compatible with visualize_unit_cube_map_plotly (both call styles).
-    Returns (N, 2).
-    """
-    # Accept (N,4) or four arrays
     if r is None and u is None and t is None:
         P = np.asarray(P_or_s)
         if P.ndim == 1:
@@ -628,36 +547,34 @@ def lollipop_map(P_or_s, r=None, u=None, t=None):
     X = np.empty(N, dtype=float)
     Y = np.empty(N, dtype=float)
 
-    # Constants from the definition
     two_pi = 2.0 * np.pi
     T_max = 2.0 - 1.0 / np.sqrt(2.0)
 
-    # Masks
     m_candy = s < 0.5
     m_stick = ~m_candy
 
-    # Candy (offset disk with radius sqrt(R))
     if np.any(m_candy):
-        R = r[m_candy]                 # U(0,1)
-        Phi = two_pi * u[m_candy]      # U(0, 2π)
+        R = r[m_candy]
+        Phi = two_pi * u[m_candy]
         rad = np.sqrt(R)
         X[m_candy] = 2.0 + rad * np.sin(Phi)
         Y[m_candy] = 2.0 + rad * np.cos(Phi)
 
-    # Stick (diagonal segment)
     if np.any(m_stick):
-        T = T_max * t[m_stick]         # U(0, T_max)
+        T = T_max * t[m_stick]
         X[m_stick] = T
         Y[m_stick] = T
 
     return np.c_[X, Y]
 
-def uniform(x0, x1):
+def uniform(x0, x1, x2, x3):
     X = x0
-    Y = x0
-    return np.c_[X, Y]
+    Y = x1
+    Z = x1
+    W = x1
+    return np.c_[X, Y, Z, W]
 
 if __name__ == "__main__":
 
-    visualize_unit_cube_map_plotly(uniform, n_params=2, samples=80000, axes=(0,1), color_dim=2,
-                               title="uniform_1d", seed=3, save_html="uniform_1d.html")
+    visualize_unit_cube_map_plotly(uniform, n_params=4, samples=80000, axes=(0,1,2), color_dim=3,
+                               title="uniform_4d", seed=3, save_html="uniform_4d.html")

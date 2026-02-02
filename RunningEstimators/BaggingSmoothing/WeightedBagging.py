@@ -1,10 +1,11 @@
 from scipy.spatial.distance import pdist, squareform
 from tqdm import tqdm
+import sys
 from scipy.stats import chi2
 import numpy as np
 ###################################################OWN IMPORT###################################################
-from LIDBagging.RunningEstimators.BaggingSmoothing.SimpleBagging import simple_bagging_skdim
-from LIDBagging.RunningEstimators.BaggingSmoothing.Smoothing import smoothing
+from Bagging_for_LID.RunningEstimators.BaggingSmoothing.SimpleBagging import simple_bagging_skdim
+from Bagging_for_LID.RunningEstimators.BaggingSmoothing.Smoothing import smoothing
 ##############################################################################################################################################################################################################################################################
 #use_w = 'n', 'y'
 def outofbag_weighted_bagging_skdim(estimator, Q, X, n_bags=10, k=10, sampling_rate=None, progress_bar=False, estimators=None,
@@ -411,3 +412,5 @@ def outofbag_weighted_inside_bagging_skdim(estimator, Q, X, n_bags=10, k=10, sam
                 estimator_names[i]], k=k, dists=None, knnidx=None, geo=geo)
         avg_bagging_estimator_dictionary = {estimator_names[i]: np.mean(bagging_estimators_dictionary[estimator_names[i]]) for i in range(len(estimator_names))}
     return bagging_estimators_dictionary, avg_bagging_estimator_dictionary
+
+###########################################################################################LIDkit#####################################################################################################

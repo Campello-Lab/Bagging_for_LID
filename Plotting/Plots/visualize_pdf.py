@@ -49,7 +49,7 @@ def _set_camera_js(page, library, selector, azimuth_deg, elevation_deg, distance
         # Robust, repeatable "front-corner" view for Plotly (Z-up), orthographic.
         ok = page.evaluate("""
         async (args) => {
-          const { rootSelector, distance, zScale, sceneIndex } = args;
+          const { rootSelector, distance, zScale, sceneIndex, azimuth, elevation } = args;
 
           const root = document.querySelector(rootSelector);
           // Find the actual plotly graph element
@@ -66,12 +66,22 @@ def _set_camera_js(page, library, selector, azimuth_deg, elevation_deg, distance
           const id = ids[Math.min(Math.max(sceneIndex|0, 0), ids.length - 1)];
 
           const r = (distance && distance > 0) ? distance : 1.8;
-          const k = (zScale && zScale > 0) ? zScale : 0.55; // smaller -> less "from above"
+          const k = (zScale && zScale > 0) ? zScale : 0.55;
+          
+          const theta = 0 * Math.PI / 180;   // clockwise = negative angle
 
+          const x0 = r;
+          const y0 = r;
+          const z0 = r * k;
+          
+          const x = x0 * Math.cos(theta) - y0 * Math.sin(theta);
+          const y = x0 * Math.sin(theta) + y0 * Math.cos(theta);
+          const z = z0;
+          
           const camera = {
-            eye:    { x:  r, y:  r, z:  r * k },   // front-right, only slightly above
-            center: { x:  0, y:  0, z:  0 },
-            up:     { x:  0, y:  0, z:  1 }        // Z-up in Plotly
+            eye:    { x, y, z },
+            center: { x: 0, y: 0, z: 0 },
+            up:     { x: 0, y: 0, z: 1 }
           };
 
           const update = {};
@@ -89,7 +99,7 @@ def _set_camera_js(page, library, selector, azimuth_deg, elevation_deg, distance
         """, {
             "rootSelector": selector,
             "distance": distance,
-            "zScale": 0.55,  # tune to 0.45..0.65 if you like
+            "zScale": 0.55,  # 0.55
             "sceneIndex": 0
         })
         return bool(ok)
@@ -273,7 +283,7 @@ def html_3d_to_pdf(
     # View / camera
     library: str | None = None,  # 'plotly'|'three'|'deckgl'|'echarts-gl' or None
     azimuth_deg: float = 45.0,   # rotate around vertical axis (0 = +X, 90 = +Y)
-    elevation_deg: float = 20.0, # tilt up from horizon (0 = horizon, 90 = top-down)
+    elevation_deg: float = math.degrees(math.asin(0.55)), # tilt up from horizon (0 = horizon, 90 = top-down)
     distance: float | None = None,  # optional for libs that support it
     # Timeouts
     load_timeout_ms: int = 60000,
@@ -416,6 +426,9 @@ r"C:\Users\krp\OneDrive - Syddansk Universitet\PycharmProjects\LID1\LIDBagging2\
 
     names = names2
     paths= paths2
+
+    paths = [r'C:\Users\krp\OneDrive - Syddansk Universitet\PycharmProjects\LID1\LIDBagging2\LIDBagging\Plotting\Plots\uniform_4d.html']
+    names = [r'uniform_3d.pdf']
 
     for i in range(len(paths)):
         path = paths[i]

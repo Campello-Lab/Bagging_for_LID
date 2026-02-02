@@ -34,16 +34,27 @@ def _color_at(stops, p):
     r,g,b,a = _parse_rgba(stops[-1][1])
     return f"rgba({r},{g},{b},{a:.3f})"
 
-def truncate_and_stretch(cs_like="Reds", cut_top=0.20):
+def truncate_and_stretch(cs_like="Reds", cut_top=0.20, cut_bottom=0.0, fill_low=None, fill_high=None):
     base = get_colorscale(cs_like) if isinstance(cs_like, str) else list(cs_like)
-    base = sorted([(float(p), str(c)) for p,c in base], key=lambda x: x[0])
-    alpha = max(1e-6, 1.0 - float(cut_top))
-    kept = [(p/alpha, c) for (p,c) in base if p <= alpha]
-    end_col = _color_at(base, alpha)
-    if not kept or kept[-1][0] < 1.0 - 1e-9:
-        kept.append((1.0, end_col))
+    base = sorted([(float(p), str(c)) for p, c in base], key=lambda x: x[0])
+    lo = max(0.0, float(cut_bottom))
+    hi = 1.0 - max(0.0, float(cut_top))
+    if hi - lo <= 1e-9:
+        raise ValueError("Nothing left after cutting; decrease cut_top/cut_bottom.")
+    span = hi - lo
+    kept = [((p - lo) / span, c) for (p, c) in base if lo <= p <= hi]
+    low_col = _color_at(base, lo)
+    high_col = _color_at(base, hi)
+    if not kept or kept[0][0] > 1e-12:
+        kept.insert(0, (0.0, low_col))
     else:
-        kept[-1] = (1.0, end_col)
-    start_col = _color_at(base, 0.0)
-    kept[0] = (0.0, "rgba(255,255,255,1.0)")
+        kept[0] = (0.0, low_col)
+    if not kept or kept[-1][0] < 1.0 - 1e-12:
+        kept.append((1.0, high_col))
+    else:
+        kept[-1] = (1.0, high_col)
+    if fill_low is not None:
+        kept[0] = (0.0, fill_low)
+    if fill_high is not None:
+        kept[-1] = (1.0, fill_high)
     return kept
