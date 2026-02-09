@@ -13,6 +13,7 @@ Output/
 bin/
 data_pdfs/
 interactive_datasets/
+.idea/
 
 *.egg-info/
 build/
