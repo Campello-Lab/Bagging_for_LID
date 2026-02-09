@@ -34,5 +34,14 @@ recreate the results and figures present in the paper from scratch, or by loadin
 - The [recreate_results](recreate_results.py) python file can be used to recreate the same results without the use of jupyter notebook.
 - The [recreate_example_figures](recreate_example_figures.ipynb) jupyter notebook file can be used to recreate the plots in the Introduction section of the publication.
 
+## Data availability
+
+- Zenodo link placeholder: The source files (.pkl) available at https://zenodo.org/ can be used together with our code to extract all the necessary information about the performed experiments, as well as to recreate the figures and the values in the tables. The files should be loaded and used by either [recreate_results_notebook](recreate_results_notebook.ipynb) or [recreate_results](recreate_results.py) and setting load = True.
+
+- Don't forget to make this GitHub repo public once it is ready for submission.
+
+
+
+
 
 
