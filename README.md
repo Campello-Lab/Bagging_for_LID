@@ -1,6 +1,6 @@
-<center>
-  <img src="https://github.com/pekristof/Bagging_for_LID/bagging_figure/horizontalsimplebagging.png" alt="Logo" width="200"/>
-</center>
+<p align="center">
+  <img src="bagging_figure/horizontalsimplebagging.png" alt="Logo" width="200" />
+</p>
 
 
 # Bagging for LID estimation
