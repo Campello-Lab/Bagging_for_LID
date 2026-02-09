@@ -18,13 +18,19 @@ git clone https://github.com/pekristof/Bagging_for_LID.git
 Navigate to selected folder
 
 ```bash
-cd ./Bagging_for_LID
+cd Bagging_for_LID
 ```
 
 Install requirements
 
 ```bash
 pip install -r requirements.txt
+```
+
+Install package
+
+```bash
+pip install -e .
 ```
 
 ## Recreating results

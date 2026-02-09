@@ -13,3 +13,8 @@ Output/
 bin/
 data_pdfs/
 interactive_datasets/
+
+*.egg-info/
+build/
+dist/
+.ipynb_checkpoints/
