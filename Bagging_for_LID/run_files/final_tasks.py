@@ -13,7 +13,7 @@ from Bagging_for_LID.run_files.geom_prog import *
 from Bagging_for_LID.run_files.parameter_combinations import *
 from Bagging_for_LID.run_files.error_safe_running import *
 #-----------------------------------------------------------------------------------------------------------------------
-save_dir = r'./Bagging_for_LID/Output'
+save_dir = r'./Output'
 #-----------------------------------------------------------------------------------------------------------------------
 #Function to collect test runs
 def setup_tasks(task_dict, multiprocess=False, load=False, load_data=False, worker_count=1, save_name='result', directory=r"C:\pkls"):
