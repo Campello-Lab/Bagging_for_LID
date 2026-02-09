@@ -10,7 +10,7 @@ __pycache__/
 *.py[cod]
 .venv/
 Output/
-bin/
+extra/
 data_pdfs/
 interactive_datasets/
 .idea/
