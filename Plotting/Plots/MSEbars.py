@@ -25,7 +25,7 @@ def plot_experiment_mse_bars(
     colors: Tuple[str, str] = ("tab:green", "tab:red"),
     label_every: int = 1,
     save_prefix: str = "exp_mse_bar_plot",
-    save_dir: str | Path = "./plots",
+    save_dir: str | Path = "./Output",
     formats: Tuple[str, ...] = ("pdf",),
     show: bool = False,
     xlabel: str | None = None,

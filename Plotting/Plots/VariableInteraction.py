@@ -1,9 +1,11 @@
 from __future__ import annotations
 from collections import defaultdict
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any, Sequence, Tuple, Union, Mapping
 import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.colors as mcolors
 from Bagging_for_LID.Plotting.plotting_helpers import *
 
 _NUMERIC_PARAMS = {"n", "k", "sr", "Nbag", "lid", "dim", "t"} # class parameters that can change for bagged estimators
@@ -23,6 +25,8 @@ def plot_experiment_heatmaps(
     *,
     x_param: str,
     y_param: str,
+    baseline_xy: tuple[Any, Any] | None = None,
+    baseline_overrides: Mapping[str, Any] | None = None,
     reverse_x: bool = False,
     reverse_y: bool = False,
     metrics: Tuple[str, ...] = ("mse", "bias2", "var"),
@@ -32,7 +36,7 @@ def plot_experiment_heatmaps(
     base_fontsize: int | float | None = None,
     cmap: str = "bwr",
     save_prefix: str = "heat",
-    save_dir: str | Path = "./plots",
+    save_dir: str | Path = "./Output",
     formats: Tuple[str, ...] = ("pdf",),
     show: bool = False,
     log=False,
@@ -51,6 +55,18 @@ def plot_experiment_heatmaps(
                 f"{p} must be numeric param in {sorted(_NUMERIC_PARAMS)}")
     if not experiments:
         raise ValueError("experiments list is empty")
+
+    # Build baseline override mapping (if any)
+    _base_override: dict[str, Any] = dict(baseline_overrides or {})
+    if baseline_xy is not None:
+        _base_override[x_param], _base_override[y_param] = baseline_xy
+
+    if _base_override:
+        unknown = set(_base_override) - set(_BASELINE_PARAMS)
+        if unknown:
+            raise ValueError(
+                f"baseline_overrides contains params not in _BASELINE_PARAMS: {sorted(unknown)}"
+            )
 
     #separate experiments based on dataset ---------------------------------------------------------
     ds_runs: dict[str, list[Any]] = defaultdict(list)
@@ -132,12 +148,25 @@ def plot_experiment_heatmaps(
                 ys_map = {v: i for i, v in enumerate(ys_sorted)}
                 data = np.full((len(ys_sorted), len(xs_sorted)), np.nan) #Would be function values for the map of 2d parameter value combinations
 
+                if baseline_xy is not None and baseline_lookup:
+                    bx, by = baseline_xy
+                    bx_vals = {getattr(br, x_param) for br in baseline_lookup.values()}
+                    by_vals = {getattr(br, y_param) for br in baseline_lookup.values()}
+                    if bx not in bx_vals or by not in by_vals:
+                        raise ValueError(
+                            f"No baseline runs found at {x_param}={bx}, {y_param}={by} for dataset '{ds_name}'."
+                        )
+
                 #now we're ready to figure out the 2 function's values to build the color map
                 for r in bagged_list:
-                    base_key = tuple(getattr(r, p) for p in _BASELINE_PARAMS)
+                    # Build the baseline key, overriding x/y (and anything else in baseline_overrides)
+                    base_key = tuple(
+                        (_base_override[p] if p in _base_override else getattr(r, p))
+                        for p in _BASELINE_PARAMS
+                    )
                     base_run = baseline_lookup.get(base_key)
                     if base_run is None:
-                        continue  # no baseline → leave NaN
+                        continue  # no matching baseline → leave NaN
                     #A lot of decisions based on function settings on how to measure difference, if we even want to measure difference. We can also just build a heatmap from the bagged or baseline results individually.
                     if inlog:
                         if log:
@@ -312,12 +341,13 @@ def plot_experiment_attr(
 
     # saving
     save_prefix: str = "plot_attr",
-    save_dir: str | Path = "./plots",
+    save_dir: str | Path = "./Output",
     formats: Tuple[str, ...] = ("pdf",),
     show: bool = False,
 
     fig_title: str | None = None,
     strict_other_params: bool = True,
+    baseline_xy: tuple[Any, Any] | None = None,
 ):
     # ---- checks ----
     if not experiments:
@@ -382,6 +412,45 @@ def plot_experiment_attr(
     def safe_vals_repr(vals: set[Any]) -> str:
         return ", ".join(sorted(repr(v) for v in vals))
 
+    def _get_fixed_baseline_value(runs_a: list[Any], ds_name: str) -> float:
+        bx, by = baseline_xy  # type: ignore[misc]
+
+        def is_match(r: Any) -> bool:
+            # Only enforce axis coords that belong to baseline key
+            if x_param in _BASELINE_PARAMS and getattr(r, x_param) != bx:
+                return False
+            if y_param in _BASELINE_PARAMS and getattr(r, y_param) != by:
+                return False
+            return True
+
+        matches = [r for r in runs_a if is_match(r)]
+
+        if not matches:
+            # Helpful error message showing what was actually enforced
+            enforced = []
+            if x_param in _BASELINE_PARAMS:
+                enforced.append(f"{x_param}={bx}")
+            if y_param in _BASELINE_PARAMS:
+                enforced.append(f"{y_param}={by}")
+            enforced_txt = ", ".join(enforced) if enforced else "(no axis params; baseline treated as constant)"
+            raise ValueError(
+                f"[{ds_name}] No baseline run found matching {enforced_txt} "
+                f"for {compare_param}={compare_values[0]!r}."
+            )
+
+        # If multiple matches (likely when sr is ignored), just pick one deterministically
+        # because by definition they should be equivalent for baseline-comparison purposes.
+        vals = np.array(
+            [_get_vec_value(r, value_attr=value_attr, value_index=value_index) for r in matches],
+            dtype=float
+        )
+        if not np.allclose(vals, vals[0], rtol=1e-6, atol=1e-12, equal_nan=True):
+            raise ValueError(
+                f"[{ds_name}] baseline_xy ignores '{x_param}' (not in _BASELINE_PARAMS), "
+                f"but baseline values vary across matches. Add a baseline override or include '{x_param}' in baseline key."
+            )
+        return float(vals[0])
+
     with plt.rc_context(rc):
         fig, axes = plt.subplots(rows, cols, figsize=figsize, squeeze=False)
         axes = axes.flatten()
@@ -411,6 +480,8 @@ def plot_experiment_attr(
                             f"{' and slice_param' if plot_kind=='slice1d' else ''} are fixed. "
                             "Set strict_other_params=False to disable."
                         )
+            if baseline_xy is not None and mode != "difference":
+                raise ValueError("baseline_xy is only supported when mode='difference'")
 
             # ---- filter to a fixed slice, if requested ----
             if plot_kind == "slice1d":
@@ -440,8 +511,9 @@ def plot_experiment_attr(
 
             # ---- HEATMAP ----
             if plot_kind == "heatmap":
-                xs_sorted = sorted({getattr(r, x_param) for r in relevant})
-                ys_sorted = sorted({getattr(r, y_param) for r in relevant})
+                grid_runs = runs_b if (mode == "difference" and baseline_xy is not None) else relevant
+                xs_sorted = sorted({getattr(r, x_param) for r in grid_runs})
+                ys_sorted = sorted({getattr(r, y_param) for r in grid_runs})
                 if reverse_x:
                     xs_sorted = xs_sorted[::-1]
                 if reverse_y:
@@ -453,10 +525,18 @@ def plot_experiment_attr(
                     data_a = np.full((len(ys_sorted), len(xs_sorted)), np.nan)
                     data_b = np.full((len(ys_sorted), len(xs_sorted)), np.nan)
 
-                    for r in runs_a:
-                        xi = xs_map[getattr(r, x_param)]
-                        yi = ys_map[getattr(r, y_param)]
-                        data_a[yi, xi] = _get_vec_value(r, value_attr=value_attr, value_index=value_index)
+                    if baseline_xy is None:
+                        # baseline varies with (x,y) as before
+                        for r in runs_a:
+                            xi = xs_map[getattr(r, x_param)]
+                            yi = ys_map[getattr(r, y_param)]
+                            data_a[yi, xi] = _get_vec_value(r, value_attr=value_attr, value_index=value_index)
+                    else:
+                        # NEW: baseline fixed at one (x,y) point and broadcast everywhere
+                        base_val = _get_fixed_baseline_value(runs_a, ds_name)
+                        data_a[:, :] = base_val
+
+                    # bagged always varies with (x,y)
                     for r in runs_b:
                         xi = xs_map[getattr(r, x_param)]
                         yi = ys_map[getattr(r, y_param)]
@@ -464,11 +544,25 @@ def plot_experiment_attr(
 
                     if diff_kind == "difference":
                         data = data_a - data_b
-                        cbar_label = f"{value_label}\n{compare_param}={a_val} – {compare_param}={b_val}"
+                        if baseline_xy is None:
+                            cbar_label = f"{value_label}\n{compare_param}={a_val} – {compare_param}={b_val}"
+                        else:
+                            bx, by = baseline_xy
+                            cbar_label = (
+                                f"{value_label}\n({compare_param}={a_val} @ {x_param}={bx}, {y_param}={by}) – "
+                                f"{compare_param}={b_val}"
+                            )
                     else:
                         with np.errstate(divide="ignore", invalid="ignore"):
                             data = np.log2(data_a) - np.log2(data_b)
-                        cbar_label = f"{value_label}\nlog₂({compare_param}={a_val}) – log₂({compare_param}={b_val})"
+                        if baseline_xy is None:
+                            cbar_label = f"{value_label}\nlog₂({compare_param}={a_val}) – log₂({compare_param}={b_val})"
+                        else:
+                            bx, by = baseline_xy
+                            cbar_label = (
+                                f"{value_label}\nlog₂({compare_param}={a_val} @ {x_param}={bx}, {y_param}={by}) – "
+                                f"log₂({compare_param}={b_val})"
+                            )
 
                     vmax = np.nanmax(np.abs(data)) or 1.0
                     im = ax.imshow(data, cmap=cmap, vmin=-vmax, vmax=vmax, origin="lower")
@@ -500,17 +594,31 @@ def plot_experiment_attr(
                         for i, v in enumerate(ys_sorted)
                     ]
                 )
+
                 ax.set_xlabel(x_param)
                 ax.set_ylabel(y_param)
                 ax.set_title(ds_name)
 
                 cbar = fig.colorbar(im, ax=ax, shrink=0.8)
+                if baseline_xy is not None:
+                    bx, by = baseline_xy
+                    parts = []
+                    if x_param in _BASELINE_PARAMS:
+                        parts.append(f"{x_param}={bx}")
+                    if y_param in _BASELINE_PARAMS:
+                        parts.append(f"{y_param}={by}")
+                    coord_txt = ", ".join(parts) if parts else "constant baseline"
+                    cbar_label = f"{value_label}\n({compare_param}={a_val} @ {coord_txt}) – {compare_param}={b_val}"
                 cbar.ax.set_ylabel(cbar_label)
 
             # ---- SLICE1D ----
             else:
-                # plot across varying_param
-                zs = sorted({getattr(r, varying_param) for r in relevant})
+                if mode == "difference" and baseline_xy is not None:
+                    axis_runs = runs_b  # x-axis comes from bagged when baseline is fixed
+                else:
+                    axis_runs = relevant
+
+                zs = sorted({getattr(r, varying_param) for r in axis_runs})
                 if (varying_param == x_param and reverse_x) or (varying_param == y_param and reverse_y):
                     zs = zs[::-1]
                 z_map = {v: i for i, v in enumerate(zs)}
@@ -520,10 +628,15 @@ def plot_experiment_attr(
                     y_a = np.full(len(zs), np.nan)
                     y_b = np.full(len(zs), np.nan)
 
-                    for r in runs_a:
-                        zi = z_map.get(getattr(r, varying_param))
-                        if zi is not None:
-                            y_a[zi] = _get_vec_value(r, value_attr=value_attr, value_index=value_index)
+                    if baseline_xy is None:
+                        for r in runs_a:
+                            zi = z_map.get(getattr(r, varying_param))
+                            if zi is not None:
+                                y_a[zi] = _get_vec_value(r, value_attr=value_attr, value_index=value_index)
+                    else:
+                        base_val = _get_fixed_baseline_value(runs_a, ds_name)
+                        y_a[:] = base_val
+
                     for r in runs_b:
                         zi = z_map.get(getattr(r, varying_param))
                         if zi is not None:
@@ -587,3 +700,786 @@ def plot_experiment_attr(
             plt.show()
         else:
             plt.close(fig)
+
+
+def plot_experiment_heatmaps_3d(
+    experiments: Sequence[Any],
+    *,
+    x_param: str,
+    y_param: str,
+    z_param: str,  # baseline-only axis (e.g. k_baseline)
+    baseline_overrides: Mapping[str, Any] | None = None,  # fixed baseline params (besides z_param)
+    reverse_x: bool = False,
+    reverse_y: bool = False,
+    reverse_z: bool = False,
+    metrics: Tuple[str, ...] = ("mse", "bias2", "var"),
+    label_every: int = 1,
+    grid: bool = True,
+    figsize: tuple[float, float] | None = None,
+    base_fontsize: int | float | None = None,
+    cmap: str = "bwr",
+    save_prefix: str = "heat3d",
+    save_dir: str | Path = "./Output",
+    formats: Tuple[str, ...] = ("pdf",),
+    show: bool = False,
+    log: bool = False,
+    type: str = "difference",
+    inlog: bool = False,
+    fig_title: str | bool | None = False,
+    alpha: float = 0.9,
+    edgecolor: str | None = None,
+    linewidth: float = 0.0,
+    view_elev: float = 22,
+    view_azim: float = -55,
+):
+    """
+    3D "heatmap" using voxels:
+      - x,y are BAGGED params (vary across bagged runs)
+      - z is BASELINE param (varies only for baseline selection)
+      - voxel color encodes diff/value like the 2D function.
+
+    IMPORTANT:
+      For the baseline to *only* change along z, any other baseline-key params that vary with bagged
+      must be fixed via baseline_overrides (or not be in _BASELINE_PARAMS).
+    """
+
+    # --- sanity checks ----------------------------------------------------
+    if x_param == y_param:
+        raise ValueError("x_param and y_param must differ")
+    for p in (x_param, y_param, z_param):
+        if p not in _NUMERIC_PARAMS:
+            raise ValueError(f"{p} must be numeric param in {sorted(_NUMERIC_PARAMS)}")
+    if not experiments:
+        raise ValueError("experiments list is empty")
+
+    _base_fixed: dict[str, Any] = dict(baseline_overrides or {})
+    if _base_fixed:
+        unknown = set(_base_fixed) - set(_BASELINE_PARAMS)
+        if unknown:
+            raise ValueError(
+                f"baseline_overrides contains params not in _BASELINE_PARAMS: {sorted(unknown)}"
+            )
+
+    # z_param must be in baseline lookup key, otherwise baseline can't vary along z
+    if z_param not in _BASELINE_PARAMS:
+        raise ValueError(
+            f"z_param='{z_param}' must be in _BASELINE_PARAMS to vary baseline along z. "
+            f"Current _BASELINE_PARAMS={sorted(_BASELINE_PARAMS)}"
+        )
+
+    # Warn if baseline might unintentionally vary with x/y (if x/y are in baseline key and not fixed)
+    if x_param in _BASELINE_PARAMS and x_param not in _base_fixed:
+        print(f"[WARN] x_param='{x_param}' is in _BASELINE_PARAMS but not fixed in baseline_overrides; "
+              f"baseline may vary with x unless you set baseline_overrides[{x_param!r}] = <fixed value>.")
+    if (y_param in _BASELINE_PARAMS) and (y_param != z_param) and (y_param not in _base_fixed):
+        print(f"[WARN] y_param='{y_param}' is in _BASELINE_PARAMS but not fixed in baseline_overrides; "
+              f"baseline may vary with y unless you set baseline_overrides[{y_param!r}] = <fixed value>.")
+
+    # --- group by dataset -------------------------------------------------
+    ds_runs: dict[str, list[Any]] = defaultdict(list)
+    for e in experiments:
+        ds_runs[e.dataset_name].append(e)
+
+    # --- title helpers (kept close to your style) -------------------------
+    def param_name(param_str: str) -> str:
+        if param_str == "sr":
+            return "sampling rate"
+        if param_str == "Nbag":
+            return "number of bags"
+        if param_str == "k":
+            return "k"
+        return param_str
+
+    if fig_title is None:
+        fixed_global = {}
+        for p in _ALL_PARAMS - {x_param, y_param, z_param, "bagging_method", "dataset_name"}:
+            vals = {getattr(e, p) for e in experiments}
+            if len(vals) == 1:
+                fixed_global[p] = vals.pop()
+        fig_title = " | ".join(f"{k}:{fmt_val(k,v)}" for k, v in fixed_global.items())
+    elif fig_title == "auto":
+        fig_title = (
+            f"3D interaction: bagged({param_name(x_param)} × {param_name(y_param)}) vs baseline({param_name(z_param)})\n"
+            f"Baseline Estimator: {experiments[0].estimator_name.upper()}"
+        )
+
+    # --- layout / fonts ---------------------------------------------------
+    rows, cols = auto_grid(len(ds_runs)) if grid and len(ds_runs) > 1 else (len(ds_runs), 1)
+    if figsize is None:
+        figsize = (5 * cols, 4.2 * rows)
+
+    bfs = auto_fontsize(figsize, base_fontsize)
+    rc = {
+        "axes.titlesize": bfs * 1.5,
+        "axes.labelsize": bfs * 1.3,
+        "xtick.labelsize": bfs * 0.7,
+        "ytick.labelsize": bfs * 0.9,
+    }
+
+    save_dir = Path(save_dir)
+    save_dir.mkdir(parents=True, exist_ok=True)
+
+    key_to_label = {"mse": "MSE", "bias2": "Bias²", "var": "Variance"}
+
+    # --- per-metric figure ------------------------------------------------
+    for met_key in metrics:
+        if met_key not in key_to_label:
+            raise ValueError(f"Unknown metric '{met_key}'")
+        met_label = key_to_label[met_key]
+
+        with plt.rc_context(rc):
+            fig = plt.figure(figsize=figsize)
+
+            # Create 3D subplots in the same grid arrangement
+            axes = []
+            for i in range(rows * cols):
+                ax = fig.add_subplot(rows, cols, i + 1, projection="3d")
+                axes.append(ax)
+
+            for ax in axes[len(ds_runs):]:
+                ax.set_axis_off()
+
+            # We'll share a single color scale across all datasets in this metric
+            # (much cleaner for 3D than per-axes colorbars)
+            all_vals_for_scale = []
+
+            # First pass: compute per-dataset voxel colors and store them
+            per_ds_payload = {}
+
+            for (ds_name, runs), ax in zip(sorted(ds_runs.items()), axes):
+                # separate baseline and bagged
+                baseline_lookup: dict[tuple, Any] = {}
+                bagged_list: list[Any] = []
+
+                for r in runs:
+                    base_key = tuple(getattr(r, p) for p in _BASELINE_PARAMS)
+                    if r.bagging_method is None:
+                        baseline_lookup[base_key] = r
+                    else:
+                        bagged_list.append(r)
+
+                # axis values
+                xs_sorted = sorted({getattr(r, x_param) for r in bagged_list})
+                ys_sorted = sorted({getattr(r, y_param) for r in bagged_list})
+                zs_sorted = sorted({getattr(r, z_param) for r in baseline_lookup.values()})
+
+                if reverse_x:
+                    xs_sorted = xs_sorted[::-1]
+                if reverse_y:
+                    ys_sorted = ys_sorted[::-1]
+                if reverse_z:
+                    zs_sorted = zs_sorted[::-1]
+
+                xs_map = {v: i for i, v in enumerate(xs_sorted)}
+                ys_map = {v: i for i, v in enumerate(ys_sorted)}
+                zs_map = {v: i for i, v in enumerate(zs_sorted)}
+
+                # data[x, y, z]
+                data = np.full((len(xs_sorted), len(ys_sorted), len(zs_sorted)), np.nan, dtype=float)
+
+                # Fill all voxels: for each bagged run (x,y), compare against baseline at each z
+                for r in bagged_list:
+                    xi = xs_map[getattr(r, x_param)]
+                    yi = ys_map[getattr(r, y_param)]
+
+                    for z_val in zs_sorted:
+                        zi = zs_map[z_val]
+
+                        _base_override = dict(_base_fixed)
+                        _base_override[z_param] = z_val
+
+                        base_key = tuple(
+                            (_base_override[p] if p in _base_override else getattr(r, p))
+                            for p in _BASELINE_PARAMS
+                        )
+                        base_run = baseline_lookup.get(base_key)
+                        if base_run is None:
+                            continue
+
+                        # same diff logic as your 2D function
+                        if inlog:
+                            if log:
+                                if type == "difference":
+                                    diff = np.log2(getattr(base_run, f"log_total_{met_key}")) - np.log2(
+                                        getattr(r, f"log_total_{met_key}")
+                                    )
+                                elif type == "baseline":
+                                    diff = -np.log2(getattr(base_run, f"log_total_{met_key}"))
+                                elif type == "bagged":
+                                    diff = -np.log2(getattr(r, f"log_total_{met_key}"))
+                                else:
+                                    raise ValueError(f"Unknown type='{type}'")
+                            else:
+                                if type == "difference":
+                                    diff = getattr(base_run, f"log_total_{met_key}") - getattr(r, f"log_total_{met_key}")
+                                elif type == "baseline":
+                                    diff = -getattr(base_run, f"log_total_{met_key}")
+                                elif type == "bagged":
+                                    diff = -getattr(r, f"log_total_{met_key}")
+                                else:
+                                    raise ValueError(f"Unknown type='{type}'")
+                        else:
+                            if log:
+                                if type == "difference":
+                                    diff = np.log2(getattr(base_run, f"total_{met_key}")) - np.log2(
+                                        getattr(r, f"total_{met_key}")
+                                    )
+                                elif type == "baseline":
+                                    diff = -np.log2(getattr(base_run, f"total_{met_key}"))
+                                elif type == "bagged":
+                                    diff = -np.log2(getattr(r, f"total_{met_key}"))
+                                else:
+                                    raise ValueError(f"Unknown type='{type}'")
+                            else:
+                                if type == "difference":
+                                    diff = getattr(base_run, f"total_{met_key}") - getattr(r, f"total_{met_key}")
+                                elif type == "baseline":
+                                    diff = getattr(base_run, f"total_{met_key}")
+                                elif type == "bagged":
+                                    diff = getattr(r, f"total_{met_key}")
+                                else:
+                                    raise ValueError(f"Unknown type='{type}'")
+
+                        data[xi, yi, zi] = diff
+
+                # collect for global scaling
+                if np.any(np.isfinite(data)):
+                    all_vals_for_scale.append(data[np.isfinite(data)])
+
+                per_ds_payload[ds_name] = {
+                    "ax": ax,
+                    "data": data,
+                    "xs": xs_sorted,
+                    "ys": ys_sorted,
+                    "zs": zs_sorted,
+                }
+
+            # Determine global color normalization
+            if all_vals_for_scale:
+                flat = np.concatenate(all_vals_for_scale)
+                vmax = float(np.nanmax(np.abs(flat))) if (type == "difference" or log) else float(np.nanmax(flat))
+                vmax = vmax or 1.0
+            else:
+                vmax = 1.0
+
+            if type == "difference" or log:
+                norm = mcolors.Normalize(vmin=-vmax, vmax=vmax)
+                cmap_obj = plt.get_cmap(cmap)
+            else:
+                norm = mcolors.Normalize(vmin=0, vmax=vmax)
+                cmap_obj = plt.get_cmap("Reds")
+
+            # Second pass: draw voxels
+            for ds_name, payload in per_ds_payload.items():
+                ax = payload["ax"]
+                data = payload["data"]
+                xs_sorted = payload["xs"]
+                ys_sorted = payload["ys"]
+                zs_sorted = payload["zs"]
+
+                filled = np.isfinite(data)
+
+                # facecolors must match filled shape with RGBA
+                rgba = cmap_obj(norm(np.nan_to_num(data, nan=0.0)))
+                rgba[..., 3] = np.where(filled, alpha, 0.0)
+
+                ax.voxels(
+                    filled,
+                    facecolors=rgba,
+                    edgecolor=edgecolor,
+                    linewidth=linewidth,
+                )
+
+                # Ticks at cube centers
+                ax.set_xticks(np.arange(len(xs_sorted)) + 0.5)
+                ax.set_yticks(np.arange(len(ys_sorted)) + 0.5)
+                ax.set_zticks(np.arange(len(zs_sorted)) + 0.5)
+
+                ax.set_xticklabels([
+                    fmt_val(x_param, v) if (i % label_every == 0 or i in {0, len(xs_sorted)-1}) else ""
+                    for i, v in enumerate(xs_sorted)
+                ], rotation=45, ha="right")
+
+                ax.set_yticklabels([
+                    fmt_val(y_param, v) if (i % label_every == 0 or i in {0, len(ys_sorted)-1}) else ""
+                    for i, v in enumerate(ys_sorted)
+                ])
+
+                ax.set_zticklabels([
+                    fmt_val(z_param, v) if (i % label_every == 0 or i in {0, len(zs_sorted)-1}) else ""
+                    for i, v in enumerate(zs_sorted)
+                ])
+
+                ax.set_xlabel("Number of Bags (B)" if x_param == "Nbag" else x_param)
+                ax.set_ylabel("Number of Bags (B)" if y_param == "Nbag" else y_param)
+                ax.set_zlabel(f"{z_param} (baseline)")
+
+                ax.set_title(ds_name)
+                ax.view_init(elev=view_elev, azim=view_azim)
+
+            # One shared colorbar for the whole figure
+            sm = plt.cm.ScalarMappable(norm=norm, cmap=cmap_obj)
+            sm.set_array([])
+
+            cbar = fig.colorbar(sm, ax=axes[:len(ds_runs)], shrink=0.85, pad=0.08)
+
+            # match your colorbar labeling scheme
+            if inlog:
+                if log:
+                    if type == "difference":
+                        cbar.ax.set_ylabel(f"{met_label}\nlog₂(log_baseline) – log₂(log_bagged)")
+                    elif type == "baseline":
+                        cbar.ax.set_ylabel(f"{met_label}\n-log₂(log_baseline)")
+                    elif type == "bagged":
+                        cbar.ax.set_ylabel(f"{met_label}\n-log₂(log_bagged)")
+                else:
+                    if type == "difference":
+                        cbar.ax.set_ylabel(f"{met_label}\nlog_baseline – log_bagged")
+                    elif type == "baseline":
+                        cbar.ax.set_ylabel(f"{met_label}\n-log_baseline")
+                    elif type == "bagged":
+                        cbar.ax.set_ylabel(f"{met_label}\n-log_bagged")
+            else:
+                if log:
+                    if type == "difference":
+                        cbar.ax.set_ylabel(f"{met_label}\nlog₂(baseline) – log₂(bagged)")
+                    elif type == "baseline":
+                        cbar.ax.set_ylabel(f"{met_label}\n-log₂(baseline)")
+                    elif type == "bagged":
+                        cbar.ax.set_ylabel(f"{met_label}\n-log₂(bagged)")
+                else:
+                    if type == "difference":
+                        cbar.ax.set_ylabel(f"{met_label}\nbaseline – bagged")
+                    elif type == "baseline":
+                        cbar.ax.set_ylabel(f"{met_label}\nbaseline")
+                    elif type == "bagged":
+                        cbar.ax.set_ylabel(f"{met_label}\nbagged")
+
+            if fig_title:
+                fig.suptitle(str(fig_title), y=1.02, fontsize=bfs * 2.4)
+
+            fig.tight_layout()
+
+            logsavename = "_log" if log else ""
+            inlogsavename = "_inlog" if inlog else ""
+
+            for fmt in formats:
+                out = save_dir / f"{save_prefix}_{met_key}_{type}_3d_{x_param}_{y_param}_z{z_param}{logsavename}{inlogsavename}.{fmt}"
+                fig.savefig(out, bbox_inches="tight")
+                print(f"[SAVED] {out}")
+
+            if show:
+                plt.show()
+            else:
+                plt.close(fig)
+
+def plot_experiment_heatmaps_slices(
+    experiments: Sequence[Any],
+    *,
+    x_param: str,
+    y_param: str,
+    z_param: str,  # baseline-only axis (e.g. "k" when x="sr", y="k" for bagged)
+    # baseline overrides (for params in _BASELINE_PARAMS) that are held fixed for ALL z-slices
+    baseline_overrides: Mapping[str, Any] | None = None,
+    # optionally restrict which baseline z values to slice over (else inferred from baseline runs)
+    z_values: Sequence[Any] | None = None,
+    reverse_x: bool = False,
+    reverse_y: bool = False,
+    reverse_z: bool = False,
+    metrics: Tuple[str, ...] = ("mse", "bias2", "var"),
+    label_every: int = 1,
+    grid: bool = True,
+    figsize: tuple[float, float] | None = None,
+    base_fontsize: int | float | None = None,
+    cmap: str = "bwr",
+    save_prefix: str = "heat3d",
+    save_dir: str | Path = "./Output",
+    formats: Tuple[str, ...] = ("pdf",),
+    show: bool = False,
+    log: bool = False,
+    type: str = "difference",
+    inlog: bool = False,
+    fig_title: str | bool | None = False,
+    share_color_scale_across_z: bool = True,
+    baseline_curve: callable | None = None,  # f(x_numeric) -> y_numeric (e.g. k_baseline(x))
+    curve_num: int = 300,  # smoothness of the curve
+    curve_lw: float = 1.2,  # line width
+    curve_ms: float = 3.0,  # marker size for dots
+    curve_only_on_matching_slice: bool = True,
+    overlay_k_over_x: bool = True,   # overlay y = z_val / x on every slice
+):
+    """
+    Draw baseline-vs-bagged metric differences as "3D heatmaps" by slicing over a baseline-only z_param.
+
+    - x_param, y_param vary over BAGGED runs (bagging_method != None)
+    - z_param varies over BASELINE runs (bagging_method is None)
+    - Each z-slice is a standard 2D heatmap (y,x), with baseline fixed at that z value.
+    """
+
+    def _interp_index(vals_display: list[float], v: float) -> float | None:
+        """
+        Map numeric v into heatmap index coordinates [0, n-1] using piecewise-linear interpolation.
+        Works whether vals_display is increasing or decreasing (display order).
+        Returns None if outside range.
+        """
+        n = len(vals_display)
+        if n == 0:
+            return None
+        if n == 1:
+            return 0.0 if np.isclose(v, vals_display[0]) else None
+
+        inc = vals_display[0] < vals_display[-1]
+        vals = vals_display if inc else vals_display[::-1]
+
+        if v < vals[0] or v > vals[-1]:
+            return None
+
+        j = int(np.searchsorted(vals, v, side="right")) - 1
+        j = max(0, min(j, n - 2))
+        v0, v1 = vals[j], vals[j + 1]
+        if np.isclose(v1, v0):
+            idx_inc = float(j)
+        else:
+            t = (v - v0) / (v1 - v0)
+            idx_inc = float(j + t)
+
+        return idx_inc if inc else (n - 1 - idx_inc)
+
+    # --- sanity checks ----------------------------------------------------
+    if x_param == y_param:
+        raise ValueError("x_param and y_param must differ")
+    for p in (x_param, y_param, z_param):
+        if p not in _NUMERIC_PARAMS:
+            raise ValueError(f"{p} must be numeric param in {sorted(_NUMERIC_PARAMS)}")
+    if not experiments:
+        raise ValueError("experiments list is empty")
+
+    # Baseline overrides must be relevant to baseline matching
+    _base_fixed: dict[str, Any] = dict(baseline_overrides or {})
+    if _base_fixed:
+        unknown = set(_base_fixed) - set(_BASELINE_PARAMS)
+        if unknown:
+            raise ValueError(
+                f"baseline_overrides contains params not in _BASELINE_PARAMS: {sorted(unknown)}"
+            )
+
+    # z_param must be matchable via _BASELINE_PARAMS, otherwise baseline can't "vary along z" in lookup
+    if z_param not in _BASELINE_PARAMS:
+        raise ValueError(
+            f"z_param='{z_param}' must be in _BASELINE_PARAMS to vary baseline along z. "
+            f"Current _BASELINE_PARAMS={sorted(_BASELINE_PARAMS)}"
+        )
+
+    # --- group by dataset -------------------------------------------------
+    ds_runs: dict[str, list[Any]] = defaultdict(list)
+    for e in experiments:
+        ds_runs[e.dataset_name].append(e)
+
+    # title (reuse your style lightly; keep it simple)
+    def param_name(param_str: str) -> str:
+        if param_str == "sr":
+            return "sampling rate"
+        if param_str == "Nbag":
+            return "number of bags"
+        if param_str == "k":
+            return "k"
+        return param_str
+
+    if fig_title is None:
+        fixed_global = {}
+        for p in _ALL_PARAMS - {x_param, y_param, z_param, "bagging_method", "dataset_name"}:
+            vals = {getattr(e, p) for e in experiments}
+            if len(vals) == 1:
+                fixed_global[p] = vals.pop()
+        fig_title = " | ".join(f"{k}:{fmt_val(k,v)}" for k, v in fixed_global.items())
+    elif fig_title == "auto":
+        fig_title = (
+            f"Bagged interaction: {param_name(x_param)} × {param_name(y_param)}\n"
+            f"Baseline slices over {param_name(z_param)}"
+        )
+
+    # layout helpers (same feel as your 2D version)
+    rows, cols = auto_grid(len(ds_runs)) if grid and len(ds_runs) > 1 else (len(ds_runs), 1)
+    if figsize is None:
+        figsize = (4 * cols, 3.5 * rows)
+
+    bfs = auto_fontsize(figsize, base_fontsize)
+    rc = {
+        "axes.titlesize": bfs * 1.4,
+        "axes.labelsize": bfs * 1.3,
+        "xtick.labelsize": bfs * 0.7,
+        "ytick.labelsize": bfs * 1.0,
+    }
+
+    save_dir = Path(save_dir)
+    save_dir.mkdir(parents=True, exist_ok=True)
+
+    key_to_label = {"mse": "MSE", "bias2": "Bias²", "var": "Variance"}
+
+    # --- main loop: metric -> z-slice figure per dataset-grid -------------
+    for met_key in metrics:
+        if met_key not in key_to_label:
+            raise ValueError(f"Unknown metric '{met_key}'")
+        met_label = key_to_label[met_key]
+
+        # Determine z values (prefer explicit z_values; else infer from baseline runs globally)
+        if z_values is None:
+            z_set = {getattr(e, z_param) for e in experiments if e.bagging_method is None}
+            zs_sorted = sorted(z_set)
+        else:
+            zs_sorted = list(z_values)
+
+        if reverse_z:
+            zs_sorted = zs_sorted[::-1]
+
+        # We will create ONE figure PER z slice (still multi-dataset grid),
+        # which is usually the cleanest way to interpret a third axis.
+        # If you want a single figure with all z-slices tiled, tell me and I’ll provide that too.
+        for z_val in zs_sorted:
+            with plt.rc_context(rc):
+                fig, axes = plt.subplots(rows, cols, figsize=figsize, squeeze=False)
+                axes = axes.flatten()
+                for ax in axes[len(ds_runs):]:
+                    ax.axis("off")
+
+                # First pass: compute all dataset data arrays, optionally track global vmax for shared scale
+                per_ds_data: dict[str, np.ndarray] = {}
+                per_ds_xy: dict[str, tuple[list[Any], list[Any]]] = {}
+
+                global_vmax = 0.0
+
+                for (ds_name, runs) in sorted(ds_runs.items()):
+                    # separate baseline and bagged
+                    baseline_lookup: dict[tuple, Any] = {}
+                    bagged_list: list[Any] = []
+
+                    for r in runs:
+                        base_key = tuple(getattr(r, p) for p in _BASELINE_PARAMS)
+                        if r.bagging_method is None:
+                            baseline_lookup[base_key] = r
+                        else:
+                            bagged_list.append(r)
+
+                    # x/y grid from BAGGED
+                    xs_sorted = sorted({getattr(r, x_param) for r in bagged_list})
+                    ys_sorted = sorted({getattr(r, y_param) for r in bagged_list})
+                    if reverse_x:
+                        xs_sorted = xs_sorted[::-1]
+                    if reverse_y:
+                        ys_sorted = ys_sorted[::-1]
+
+                    xs_map = {v: i for i, v in enumerate(xs_sorted)}
+                    ys_map = {v: i for i, v in enumerate(ys_sorted)}
+                    data = np.full((len(ys_sorted), len(xs_sorted)), np.nan)
+
+                    # Build baseline key override for THIS z-slice:
+                    # - force z_param to z_val
+                    # - apply fixed baseline_overrides (if any)
+                    _base_override = dict(_base_fixed)
+                    _base_override[z_param] = z_val
+
+                    # Fill grid by comparing each bagged run to the baseline at z=z_val (and otherwise matched)
+                    for r in bagged_list:
+                        base_key = tuple(
+                            (_base_override[p] if p in _base_override else getattr(r, p))
+                            for p in _BASELINE_PARAMS
+                        )
+                        base_run = baseline_lookup.get(base_key)
+                        if base_run is None:
+                            continue
+
+                        # compute diff exactly like your 2D code
+                        if inlog:
+                            if log:
+                                if type == "difference":
+                                    diff = np.log2(getattr(base_run, f"log_total_{met_key}")) - np.log2(
+                                        getattr(r, f"log_total_{met_key}")
+                                    )
+                                elif type == "baseline":
+                                    diff = -np.log2(getattr(base_run, f"log_total_{met_key}"))
+                                elif type == "bagged":
+                                    diff = -np.log2(getattr(r, f"log_total_{met_key}"))
+                                else:
+                                    raise ValueError(f"Unknown type='{type}'")
+                            else:
+                                if type == "difference":
+                                    diff = getattr(base_run, f"log_total_{met_key}") - getattr(r, f"log_total_{met_key}")
+                                elif type == "baseline":
+                                    diff = -getattr(base_run, f"log_total_{met_key}")
+                                elif type == "bagged":
+                                    diff = -getattr(r, f"log_total_{met_key}")
+                                else:
+                                    raise ValueError(f"Unknown type='{type}'")
+                        else:
+                            if log:
+                                if type == "difference":
+                                    diff = np.log2(getattr(base_run, f"total_{met_key}")) - np.log2(
+                                        getattr(r, f"total_{met_key}")
+                                    )
+                                elif type == "baseline":
+                                    diff = -np.log2(getattr(base_run, f"total_{met_key}"))
+                                elif type == "bagged":
+                                    diff = -np.log2(getattr(r, f"total_{met_key}"))
+                                else:
+                                    raise ValueError(f"Unknown type='{type}'")
+                            else:
+                                if type == "difference":
+                                    diff = getattr(base_run, f"total_{met_key}") - getattr(r, f"total_{met_key}")
+                                elif type == "baseline":
+                                    diff = getattr(base_run, f"total_{met_key}")
+                                elif type == "bagged":
+                                    diff = getattr(r, f"total_{met_key}")
+                                else:
+                                    raise ValueError(f"Unknown type='{type}'")
+
+                        xi = xs_map[getattr(r, x_param)]
+                        yi = ys_map[getattr(r, y_param)]
+                        data[yi, xi] = diff
+
+                    per_ds_data[ds_name] = data
+                    per_ds_xy[ds_name] = (xs_sorted, ys_sorted)
+
+                    if share_color_scale_across_z:
+                        vmax_here = float(np.nanmax(np.abs(data))) if np.isfinite(np.nanmax(np.abs(data))) else 0.0
+                        global_vmax = max(global_vmax, vmax_here)
+
+                # Second pass: draw
+                for ax, (ds_name, _) in zip(axes, sorted(ds_runs.items())):
+                    data = per_ds_data[ds_name]
+                    xs_sorted, ys_sorted = per_ds_xy[ds_name]
+
+                    # color scaling
+                    if share_color_scale_across_z:
+                        vmax = global_vmax or 1.0
+                    else:
+                        vmax = np.nanmax(np.abs(data)) or 1.0
+
+                    if type == "difference" or log:
+                        im = ax.imshow(data, cmap=cmap, vmin=-vmax, vmax=vmax, origin="lower")
+                    else:
+                        im = ax.imshow(data, cmap="Reds", vmin=0, vmax=vmax, origin="lower")
+
+                    # ticks and labels
+                    ax.set_xticks(range(len(xs_sorted)))
+                    ax.set_xticklabels(
+                        [
+                            fmt_val(x_param, v) if (i % label_every == 0 or i in {0, len(xs_sorted) - 1}) else ""
+                            for i, v in enumerate(xs_sorted)
+                        ],
+                        rotation=45,
+                        ha="right",
+                    )
+                    ax.set_yticks(range(len(ys_sorted)))
+                    ax.set_yticklabels(
+                        [
+                            fmt_val(y_param, v) if (i % label_every == 0 or i in {0, len(ys_sorted) - 1}) else ""
+                            for i, v in enumerate(ys_sorted)
+                        ]
+                    )
+
+                    ax.set_xlabel("Number of Bags (B)" if x_param == "Nbag" else x_param)
+                    ax.set_ylabel("Number of Bags (B)" if y_param == "Nbag" else y_param)
+                    ax.set_title(ds_name)
+
+                    # ---- overlay: y = z_val / x (e.g. k_baseline / sr) ----
+                    if overlay_k_over_x:
+                        xs_num = [float(v) for v in xs_sorted]
+                        ys_num = [float(v) for v in ys_sorted]
+
+                        x_min, x_max = min(xs_num), max(xs_num)
+                        x_dense = np.linspace(x_min, x_max, curve_num)
+
+                        with np.errstate(divide="ignore", invalid="ignore"):
+                            y_dense = float(z_val) * x_dense
+
+                        # Map to heatmap index coords (use NaNs to break line out-of-range)
+                        x_idx, y_idx = [], []
+                        for xx, yy in zip(x_dense, y_dense):
+                            if not np.isfinite(yy):
+                                x_idx.append(np.nan);
+                                y_idx.append(np.nan);
+                                continue
+                            xi = _interp_index(xs_num, float(xx))
+                            yi = _interp_index(ys_num, float(yy))
+                            if xi is None or yi is None:
+                                x_idx.append(np.nan);
+                                y_idx.append(np.nan)
+                            else:
+                                x_idx.append(xi);
+                                y_idx.append(yi)
+
+                        ax.plot(x_idx, y_idx, color="black", lw=curve_lw, zorder=5)
+
+                        # Dots at actual x grid values
+                        x_dot, y_dot = [], []
+                        for xx in xs_num:
+                            with np.errstate(divide="ignore", invalid="ignore"):
+                                yy = float(z_val) * float(xx)
+                            if not np.isfinite(yy):
+                                continue
+                            xi = _interp_index(xs_num, float(xx))
+                            yi = _interp_index(ys_num, float(yy))
+                            if xi is None or yi is None:
+                                continue
+                            x_dot.append(xi);
+                            y_dot.append(yi)
+
+                        ax.plot(x_dot, y_dot, "o", color="black", ms=curve_ms, zorder=6)
+
+                    cbar = fig.colorbar(im, ax=ax, shrink=0.8)
+
+                    # colorbar label (reuse your text, add z info)
+                    z_txt = f"{z_param}={fmt_val(z_param, z_val)}"
+                    if inlog:
+                        if log:
+                            if type == "difference":
+                                cbar.ax.set_ylabel(f"{met_label}\nlog₂(log_baseline) – log₂(log_bagged)\n[{z_txt}]")
+                            elif type == "baseline":
+                                cbar.ax.set_ylabel(f"{met_label}\n-log₂(log_baseline)\n[{z_txt}]")
+                            elif type == "bagged":
+                                cbar.ax.set_ylabel(f"{met_label}\n-log₂(log_bagged)\n[{z_txt}]")
+                        else:
+                            if type == "difference":
+                                cbar.ax.set_ylabel(f"{met_label}\nlog_baseline – log_bagged\n[{z_txt}]")
+                            elif type == "baseline":
+                                cbar.ax.set_ylabel(f"{met_label}\n-log_baseline\n[{z_txt}]")
+                            elif type == "bagged":
+                                cbar.ax.set_ylabel(f"{met_label}\n-log_bagged\n[{z_txt}]")
+                    else:
+                        if log:
+                            if type == "difference":
+                                cbar.ax.set_ylabel(f"{met_label}\nlog₂(baseline) – log₂(bagged)\n[{z_txt}]")
+                            elif type == "baseline":
+                                cbar.ax.set_ylabel(f"{met_label}\n-log₂(baseline)\n[{z_txt}]")
+                            elif type == "bagged":
+                                cbar.ax.set_ylabel(f"{met_label}\n-log₂(bagged)\n[{z_txt}]")
+                        else:
+                            if type == "difference":
+                                cbar.ax.set_ylabel(f"{met_label}\nbaseline – bagged\n[{z_txt}]")
+                            elif type == "baseline":
+                                cbar.ax.set_ylabel(f"{met_label}\nbaseline\n[{z_txt}]")
+                            elif type == "bagged":
+                                cbar.ax.set_ylabel(f"{met_label}\nbagged\n[{z_txt}]")
+
+                # super title
+                if fig_title:
+                    fig.suptitle(str(fig_title), y=1.02, fontsize=bfs * 2.4)
+
+                fig.tight_layout()
+
+                logsavename = "_log" if log else ""
+                inlogsavename = "_inlog" if inlog else ""
+
+                # include z in filename
+                z_tag = f"_{z_param}-{fmt_val(z_param, z_val)}"
+                z_tag = z_tag.replace("/", "_").replace(" ", "")  # basic filename hygiene
+
+                for fmt in formats:
+                    out = save_dir / f"{save_prefix}_{met_key}_{type}{z_tag}{logsavename}{inlogsavename}.{fmt}"
+                    fig.savefig(out, bbox_inches="tight")
+                    print(f"[SAVED] {out}")
+
+                if show:
+                    plt.show()
+                else:
+                    plt.close(fig)

@@ -17,20 +17,19 @@ load_data=True
 worker_count=7
 save_name='mergedresult'
 directory = r'C:\pkls'
-#RESULTS ARE SAVED AT Bagging_for_LID.Output
-#Modify output folders at Bagging_for_LID.run_files.final_tasks
-
+#directory = r"G:\pkls2\new\RESULTS"
+#directory=r'C:\Users\User\PycharmProjects\pythonProject3\LIDstuff\saved_results\pkls2'
 if __name__ == "__main__":
     setup_logging()
     # -----------------------------------------------------------------------------------------------------------------------
     #Generate datasets (to be reused in different experiments)
-    results_data = new_result_generator(param_dicts_data, multiprocess=False, load=True, load_data=True,
-                                        worker_count=None,
-                                        save_name='data_generation',
-                                        directory=directory)
+    #results_data = new_result_generator(param_dicts_data, multiprocess=False, load=True, load_data=True,
+    #                                    worker_count=None,
+    #                                    save_name='data_generation_uniform',
+    #                                    directory=directory)
     #print('Data generation complete')
     # -----------------------------------------------------------------------------------------------------------------------
-    #Setup result generation
+    #Setup MAIN result generation
 
     #Effectiveness of bagging (baseline, simple bagging, weighted bagging, neighborhood size adjustment)
     #Effectiveness of bagging t is changing additionally (baseline, simple bagging, weighted bagging, neighborhood size adjustment)
@@ -60,3 +59,7 @@ if __name__ == "__main__":
         finally:
             del result_dict
             gc.collect()
+
+    #-----------------------------------------------------------------------------------------------------------------------
+    #Supplements extra results
+    # -----------------------------------------------------------------------------------------------------------------------

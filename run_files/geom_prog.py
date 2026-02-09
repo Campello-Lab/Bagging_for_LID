@@ -2,8 +2,16 @@ import numpy as np
 #-----------------------------------------------------------------------------------------------------------------------
 #Function to make a simple geometric progression
 #(note that for integer sequences, we have to round, and sometimes further modify (round up, or down) for low numbers,
-# in order to avoid duplicates)
-def geom_prog(min=1, max=100, step=None, integer=False):
+# in order to avoid duplicates, but sometimes even that doesn't work, so we just have to remove duplicates)
+def geom_prog(min=1, max=100, step=None, integer=False, remove_duplicates=True):
+    def dedupe_keep_order(xs):
+        seen = set()
+        out = []
+        for x in xs:
+            if x not in seen:
+                seen.add(x)
+                out.append(x)
+        return out
     if step is None:
         a = 2
         step = int(np.log2(max/min)+1)
@@ -13,6 +21,8 @@ def geom_prog(min=1, max=100, step=None, integer=False):
         l = [round(min*a**i) for i in range(step)]
     else:
         l = [min*a**i for i in range(step)]
+    if remove_duplicates:
+        l = dedupe_keep_order(l)
     return l
 
 #A linear progression as well, in case we would want that

@@ -40,7 +40,7 @@ def plot_tables_from_results(
     save: bool = True,
     export_format: str = "pdf",
     save_prefix: str = "table_best",
-    save_dir: str | pathlib.Path = "./plots",
+    save_dir: str | pathlib.Path = "./Output",
     combined: bool = False,
 ) -> dict[str, go.Figure]:
 
@@ -454,7 +454,7 @@ def plot_table_best_of_sweep(
     save: bool = True,
     export_format: str = "pdf",
     save_prefix: str = "table_best",
-    save_dir: str = "./plots",
+    save_dir: str = "./Output",
     font_size: int = 10,
     cell_pad: float = 0.4,
     header_pad: float = 0.6,

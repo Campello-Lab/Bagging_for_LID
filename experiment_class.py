@@ -41,10 +41,39 @@ def expand_param_dicts(param_dicts):
         params_lists = params_lists + params_list1
     return params_lists
 
+def expand_param_dict_zipped(param_dict):
+    def is_seq(v):
+        if isinstance(v, (str, bytes, dict)):
+            return False
+        return isinstance(v, Iterable)
+    def to_list(v):
+        return list(v) if is_seq(v) else [v]
+
+    keys = list(param_dict)
+    vals = [to_list(param_dict[k]) for k in keys]
+
+    lengths = [len(v) for v in vals]
+    n = max(lengths)
+
+    bad = [(k, len(v)) for k, v in zip(keys, vals) if len(v) not in (1, n)]
+    if bad:
+        msg = ", ".join([f"{k} has length {L}" for k, L in bad])
+        raise ValueError(f"Zipped expansion needs all list-like params to have same length. {msg}. Expected 1 or {n}.")
+
+    out = []
+    for i in range(n):
+        d = {}
+        for k, v in zip(keys, vals):
+            d[k] = v[i] if len(v) == n else v[0]
+        out.append(d)
+
+    return out
+
 class LID_experiment:
 
     def __init__(self, n=2500, k=10, sr=0.3, Nbag=10, dataset_name="uniform", lid=2, dim=3, pre_smooth=False,
-                 post_smooth=False, t=1, estimator='mle', bagging_method=None, submethod_0=None, submethod_error=None, param_string=None, params=None, set_dim_to_lid=False):
+                 post_smooth=False, t=1, estimator='mle', bagging_method=None, submethod_0=None,
+                 submethod_error=None, param_string=None, params=None, set_dim_to_lid=False, data_set_function=None):
         self.used_params = data_defaults()
         self.set_dim_to_lid = set_dim_to_lid
         if params is None and param_string is None:
@@ -62,6 +91,7 @@ class LID_experiment:
             self.bagging_method = bagging_method
             self.submethod_0 = submethod_0
             self.submethod_error = submethod_error
+            self.data_set_function = data_set_function
             self.params = {'dataset_name': self.dataset_name,
                            'n': self.n,
                            'lid': self.lid,
@@ -118,6 +148,7 @@ class LID_experiment:
         self.point_avg_knn_dists = None
         self.bag_avg_knn_dists = None
         self.point_bag_avg_knn_dists = None
+        self.lid_estimates_std = None
 
     def get_character_string(self, params):
         string = ''
@@ -157,7 +188,7 @@ class LID_experiment:
         self.submethod_error = params['submethod_error']
         self.params = params
 
-    def generate_data(self, load=False, directory=r"C:\pkls"):
+    def generate_data(self, load=False, directory=r"C:\pkls", fixpoints=None):
         if not load:
             original = ['M1_Sphere', 'M2_Affine_3to5', 'M3_Nonlinear_4to6', 'M4_Nonlinear', 'M5b_Helix2d', 'M6_Nonlinear',
                         'M7_Roll', 'M8_Nonlinear', 'M9_Affine', 'M10a_Cubic', 'M10b_Cubic', 'M10c_Cubic', 'M11_Moebius',
@@ -183,14 +214,33 @@ class LID_experiment:
                             np.repeat(self.lid, self.n),
                             self.dim,
                             np.repeat(self.lid, self.n)]
+            elif self.dataset_name == "ribbon":
+                data = [ribbon_multi_dim_equal_density(n=self.n, dim=self.dim, d_loc=self.lid, d_glob=1, ratio=0.01)[0],
+                        np.repeat(self.lid, self.n),
+                        self.lid,
+                        np.repeat(self.lid, self.n)]
+            elif self.dataset_name == "custom":
+                data = [self.data_set_function(n=self.n, lid=self.lid, dim=self.dim),
+                        np.repeat(self.lid, self.n),
+                        self.lid,
+                        np.repeat(self.lid, self.n)]
             else:
                 raise NotImplementedError
             filename = self.dataset_name + '_' + str(self.n) + '_' + str(self.lid) + '_' + str(self.dim)
+
+            if fixpoints is not None:
+                data[0] = np.concatenate([data[0], fixpoints[0]], axis=0)
+                data[1] = np.concatenate([data[1], fixpoints[1]], axis=0)
+                data[3] = np.concatenate([data[3], fixpoints[3]], axis=0)
             save_dict(data, directory=directory, filename=filename)
         else:
             filename = self.dataset_name + '_' + str(self.n) + '_' + str(self.lid) + '_' + str(self.dim)
             filepath = os.path.join(directory, filename)
             data = load_dict(filepath)
+            if fixpoints is not None:
+                data[0] = np.concatenate([data[0], fixpoints[0]], axis=0)
+                data[1] = np.concatenate([data[1], fixpoints[1]], axis=0)
+                data[3] = np.concatenate([data[3], fixpoints[3]], axis=0)
         self.data = data
         return data
 

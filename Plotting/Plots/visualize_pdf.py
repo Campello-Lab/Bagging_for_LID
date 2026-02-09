@@ -11,6 +11,9 @@ from PIL import Image
 import math
 import os
 
+from PIL import Image, ImageChops
+from io import BytesIO
+
 @contextmanager
 def _launch_browser(width, height, device_scale_factor):
     with sync_playwright() as p:
@@ -392,43 +395,33 @@ def html_3d_to_pdf(
 
 if __name__ == "__main__":
 
-    paths = [r"C:\Users\User\PycharmProjects\LID\LIDBagging2\interactive_datasets\affine3to5.html",
-    r"C:\Users\User\PycharmProjects\LID\LIDBagging2\interactive_datasets\helix.html",
-    r"C:\Users\User\PycharmProjects\LID\LIDBagging2\interactive_datasets\m1_sphere.html",
-    r"C:\Users\User\PycharmProjects\LID\LIDBagging2\interactive_datasets\m9affine.html",
-    r"C:\Users\User\PycharmProjects\LID\LIDBagging2\interactive_datasets\mn_nonlinear_3d.html",
-    r"C:\Users\User\PycharmProjects\LID\LIDBagging2\interactive_datasets\moebius.html",
-    r"C:\Users\User\PycharmProjects\LID\LIDBagging2\interactive_datasets\nonlinear4_6_8.html",
-    r"C:\Users\User\PycharmProjects\LID\LIDBagging2\interactive_datasets\nonlinear4to6.html",
-    r"C:\Users\User\PycharmProjects\LID\LIDBagging2\interactive_datasets\roll.html",
-    r"C:\Users\User\PycharmProjects\LID\LIDBagging2\interactive_datasets\scurve.html"]
-
-    paths2 = [r"C:\Users\krp\OneDrive - Syddansk Universitet\PycharmProjects\LID1\LIDBagging2\LIDBagging\lollipop.html",
-r"C:\Users\krp\OneDrive - Syddansk Universitet\PycharmProjects\LID1\LIDBagging2\LIDBagging\M10_Cubic.html",
-r"C:\Users\krp\OneDrive - Syddansk Universitet\PycharmProjects\LID1\LIDBagging2\LIDBagging\M12_Norm.html",
-r"C:\Users\krp\OneDrive - Syddansk Universitet\PycharmProjects\LID1\LIDBagging2\LIDBagging\uniform_1d.html"]
+    paths = [r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\affine3to5.html"
+r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\helix.html"
+r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\m1_sphere3.html"
+r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\m9affine.html"
+r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\M10_Cubic.html"
+r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\M12_Norm.html"
+r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\mn_nonlinear_3d.html"
+r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\moebius.html"
+r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\nonlinear4_6_8.html"
+r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\nonlinear4to6.html"
+r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\roll.html"
+r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\scurve.html"
+r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\uniform_3d.html"]
 
     names = ["data_pdfs/affine3to5.pdf",
     "data_pdfs/helix.pdf",
     "data_pdfs/m1_sphere.pdf",
     "data_pdfs/m9affine.pdf",
+    "data_pdfs/m10cubic.pdf",
+    "data_pdfs/m12norm.pdf",
     "data_pdfs/mn_nonlinear_3d.pdf",
     "data_pdfs/moebius.pdf",
     "data_pdfs/nonlinear4_6_8.pdf",
     "data_pdfs/nonlinear4to6.pdf",
     "data_pdfs/roll.pdf",
-    "data_pdfs/scurve.pdf"]
-
-    names2 = ["data_pdfs/lollipop.pdf",
-              "data_pdfs/M10_Cubic.pdf",
-              "data_pdfs/M12_Norm.pdf",
-              "data_pdfs/uniform_1d.pdf"]
-
-    names = names2
-    paths= paths2
-
-    paths = [r'C:\Users\krp\OneDrive - Syddansk Universitet\PycharmProjects\LID1\LIDBagging2\LIDBagging\Plotting\Plots\uniform_4d.html']
-    names = [r'uniform_3d.pdf']
+    "data_pdfs/scurve.pdf",
+    "data_pdfs/uniform_3d.pdf"]
 
     for i in range(len(paths)):
         path = paths[i]
