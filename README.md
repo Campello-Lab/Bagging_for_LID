@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="bagging_figure/horizontalsimplebagging.png" alt="Logo" width="200" />
+  <img src="bagging_figure/horizontalsimplebagging.png" alt="Logo" width="600" />
 </p>
 
 
