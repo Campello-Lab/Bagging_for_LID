@@ -47,7 +47,7 @@ recreate the results and figures present in the paper from scratch, or by loadin
 
 - Don't forget to make this GitHub repo public once it is ready for submission.
 
-- Don't forget to fix this README to the paths of the public github page
+- Don't forget to fix this README to the paths of the eventual public github page, paper, and so on
 
 
 
