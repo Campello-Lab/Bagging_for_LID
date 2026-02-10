@@ -21,7 +21,7 @@ Navigate to selected folder
 cd Bagging_for_LID
 ```
 
-Install requirements. Python version $\geq$ 3.11 required.
+Install requirements. Python version $\geq 3.11$ required.
 
 ```bash
 pip install -r requirements.txt
