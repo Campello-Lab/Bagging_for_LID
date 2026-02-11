@@ -53,7 +53,7 @@ recreate the results and figures present in the paper from scratch, or by loadin
 
 #### Using the Bagging_for_LID package to run your own LID estimation experiments
 
-- The [single_experiment](Reproducibility/single_experiment.ipynb) jupyter notebook file can be used to learn how to use the repository for examining or performing single LID estimation experiments, or multiple ones at once for a range of parameter combinations.
+- The [single_experiment](Tutorials/single_experiment.ipynb) jupyter notebook file can be used to learn how to use the repository for examining or performing single LID estimation experiments, or multiple ones at once for a range of parameter combinations.
 
 
 
