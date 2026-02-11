@@ -9,13 +9,15 @@
 
 To recreate the results, plots, and figures present in the publication, first follow the **Installation** steps. Then do either of the following:
 
-- Download ready experiment objects (**Data availability**), and load them to create the plots and figures via the instructions in the [recreate_results_notebook](Reproducibility/recreate_results_notebook.ipynb) Jupyter notebook file (**Reproducibility**).
-- Use the instructions in the [recreate_results_notebook](Reproducibility/recreate_results_notebook.ipynb) Jupyter notebook file (**Reproducibility**) to resample new datasets and perform the LID estimation experiments from scratch.
+- Download ready experiment objects as explained at [Data availability](#dataavailability), then load them to create the plots and figures via the instructions at [Reproducibility](#reproducibility).
+- Follow the instructions at [Reproducibility](#reproducibility) to resample new datasets and perform the LID estimation experiments from scratch.
+
+To use the Bagging_for_LID package for your own LID estimation experiments, or to examine downloaded experiment objects, follow the instructions at [Tutorial for the package](#tutorialforthepackage).
 
 ## Installation
 
 #### Install the Bagging_for_LID package and its requirements.
-
+ 
 To begin, clone the main repository to a selected folder
 
 ```bash
