@@ -11,7 +11,7 @@
 
 #### Install the Bagging_for_LID package and its requirements.
 
-Clone the main repository to a selected folder
+To begin, clone the main repository to a selected folder
 
 ```bash
 git clone https://github.com/pekristof/Bagging_for_LID.git
