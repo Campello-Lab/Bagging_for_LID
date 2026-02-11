@@ -7,12 +7,12 @@
 
 #### This repository has been developed for the publication: [On the Use of Bagging for Local Intrinsic Dimensionality Estimation](https://linktopaper)
 
-To recreate the results, plots, and figures present in the publication, first follow the [Installation](#installation) steps. Then do either of the following:
+- To recreate the results, plots, and figures present in the publication, first follow the [Installation](#installation) steps. Then do either of the following:
 
-- Download ready experiment objects as explained at [Data availability](#dataavailability), then load them to create the plots and figures via the instructions at [Reproducibility](#reproducibility).
-- Follow the instructions at [Reproducibility](#reproducibility) to resample new datasets and perform the LID estimation experiments in the publication from scratch.
+  - Download ready experiment objects as explained at [Data availability](#dataavailability), then load them to create the plots and figures via the instructions at [Reproducibility](#reproducibility).
+  - Follow the instructions at [Reproducibility](#reproducibility) to resample new datasets and perform the LID estimation experiments in the publication from scratch.
 
-To use the Bagging_for_LID package for your own LID estimation experiments, or to examine downloaded experiment objects, first install the package via the [Installation](#installation) steps. Then follow the instructions at [Tutorial for the package](#tutorialforthepackage).
+- To use the Bagging_for_LID package for your own LID estimation experiments, or to examine downloaded experiment objects, first install the package via the [Installation](#installation) steps. Then follow the instructions at [Tutorial for the package](#tutorialforthepackage).
 
 ## Installation
 
