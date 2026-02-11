@@ -38,8 +38,8 @@ pip install -e .
 
 - The [recreate_results_notebook](Reproducibility/recreate_results_notebook.ipynb) jupyter notebook file contains detailed, step-by-step instructions on how to
 recreate the results and figures present in the paper from scratch, or by loading already computed experiment objects.
-- The [recreate_results](Reproducibility/recreate_results.py) python file can be used to recreate the same results without the use of jupyter notebook.
 - The [recreate_example_figures](Reproducibility/recreate_example_figures.ipynb) jupyter notebook file can be used to recreate the plots in the Introduction section of the publication.
+- The [recreate_results](Reproducibility/recreate_results.py) python file can be used to recreate the same results without the use of jupyter notebook.
 
 ## Data availability
 
