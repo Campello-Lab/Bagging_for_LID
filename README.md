@@ -7,12 +7,9 @@
 
 #### This repository has been developed for the publication: [On the Use of Bagging for Local Intrinsic Dimensionality Estimation](https://linktopaper)
 
-To recreate the results, first follow the **Installation** steps. Then either
+To recreate the results, first follow the **Installation** steps. Then do either of the following:
 
-- Download ready experiment objects (**Data availability**), and load them to create the plots and figures via the instructions in the [recreate_results_notebook](Reproducibility/recreate_results_notebook.ipynb) Jupyter notebook file (**Reproducibility**),
-
-or
-
+- Download ready experiment objects (**Data availability**), and load them to create the plots and figures via the instructions in the [recreate_results_notebook](Reproducibility/recreate_results_notebook.ipynb) Jupyter notebook file (**Reproducibility**).
 - Use the instructions in the [recreate_results_notebook](Reproducibility/recreate_results_notebook.ipynb) Jupyter notebook file (**Reproducibility**) to resample new datasets and perform the LID estimation experiments from scratch.
 
 ## Installation
