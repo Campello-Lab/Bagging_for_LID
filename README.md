@@ -10,7 +10,7 @@
 To recreate the results, plots, and figures present in the publication, first follow the [Installation](#installation) steps. Then do either of the following:
 
 - Download ready experiment objects as explained at [Data availability](#dataavailability), then load them to create the plots and figures via the instructions at [Reproducibility](#reproducibility).
-- Follow the instructions at [Reproducibility](#reproducibility) to resample new datasets and perform the LID estimation experiments from scratch.
+- Follow the instructions at [Reproducibility](#reproducibility) to resample new datasets and perform the LID estimation experiments in the publication from scratch.
 
 To use the Bagging_for_LID package for your own LID estimation experiments, or to examine downloaded experiment objects, follow the instructions at [Tutorial for the package](#tutorialforthepackage).
 
@@ -50,7 +50,7 @@ pip install -e .
 
 - Don't forget to make this GitHub repo public once it is ready for submission.
 
-- Don't forget to fix this README to the paths of the eventual public github page, paper, and so on.
+- Don't forget to fix this README to the paths of the eventual public GitHub page, paper, and so on.
 
 ## Reproducibility
 
