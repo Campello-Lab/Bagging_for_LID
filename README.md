@@ -43,6 +43,8 @@ recreate the results and figures present in the paper from scratch, or by loadin
 
 ## Data availability
 
+#### Downloading the exact experiment objects containing the data and already performed experiments for the publication [On the Use of Bagging for Local Intrinsic Dimensionality Estimation](https://linktopaper)
+
 - Zenodo link placeholder: The source files (.pkl) available at https://zenodo.org/ can be used together with our code to extract all the necessary information about the performed experiments, as well as to recreate the figures and the values in the tables. The files should be loaded and used by either [recreate_results_notebook](recreate_results_notebook.ipynb) or [recreate_results](recreate_results.py) and setting load = True.
 
 - Don't forget to make this GitHub repo public once it is ready for submission.
