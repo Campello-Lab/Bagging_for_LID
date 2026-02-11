@@ -5,9 +5,11 @@
 
 # Bagging for LID estimation
 
-This repository has been developed for the publication: [On the Use of Bagging for Local Intrinsic Dimensionality Estimation](https://linktopaper)
+#### This repository has been developed for the publication: [On the Use of Bagging for Local Intrinsic Dimensionality Estimation](https://linktopaper)
 
 ## Installation
+
+#### Install the Bagging_for_LID package and its requirements.
 
 Clone the main repository to a selected folder
 
