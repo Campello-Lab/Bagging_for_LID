@@ -7,6 +7,14 @@
 
 #### This repository has been developed for the publication: [On the Use of Bagging for Local Intrinsic Dimensionality Estimation](https://linktopaper)
 
+To recreate the results, first follow the **Installation** steps. Then either
+
+- Download ready experiment objects (**Data availability**), and load them to create the plots and figures via the instructions in the [recreate_results_notebook](Reproducibility/recreate_results_notebook.ipynb) Jupyter notebook file (**Reproducibility**),
+
+or
+
+- Use the instructions in the [recreate_results_notebook](Reproducibility/recreate_results_notebook.ipynb) Jupyter notebook file (**Reproducibility**) to resample new datasets and perform the LID estimation experiments from scratch.
+
 ## Installation
 
 #### Install the Bagging_for_LID package and its requirements.
@@ -34,14 +42,6 @@ Install package
 ```bash
 pip install -e .
 ```
-## Reproducibility
-
-#### Recreating results and figures from the publication [On the Use of Bagging for Local Intrinsic Dimensionality Estimation](https://linktopaper) 
-
-- The [recreate_results_notebook](Reproducibility/recreate_results_notebook.ipynb) jupyter notebook file contains detailed, step-by-step instructions on how to
-recreate the results and figures present in the paper from scratch, or by loading already computed experiment objects.
-- The [recreate_example_figures](Reproducibility/recreate_example_figures.ipynb) jupyter notebook file can be used to recreate the plots in the Introduction section of the publication.
-- The [recreate_results](Reproducibility/recreate_results.py) python file can be used to recreate the same results without the use of jupyter notebook.
 
 ## Data availability
 
@@ -52,6 +52,15 @@ recreate the results and figures present in the paper from scratch, or by loadin
 - Don't forget to make this GitHub repo public once it is ready for submission.
 
 - Don't forget to fix this README to the paths of the eventual public github page, paper, and so on.
+
+## Reproducibility
+
+#### Recreating results and figures from the publication [On the Use of Bagging for Local Intrinsic Dimensionality Estimation](https://linktopaper) 
+
+- The [recreate_results_notebook](Reproducibility/recreate_results_notebook.ipynb) Jupyter notebook file contains detailed, step-by-step instructions on how to
+recreate the results and figures present in the paper from scratch, or by loading already computed experiment objects.
+- The [recreate_example_figures](Reproducibility/recreate_example_figures.ipynb) Jupyter notebook file can be used to recreate the plots in the Introduction section of the publication.
+- The [recreate_results](Reproducibility/recreate_results.py) Python file can be used to recreate the same results without the use of a Jupyter notebook.
 
 ## Tutorial for the package
 
