@@ -450,17 +450,9 @@ def plot_lid_curve(
     ax=None,
     markers=False,
     save_name='_',
-    save_path=None
+    save_path=None,
+    plot_best=False
 ):
-    """
-    Like lid_plot2, but for a single point i.
-
-    Uses:
-      y(k)   = exp.lid_estimates[i]
-      std(k) = exp.lid_estimates_std[i]   (precomputed)
-
-    If error="sem", you can pass n_estimates (number of repeated estimates behind the std).
-    """
 
     if len(experiments) == 0:
         raise ValueError("experiments list is empty.")
@@ -548,19 +540,21 @@ def plot_lid_curve(
         ax.fill_between(x, lower, upper, alpha=band_alpha, color=est_color, label=band_label)
 
     # best k marker (vertical line)
-    ax.vlines(best_x, ymin=0, ymax=best_y, colors="green", linestyles="--",
-              linewidth=1, alpha=0.6, label=f"Best {param}")
+    if plot_best:
+        ax.vlines(best_x, ymin=0, ymax=best_y, colors="green", linestyles="--",
+                  linewidth=1, alpha=0.6, label=f"Best {param}")
 
     # annotate best
-    trans = transforms.blended_transform_factory(ax.transData, ax.transAxes)
-    ax.annotate(
-        f"{best_x:.4g}",
-        xy=(best_x, 0), xycoords=trans,
-        xytext=(6, 10), textcoords="offset points",
-        ha="left", va="bottom",
-        color="green",
-        clip_on=False
-    )
+    if plot_best:
+        trans = transforms.blended_transform_factory(ax.transData, ax.transAxes)
+        ax.annotate(
+            f"{best_x:.4g}",
+            xy=(best_x, 0), xycoords=trans,
+            xytext=(6, 10), textcoords="offset points",
+            ha="left", va="bottom",
+            color="green",
+            clip_on=False
+        )
 
     # labels / aesthetics
     ax.set_xlabel(f"1/{param}" if invert else param)
