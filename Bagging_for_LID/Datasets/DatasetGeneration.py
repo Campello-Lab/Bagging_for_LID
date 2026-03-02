@@ -80,26 +80,20 @@ def sparse(n, lid=2, dim=2, w=10, l=5, center=(0.0, 0.0), rng=None):
         raise ValueError("n must be >= 0")
     if dim < 2:
         raise ValueError("dim must be >= 2")
-
     if rng is None:
         rng = np.random.default_rng()
-
     theta = rng.uniform(0.0, 2.0 * np.pi, size=n)
     u = rng.uniform(0.0, 1.0, size=n)
     r = w * u ** (1.0 / l)
-
     cx, cy = center
     x = cx + r * np.cos(theta)
     y = cy + r * np.sin(theta)
-
-    data2d = np.column_stack([x, y])   # shape (n, 2)
-
+    data2d = np.column_stack([x, y])
     if dim > 2:
         zeros = np.zeros((n, dim - 2))
-        data = np.hstack([data2d, zeros])   # shape (n, dim)
+        data = np.hstack([data2d, zeros])
     else:
         data = data2d
-
     lids = np.ones((n, 1)) * lid
     return data, lids
 

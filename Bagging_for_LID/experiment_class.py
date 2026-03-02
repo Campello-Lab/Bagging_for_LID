@@ -9,7 +9,6 @@ from Bagging_for_LID.RunningEstimators.Collecting import *
 from Bagging_for_LID.RunningEstimators.Running import *
 from Bagging_for_LID.Datasets.Uniform_Generator import *
 ###################################################################################################################
-#directory = r'C:\Users\User\PycharmProjects\pythonProject3\LIDstuff\saved_results\pkls2'
 
 def save_dict(data, directory, filename):
     os.makedirs(directory, exist_ok=True)  # Ensure directory exists

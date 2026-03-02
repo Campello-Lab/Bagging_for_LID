@@ -6,7 +6,7 @@ k_geomprog_large = geom_prog(min=5, max=200, step=50, integer=True, remove_dupli
 
 trange = [t for t in range(50)]
 
-directory = r'C:\Users\krp\PycharmProjects\FinalFixLIDGit\pkls'
+directory = r'.\pkls'
 
 save_name = 'ribbon_test_example'
 
@@ -17,7 +17,7 @@ load = False
 query = [np.array([[0.5, 0.005]]), np.array([2]), None, np.array([2])]
 
 
-def generate_all_experiments(n = 2500, krange = None, trange= None, query = None, load=False, directory=r'C:\Users\krp\PycharmProjects\FinalFixLIDGit\pkls', save_name='ribbon_test_example', multiprocess=True):
+def generate_all_experiments(n = 2500, krange = None, trange= None, query = None, load=False, directory=r'.\pkls', save_name='ribbon_test_example', multiprocess=True):
     all_experiments = []
 
     if krange is None:
@@ -72,7 +72,7 @@ def generate_all_experiments(n = 2500, krange = None, trange= None, query = None
 
     return all_experiments
 
-def generate_all_experiments_sparse(n = 2500, krange = None, trange= None, query = None, load=False, directory=r'C:\Users\krp\PycharmProjects\FinalFixLIDGit\pkls', save_name='ribbon_test_example', multiprocess=True):
+def generate_all_experiments_sparse(n = 2500, krange = None, trange= None, query = None, load=False, directory=r'.\pkls', save_name='ribbon_test_example', multiprocess=True):
     all_experiments = []
 
     if krange is None:

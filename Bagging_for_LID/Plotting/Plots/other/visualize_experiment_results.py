@@ -5,10 +5,9 @@ from typing import Optional, Sequence
 from pathlib import Path
 ###################################################OWN IMPORT###########################################################
 from Bagging_for_LID.Plotting.naming_helpers import *
-from Bagging_for_LID.Plotting.Plots.merge_pdf import *
-from Bagging_for_LID.recreate_results import save_name
+from Bagging_for_LID.Plotting.Plots.other.merge_pdf import *
 from Bagging_for_LID.run_files.final_tasks import *
-from Bagging_for_LID.Plotting.Plots.visualize_pdf import *
+from Bagging_for_LID.Plotting.Plots.other.visualize_pdf import *
 
 
 def e(x, y):
@@ -398,9 +397,9 @@ if __name__ == "__main__":
     param_dicts = [param_dicts1, param_dicts2]
 
     experiments = new_result_generator(param_dicts, multiprocess=False, load=True, load_data=True, worker_count=None,
-                         save_name='res', directory=r'C:\Users\krp\PycharmProjects\FinalFixLIDGit\plots')
+                         save_name='res', directory=r'.\plots')
 
-    save_path = r'C:\Users\krp\PycharmProjects\FinalFixLIDGit\plots'
+    save_path = r'.\plots'
 
     experiments = [experiments[1], experiments[5], experiments[0], experiments[4], experiments[3], experiments[2]]
     for experiment in experiments:
@@ -427,7 +426,7 @@ if __name__ == "__main__":
             elevation_deg=20
         )
 
-    save_name_path = r'C:\Users\krp\PycharmProjects\FinalFixLIDGit'
+    save_name_path = r''
     savenames = [os.path.join(save_name_path, f'{character_strings[i]}.pdf') for i in range(len(character_strings))]
 
     for i in range(len(savenames)):

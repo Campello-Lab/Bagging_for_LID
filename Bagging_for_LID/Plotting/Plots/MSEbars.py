@@ -34,9 +34,6 @@ def plot_experiment_mse_bars(
     n_rows: int | None = None,
     n_cols: int | None = None,
 ):
-    """Stacked-bar MSE decomposition for a *list* of ``LID_experiment`` objects.
-    """
-
     # Sometimes we want to have the baseline before or after the bagged variants for reference.
     # But it's a bit annoying to handle this automatically, so we just redefine it as a bagged experiment, with 1 bag that has a sr of 1, as that would be identical.
     #for experiment in experiments:

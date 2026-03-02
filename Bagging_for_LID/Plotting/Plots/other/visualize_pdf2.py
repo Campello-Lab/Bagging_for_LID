@@ -983,33 +983,33 @@ def html_3d_to_pdf(
 
 if __name__ == "__main__":
 
-    paths = [r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\affine3to5.html",
-             r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\helix.html",
-             r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\m1_sphere3.html",
-             r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\m9affine.html",
-             r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\M10_Cubic.html",
-             r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\M12_Norm.html",
-             r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\mn_nonlinear_3d.html",
-             r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\moebius.html",
-             r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\nonlinear4_6_8.html",
-             r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\nonlinear4to6.html",
-             r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\roll.html",
-             r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\scurve.html",
-             r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\uniform_3d.html"]
+    paths = [r".\interactive_datasets\affine3to5.html",
+             r".\interactive_datasets\helix.html",
+             r".\interactive_datasets\m1_sphere3.html",
+             r".\interactive_datasets\m9affine.html",
+             r".\interactive_datasets\M10_Cubic.html",
+             r".\interactive_datasets\M12_Norm.html",
+             r".\interactive_datasets\mn_nonlinear_3d.html",
+             r".\interactive_datasets\moebius.html",
+             r".\interactive_datasets\nonlinear4_6_8.html",
+             r".\interactive_datasets\nonlinear4to6.html",
+             r".\interactive_datasets\roll.html",
+             r".\interactive_datasets\scurve.html",
+             r".\interactive_datasets\uniform_3d.html"]
 
-    names = [r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\data_pdfs\affine3to5.pdf",
-             r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\data_pdfs\helix.pdf",
-             r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\data_pdfs\m1_sphere.pdf",
-             r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\data_pdfs\m9affine.pdf",
-             r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\data_pdfs\m10cubic.pdf",
-             r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\data_pdfs\m12norm.pdf",
-             r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\data_pdfs\mn_nonlinear_3d.pdf",
-             r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\data_pdfs\moebius.pdf",
-             r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\data_pdfs\nonlinear4_6_8.pdf",
-             r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\data_pdfs\nonlinear4to6.pdf",
-             r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\data_pdfs\roll.pdf",
-             r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\data_pdfs\scurve.pdf",
-             r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\data_pdfs\uniform_3d.pdf"]
+    names = [r".\Bagging_for_LID\data_pdfs\affine3to5.pdf",
+             r".\Bagging_for_LID\data_pdfs\helix.pdf",
+             r".\Bagging_for_LID\data_pdfs\m1_sphere.pdf",
+             r".\Bagging_for_LID\data_pdfs\m9affine.pdf",
+             r".\Bagging_for_LID\data_pdfs\m10cubic.pdf",
+             r".\Bagging_for_LID\data_pdfs\m12norm.pdf",
+             r".\Bagging_for_LID\data_pdfs\mn_nonlinear_3d.pdf",
+             r".\Bagging_for_LID\data_pdfs\moebius.pdf",
+             r".\Bagging_for_LID\data_pdfs\nonlinear4_6_8.pdf",
+             r".\Bagging_for_LID\data_pdfs\nonlinear4to6.pdf",
+             r".\Bagging_for_LID\data_pdfs\roll.pdf",
+             r".\Bagging_for_LID\data_pdfs\scurve.pdf",
+             r".\Bagging_for_LID\data_pdfs\uniform_3d.pdf"]
 
     for i in range(len(paths)):
         path = paths[i]

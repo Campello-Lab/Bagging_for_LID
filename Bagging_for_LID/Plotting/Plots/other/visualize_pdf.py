@@ -395,19 +395,19 @@ def html_3d_to_pdf(
 
 if __name__ == "__main__":
 
-    paths = [r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\affine3to5.html"
-r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\helix.html"
-r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\m1_sphere3.html"
-r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\m9affine.html"
-r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\M10_Cubic.html"
-r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\M12_Norm.html"
-r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\mn_nonlinear_3d.html"
-r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\moebius.html"
-r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\nonlinear4_6_8.html"
-r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\nonlinear4to6.html"
-r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\roll.html"
-r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\scurve.html"
-r"C:\Users\krp\PycharmProjects\FinalFixLIDGit\Bagging_for_LID\interactive_datasets\uniform_3d.html"]
+    paths = [r".\Bagging_for_LID\interactive_datasets\affine3to5.html"
+r".\Bagging_for_LID\interactive_datasets\helix.html"
+r".\Bagging_for_LID\interactive_datasets\m1_sphere3.html"
+r".\Bagging_for_LID\interactive_datasets\m9affine.html"
+r".\Bagging_for_LID\interactive_datasets\M10_Cubic.html"
+r".\Bagging_for_LID\interactive_datasets\M12_Norm.html"
+r".\Bagging_for_LID\interactive_datasets\mn_nonlinear_3d.html"
+r".\Bagging_for_LID\interactive_datasets\moebius.html"
+r".\Bagging_for_LID\interactive_datasets\nonlinear4_6_8.html"
+r".\Bagging_for_LID\interactive_datasets\nonlinear4to6.html"
+r".\Bagging_for_LID\interactive_datasets\roll.html"
+r".\Bagging_for_LID\interactive_datasets\scurve.html"
+r".\Bagging_for_LID\interactive_datasets\uniform_3d.html"]
 
     names = ["data_pdfs/affine3to5.pdf",
     "data_pdfs/helix.pdf",

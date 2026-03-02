@@ -1,11 +1,12 @@
 from Bagging_for_LID.run_files.final_tasks import *
 from Bagging_for_LID.RunningEstimators.Running2 import *
 from Bagging_for_LID.Plotting.Plots.VariableInteraction import *
+from Bagging_for_LID.Plotting.Plots.other.AdditionalInteraction import *
 import skdim
 from matplotlib import pyplot as plt
 
 def threshold_testing(K=10, load_data=False, load_threshold_results=False, load_lid_mse_results=False,
-                      multiprocess=True, worker_count=5, directory=r'C:\Users\krp\PycharmProjects\FinalFixLIDGit\pkls', save_path="./Output"):
+                      multiprocess=True, worker_count=5, directory=r"C:\pkls", save_path="./Output"):
     k_prog = [5 + k for k in range(K - 5)]
     sr_prog = [k / K for k in k_prog]
     param_dicts_none = {'dataset_name': dataset_name_strings,
@@ -40,7 +41,7 @@ def threshold_testing(K=10, load_data=False, load_threshold_results=False, load_
     results_data = new_result_generator(param_dicts_data, multiprocess=False, load=load_data, load_data=load_data,
                                         worker_count=None,
                                         save_name='data_generation',
-                                        directory=r'C:\Users\krp\PycharmProjects\FinalFixLIDGit\pkls')
+                                        directory=r"C:\pkls")
 
     exps_baseline = new_knn_dist_result_generator(param_dicts_none.copy(), multiprocess=multiprocess, load=load_threshold_results,
                                                   load_data=True, worker_count=worker_count,

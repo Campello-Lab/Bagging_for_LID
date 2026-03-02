@@ -41,7 +41,6 @@ def plot_radar_from_results(
     """
     Plot radar charts using the output of `result_extraction`.
     """
-
     def pretty_metric_name(key: str) -> str:
         if metric_label_map and key in metric_label_map:
             return metric_label_map[key]

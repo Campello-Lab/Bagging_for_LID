@@ -5,7 +5,7 @@ import pickle
 import os
 ###############################################################################################################################RUNNING ESTIMATORS###############################################################################################################################
 def save_to_df(d, save_name):
-    directory = r'C:\Users\User\PycharmProjects\pythonProject3\LIDstuff\saved_results\csvs'
+    directory = r'.\csvs'
     df = pd.DataFrame.from_dict(d, orient="index")
     df.to_csv(directory + '\\' + f'{save_name}.csv')
 

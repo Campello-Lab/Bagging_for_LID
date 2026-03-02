@@ -186,7 +186,7 @@ def run_several_lid_and_knn_dist_experiments_sequential(params_lists, load=False
         results.append(experiment)
     return results
 
-def new_result_generator(param_dicts, multiprocess=False, load=False, load_data=False, worker_count=None, save_name='res', directory=r'C:\Users\User\PycharmProjects\pythonProject3\LIDstuff\saved_results\pkls2', expand_comb=False, fixpoints=None):
+def new_result_generator(param_dicts, multiprocess=False, load=False, load_data=False, worker_count=None, save_name='res', directory=r"C:\pkls", expand_comb=False, fixpoints=None):
     if not load:
         if expand_comb:
             params_lists = expand_param_dict_zipped(param_dicts)
@@ -202,7 +202,7 @@ def new_result_generator(param_dicts, multiprocess=False, load=False, load_data=
         results = load_results2(directory=directory, save_name=save_name)
     return results
 
-def new_knn_dist_result_generator(param_dicts, multiprocess=False, load=False, load_data=False, worker_count=None, save_name='res', directory=r'C:\Users\User\PycharmProjects\pythonProject3\LIDstuff\saved_results\pkls2', expand_comb=False):
+def new_knn_dist_result_generator(param_dicts, multiprocess=False, load=False, load_data=False, worker_count=None, save_name='res', directory=r"C:\pkls", expand_comb=False):
     if not load:
         if expand_comb:
             params_lists = expand_param_dict_zipped(param_dicts)
@@ -217,7 +217,7 @@ def new_knn_dist_result_generator(param_dicts, multiprocess=False, load=False, l
         results = load_results2(directory=directory, save_name=save_name)
     return results
 
-def new_lid_and_knn_dist_result_generator(param_dicts, multiprocess=False, load=False, load_data=False, worker_count=None, save_name='res', directory=r'C:\Users\User\PycharmProjects\pythonProject3\LIDstuff\saved_results\pkls2', expand_comb=False, fixpoints=None):
+def new_lid_and_knn_dist_result_generator(param_dicts, multiprocess=False, load=False, load_data=False, worker_count=None, save_name='res', directory=r"C:\pkls", expand_comb=False, fixpoints=None):
     if not load:
         if expand_comb:
             params_lists = expand_param_dict_zipped(param_dicts)
@@ -233,7 +233,7 @@ def new_lid_and_knn_dist_result_generator(param_dicts, multiprocess=False, load=
         results = load_results2(directory=directory, save_name=save_name)
     return results
 
-def general_result_generator(param_dicts_dict, multiprocess=False, load=False, load_data=False, worker_count=None, save_name='res', directory=r'C:\Users\User\PycharmProjects\pythonProject3\LIDstuff\saved_results\pkls2', expand_comb=False):
+def general_result_generator(param_dicts_dict, multiprocess=False, load=False, load_data=False, worker_count=None, save_name='res', directory=r"C:\pkls", expand_comb=False):
     results_dict = {}
     for key, value in param_dicts_dict.items():
         result = new_result_generator(value, multiprocess=multiprocess, load=load, load_data=load_data, worker_count=worker_count,

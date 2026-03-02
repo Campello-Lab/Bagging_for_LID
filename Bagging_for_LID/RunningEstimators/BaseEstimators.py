@@ -2,12 +2,6 @@ from tqdm import tqdm
 import sys
 import skdim
 import numpy as np
-cloned_folders = [
-    r"C:\Users\User\PycharmProjects\pythonProject3\LIDstuff\lidl",
-]
-for folder in cloned_folders:
-    if folder not in sys.path:
-        sys.path.append(folder)
 ###################################################OWN IMPORT###################################################
 from Bagging_for_LID.RunningEstimators.RewrittenRawEstimators.MADA import *
 from Bagging_for_LID.RunningEstimators.BaggingSmoothing.Smoothing import *
@@ -303,15 +297,15 @@ def sk_ESS_full(X, k = 10, correct = True, dists = None, knnidx= None, w=None, s
     else:
         return lid_estimates, np.mean(lid_estimates)
 
-def LIDL_full(X, k = 10, correct = True, dists = None, knnidx= None, model_type="gm", w=None, smooth=False, geo=None):
-    gm = dim_estimators.LIDL(model_type=model_type)
-    # the more deltas, the more accurate the estimate
-    deltas = [0.025, 0.02835781, 0.03216662, 0.036487, 0.04138766,0.04694655,\
-              0.05325205, 0.06040447, 0.06851755, 0.07772031, 0.08815913, 0.1]
-    result = gm(deltas, X, X)
-    lid_estimates = np.array(result)
-    if smooth:
-        lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=None, knnidx=None, geo=geo)
-        return lid_smoothed_estimates, np.mean(lid_smoothed_estimates)
-    else:
-        return lid_estimates, np.mean(lid_estimates)
+#def LIDL_full(X, k = 10, correct = True, dists = None, knnidx= None, model_type="gm", w=None, smooth=False, geo=None):
+#    gm = dim_estimators.LIDL(model_type=model_type)
+#    # the more deltas, the more accurate the estimate
+#    deltas = [0.025, 0.02835781, 0.03216662, 0.036487, 0.04138766,0.04694655,\
+#              0.05325205, 0.06040447, 0.06851755, 0.07772031, 0.08815913, 0.1]
+#    result = gm(deltas, X, X)
+#    lid_estimates = np.array(result)
+#    if smooth:
+#        lid_smoothed_estimates, _ = smoothing(X, lid_estimates, k=k, dists=None, knnidx=None, geo=geo)
+#        return lid_smoothed_estimates, np.mean(lid_smoothed_estimates)
+#    else:
+#        return lid_estimates, np.mean(lid_estimates)

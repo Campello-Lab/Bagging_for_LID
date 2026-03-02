@@ -81,7 +81,6 @@ plot_tasks = {
                                         best_font_color = "black", heatmap_colorscale=red_blue_bright,
                                         heatmap_cells=True, decomposition_param=['combined'], combined=True)),
     ],
-
     "effectiveness_test_with_t": [
         (plot_radar_best_of_sweep, dict(sweep_params=['k', 'sr', 't'], normalize_data=True, log=False,
                                         save=True, height_per_row=450, width_per_col=450,
