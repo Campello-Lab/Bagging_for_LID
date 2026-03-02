@@ -62,6 +62,14 @@ interaction_sr_k_test_general_param_dict = param_dicts_general(base_param_dict=i
 
 #-----------------------------------------------------------------------------------------------------------------------
 #Setup plotting
+n_rows = 5
+
+n_cols = 4
+
+barchart_figsize = (12*n_cols/4, 12*n_rows/5)
+
+heatmap_figsize = (25*n_cols/4, 25*n_rows/5)
+
 plot_tasks = {
 
     "effectiveness_test": [
@@ -85,28 +93,32 @@ plot_tasks = {
     ],
 
     "Number_of_bags_test": [
-        (plot_experiment_mse_bars, dict(vary_param='Nbag', grid=True, figsize=(12, 12),
-                                        base_fontsize=6, label_every=1, save_dir=f"{save_dir}/msebar", fig_title=False)),
+        (plot_experiment_mse_bars, dict(vary_param='Nbag', grid=True, figsize=barchart_figsize,
+                                        base_fontsize=6, label_every=1, save_dir=f"{save_dir}/msebar",
+                                        fig_title=False, n_rows=n_rows, n_cols=n_cols)),
     ],
 
     "Sampling_rate_test": [
-        (plot_experiment_mse_bars, dict(vary_param='sr', grid=True, figsize=(12, 12),
-                                        base_fontsize=6, label_every=1, save_dir=f"{save_dir}/msebar", fig_title=False)),
+        (plot_experiment_mse_bars, dict(vary_param='sr', grid=True, figsize=barchart_figsize,
+                                        base_fontsize=6, label_every=1, save_dir=f"{save_dir}/msebar",
+                                        fig_title=False, n_rows=n_rows, n_cols=n_cols)),
     ],
 
     "Interaction_of_sampling_rate_and_number_of_bags_test": [
         (plot_experiment_heatmaps, dict(x_param='sr', y_param='Nbag', reverse_x=False, reverse_y=False,
                                         metrics=("mse", "bias2", "var"), label_every=1, grid=True,
-                                        figsize=(25, 25), base_fontsize=10, cmap="RdBu",
+                                        figsize=heatmap_figsize, base_fontsize=10, cmap="RdBu",
                                         save_dir=f"{save_dir}/interaction",
-                                        log=True, type='difference', inlog=False, fig_title=False)),
+                                        log=True, type='difference', inlog=False,
+                                        fig_title=False, rows=n_rows, cols=n_cols)),
     ],
 
     "Interaction_of_k_and_sampling_rate_test": [
         (plot_experiment_heatmaps, dict(x_param='sr', y_param='k', reverse_x=False, reverse_y=False,
                                         metrics=("mse", "bias2", "var"), label_every=1, grid=True,
-                                        figsize=(25, 25), base_fontsize=10, cmap="RdBu",
+                                        figsize=heatmap_figsize, base_fontsize=10, cmap="RdBu",
                                         save_dir=f"{save_dir}/interaction",
-                                        log=True, type='difference', inlog=False, fig_title=False)),
+                                        log=True, type='difference', inlog=False,
+                                        fig_title=False, rows=n_rows, cols=n_cols)),
     ],
 }

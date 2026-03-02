@@ -19,7 +19,7 @@ def auto_fontsize(figsize: tuple[float, float], base: int | float | None) -> flo
 def fmt_val(p: str, v: Any) -> str:
     if v is None:
         return "None"
-    if p in {"sr", "t"}:
+    if p in {"sr", "t", "r"}:
         return f"{float(v):.3f}"
     if p in {"n", "k", "Nbag", "lid", "dim"}:
         return str(int(v))

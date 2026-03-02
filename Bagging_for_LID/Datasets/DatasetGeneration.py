@@ -71,6 +71,38 @@ def ribbon_multi_dim_equal_density(n, dim=2, d_loc=2, d_glob=1, ratio=0.05):
     lids = np.ones((n, 1))*d_loc
     return data, lids
 
+def sparse(n, lid=2, dim=2, w=10, l=5, center=(0.0, 0.0), rng=None):
+    if w <= 0:
+        raise ValueError("w must be > 0")
+    if l <= 0:
+        raise ValueError("l must be > 0")
+    if n < 0:
+        raise ValueError("n must be >= 0")
+    if dim < 2:
+        raise ValueError("dim must be >= 2")
+
+    if rng is None:
+        rng = np.random.default_rng()
+
+    theta = rng.uniform(0.0, 2.0 * np.pi, size=n)
+    u = rng.uniform(0.0, 1.0, size=n)
+    r = w * u ** (1.0 / l)
+
+    cx, cy = center
+    x = cx + r * np.cos(theta)
+    y = cy + r * np.sin(theta)
+
+    data2d = np.column_stack([x, y])   # shape (n, 2)
+
+    if dim > 2:
+        zeros = np.zeros((n, dim - 2))
+        data = np.hstack([data2d, zeros])   # shape (n, dim)
+    else:
+        data = data2d
+
+    lids = np.ones((n, 1)) * lid
+    return data, lids
+
 def data_defaults():
     data_gen = skdim.datasets.BenchmarkManifolds()
     all_keys = [key for key in data_gen.dict_gen]
@@ -79,8 +111,9 @@ def data_defaults():
     keys.append("uniform")
     keys.append("ribbon")
     keys.append("custom")
-    d_vals = [10, 3, 4, 4, 2, 6, 2, 12, 20, 10, 17, 24, 2, 20, 2, 18, 24, 2, 30, 2, 1]
-    m_vals = [11, 5, 6, 8, 3, 36, 3, 72, 20, 11, 18, 25, 3, 20, 3, 72, 96, 2, 100, 2, 1]
+    keys.append("sparse")
+    d_vals = [10, 3, 4, 4, 2, 6, 2, 12, 20, 10, 17, 24, 2, 20, 2, 18, 24, 2, 30, 2, 1, 2]
+    m_vals = [11, 5, 6, 8, 3, 36, 3, 72, 20, 11, 18, 25, 3, 20, 3, 72, 96, 2, 100, 2, 1, 2]
     params = [(keys[i], [d_vals[i], m_vals[i]]) for i in range(len(keys))]
     used_params = dict(params)
     return used_params

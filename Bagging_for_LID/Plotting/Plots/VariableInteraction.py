@@ -43,6 +43,8 @@ def plot_experiment_heatmaps(
     type='difference',
     inlog = False,
     fig_title = False,
+    rows: int | None = None,
+    cols: int | None = None,
 ):
     """Draw baseline‑vs‑bagged metric differences as 2‑D heat‑maps, where the two axes represent varying parameters."""
 
@@ -97,7 +99,8 @@ def plot_experiment_heatmaps(
 
 
     #automatically set up the layout, fonts -------------------------------------------------
-    rows, cols = auto_grid(len(ds_runs)) if grid and len(ds_runs) > 1 else (len(ds_runs), 1)
+    if rows is None and cols is None:
+        rows, cols = auto_grid(len(ds_runs)) if grid and len(ds_runs) > 1 else (len(ds_runs), 1)
     if figsize is None:
         figsize = (4 * cols, 3.5 * rows)
     bfs = auto_fontsize(figsize, base_fontsize)
@@ -222,6 +225,8 @@ def plot_experiment_heatmaps(
                 ])
                 if x_param == 'Nbag':
                     ax.set_xlabel('Number of Bags (B)')
+                elif x_param == 'sr':
+                    ax.set_xlabel('Sampling rate (r)')
                 else:
                     ax.set_xlabel(x_param)
                 if y_param == 'Nbag':
@@ -1313,9 +1318,7 @@ def plot_experiment_heatmaps_slices(
                         else:
                             if log:
                                 if type == "difference":
-                                    diff = np.log2(getattr(base_run, f"total_{met_key}")) - np.log2(
-                                        getattr(r, f"total_{met_key}")
-                                    )
+                                    diff = np.log2(getattr(base_run, f"total_{met_key}")) - np.log2(getattr(r, f"total_{met_key}"))
                                 elif type == "baseline":
                                     diff = -np.log2(getattr(base_run, f"total_{met_key}"))
                                 elif type == "bagged":

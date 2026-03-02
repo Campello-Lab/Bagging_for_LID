@@ -31,6 +31,8 @@ def plot_experiment_mse_bars(
     xlabel: str | None = None,
     title: str | None = None,
     fig_title: bool = False,
+    n_rows: int | None = None,
+    n_cols: int | None = None,
 ):
     """Stacked-bar MSE decomposition for a *list* of ``LID_experiment`` objects.
     """
@@ -176,8 +178,9 @@ def plot_experiment_mse_bars(
             })
     # Figure layout
     ds_names = sorted(data_by_ds)
-    n_rows, n_cols = (auto_grid(len(ds_names))
-                      if grid and len(ds_names) > 1 else (len(ds_names), 1))
+    if n_rows is None and n_cols is None:
+        n_rows, n_cols = (auto_grid(len(ds_names))
+                          if grid and len(ds_names) > 1 else (len(ds_names), 1))
     #default figsize, fontsize, global title, label for varying parameter we try to automatically set these up well enough
     if figsize is None:
         figsize = (4 * n_cols, 3 * n_rows)
@@ -192,6 +195,8 @@ def plot_experiment_mse_bars(
     if xlabel is None:
         if vary_param == 'Nbag':
             xlabel = 'Number of Bags (B)'
+        elif vary_param == 'sr':
+            xlabel = 'Sampling rate (r)'
         else:
             xlabel = f"{vary_param}"
     bfs = auto_fontsize(figsize, base_fontsize)

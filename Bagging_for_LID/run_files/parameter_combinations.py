@@ -114,7 +114,8 @@ effectiveness_test_base_param_dict = {'dataset_name': dataset_name_strings,
                     'post_smooth': False,
                     't': 1}
 
-effectiveness_variants_test_types = ['weight', 'smooth']
+#effectiveness_variants_test_types = ['weight', 'smooth']
+effectiveness_variants_test_types = ['smooth']
 #effectiveness_variants_test_types = ['weight']
 #effectiveness_estimator_names = ['mle']
 effectiveness_estimator_names = ['mle', 'mada', 'tle']

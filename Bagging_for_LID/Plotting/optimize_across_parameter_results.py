@@ -59,9 +59,9 @@ def extract_params(df, params):
             else:
                 used_params = params
             if isinstance(df.at[ds, m], list):
-                dummydf.at[ds, m] = [{p: getattr(e, p) for p in used_params} for e in df.at[ds, m]]
+                dummydf.at[ds, m] = [{p if p !='sr' else 'r': getattr(e, p) for p in used_params} for e in df.at[ds, m]]
             else:
-                dummydf.at[ds, m] = {p: getattr(df.at[ds, m], p) for p in used_params}
+                dummydf.at[ds, m] = {p if p !='sr' else 'r': getattr(df.at[ds, m], p) for p in used_params}
     return dummydf
 
 def extract_optimal(df, metric_key, return_values=False, decomposition_param=None):

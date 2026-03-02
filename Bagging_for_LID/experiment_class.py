@@ -219,6 +219,11 @@ class LID_experiment:
                         np.repeat(self.lid, self.n),
                         self.lid,
                         np.repeat(self.lid, self.n)]
+            elif self.dataset_name == "sparse":
+                data = [sparse(n=self.n, lid=self.lid, dim=self.dim, w=10, l=5, center=(0.0, 0.0), rng=None)[0],
+                        np.repeat(self.lid, self.n),
+                        self.lid,
+                        np.repeat(self.lid, self.n)]
             elif self.dataset_name == "custom":
                 data = [self.data_set_function(n=self.n, lid=self.lid, dim=self.dim),
                         np.repeat(self.lid, self.n),

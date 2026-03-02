@@ -7,10 +7,10 @@ from Bagging_for_LID.Plotting.optimize_across_parameter_results import *
 def unordered_lookup(query, original_map = None, sep= '|'):
     if original_map is None:
         original_map  =  {
-    'bagging_method:bag | pre_smooth:False | post_smooth:False': 'Simple bagging',
-    'bagging_method:bag | pre_smooth:False | post_smooth:True': 'Simple bagging with post-smoothing',
-    'bagging_method:bag | pre_smooth:True | post_smooth:False': 'Simple bagging with pre-smoothing',
-    'bagging_method:bag | pre_smooth:True | post_smooth:True': 'Simple bagging with pre-smoothing and post-smoothing',
+    'bagging_method:bag | pre_smooth:False | post_smooth:False': 'Bagging',
+    'bagging_method:bag | pre_smooth:False | post_smooth:True': 'Bagging with post-smoothing',
+    'bagging_method:bag | pre_smooth:True | post_smooth:False': 'Bagging with pre-smoothing',
+    'bagging_method:bag | pre_smooth:True | post_smooth:True': 'Bagging with pre-smoothing and post-smoothing',
     'bagging_method:None | pre_smooth:False | post_smooth:False': 'Baseline',
     'bagging_method:None | pre_smooth:False | post_smooth:True': 'Baseline with smoothing'}
     def build_canonical_map(original: dict[str, str], sep: str = '|') -> dict[tuple[str, ...], str]:
@@ -25,7 +25,7 @@ def unordered_lookup(query, original_map = None, sep= '|'):
 #!!Hard coded part!! This is for changing the full, class parameter based identifiers into the expressive naming conventiones used in the paper.
 def modify_label(label):
     if label == 'bagging_method:bag':
-        label = 'Simple bagging'
+        label = 'Bagging'
     elif label == 'bagging_method:bagw':
         label = 'Bagging with out-of-bag weights'
     elif label == 'bagging_method:bagwth':
