@@ -11,11 +11,12 @@ def save_results2(results, directory, save_name):
     with open(filepath, "wb") as fh:
         pickle.dump(results, fh, protocol=pickle.HIGHEST_PROTOCOL)
 
-def load_results2(directory, save_name):
+def load_results2(directory, save_name, print_name=False):
     os.makedirs(directory, exist_ok=True)
     filepath = os.path.join(directory, save_name)
     with open(filepath, "rb") as fh:
-        print(fh)
+        if print_name:
+            print(fh)
         results = pickle.load(fh)
     return results
 

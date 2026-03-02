@@ -5,7 +5,6 @@ from functools import partial
 #Internal Imports
 from Bagging_for_LID.Plotting.Plots.SpiderCharts import *
 from Bagging_for_LID.Plotting.Plots.Tables import *
-from Bagging_for_LID.Plotting.Plots.VariablePlot import *
 from Bagging_for_LID.Plotting.Plots.VariableInteraction import *
 from Bagging_for_LID.Plotting.Plots.MSEbars import *
 from Bagging_for_LID.RunningEstimators.Running2 import *
@@ -28,7 +27,7 @@ effectiveness_test_general_param_dict = param_dicts_general(base_param_dict=effe
                                                             variants_test_types=effectiveness_variants_test_types,
                                                             estimator_names=effectiveness_estimator_names,
                                                             changing_vars=['k', 'sr'],
-                                                            test_name='effectiveness_test')
+                                                            test_name='Bagging and smoothing test')
 
 effectiveness_test_with_t_general_param_dict = param_dicts_general(base_param_dict=effectiveness_test_with_t_base_param_dict,
                                                                    variants_test_types=['weight_with_t'],
@@ -72,7 +71,7 @@ heatmap_figsize = (25*n_cols/4, 25*n_rows/5)
 
 plot_tasks = {
 
-    "effectiveness_test": [
+    "Bagging and smoothing test": [
         (plot_radar_best_of_sweep, dict(sweep_params=['k', 'sr'], normalize_data=True, log=False,
                                         save=True, height_per_row=450, width_per_col=450,
                                         verbose=False, save_dir=f"{save_dir}/radar", decomposition_param='full')),

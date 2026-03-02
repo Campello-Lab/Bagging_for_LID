@@ -4,7 +4,7 @@ import gc
 from Bagging_for_LID.run_files.final_tasks import *
 #-----------------------------------------------------------------------------------------------------------------------
 #Setup directories
-PROJECT_ROOT = Path(r"C:\Users\krp\PycharmProjects\FinalFixLIDGit")
+PROJECT_ROOT = Path(r"C:\Bagging_for_LID")
 os.chdir(PROJECT_ROOT)
 p = str(PROJECT_ROOT)
 if p not in sys.path:
@@ -32,16 +32,13 @@ if __name__ == "__main__":
     # -----------------------------------------------------------------------------------------------------------------------
     #Setup result generation
 
-    #Effectiveness of bagging (baseline, simple bagging, weighted bagging, neighborhood size adjustment)
-    #Effectiveness of bagging t is changing additionally (baseline, simple bagging, weighted bagging, neighborhood size adjustment)
-    #Bagging and smoothing (baseline, baseline with smoothing, simple bagging, simple bagging with pre or/and post smoothing)
+    #Bagging and smoothing test (baseline, baseline with smoothing, simple bagging, simple bagging with pre or/and post smoothing)
     #Number of bags test (mse bar charts)
     #Sampling rate test (mse bar charts)
     #Interaction of sampling rate and number of bags (mse difference heatmaps)
     #Interaction of k and sampling rate (mse difference heatmaps)
 
-    task_dict = {"effectiveness_test": effectiveness_test_general_param_dict,
-                 'effectiveness_test_with_t': effectiveness_test_with_t_general_param_dict,
+    task_dict = {"Bagging and smoothing test": effectiveness_test_general_param_dict,
                  "Number_of_bags_test": Nbag_test_general_param_dict,
                  "Sampling_rate_test": sr_test_general_param_dict,
                  "Interaction_of_sampling_rate_and_number_of_bags_test": interaction_sr_Nbag_test_general_param_dict,
