@@ -9,7 +9,6 @@ __pycache__/
 __pycache__/
 *.py[cod]
 .venv/
-Output/
 extra/
 data_pdfs/
 interactive_datasets/
