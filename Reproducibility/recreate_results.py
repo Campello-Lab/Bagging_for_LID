@@ -1,34 +1,39 @@
+#Import garbage collector for handling multiple experiments: loading data -> creating plot -> pick up data with garbage collector -> repeat
 import gc
 #-----------------------------------------------------------------------------------------------------------------------
-#Internal imports
-from Bagging_for_LID.run_files.final_tasks import *
-#-----------------------------------------------------------------------------------------------------------------------
 #Setup directories
-PROJECT_ROOT = Path(r"C:\Bagging_for_LID")
+from pathlib import Path
+import os
+import sys
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 os.chdir(PROJECT_ROOT)
 p = str(PROJECT_ROOT)
 if p not in sys.path:
     sys.path.insert(0, p)
 #-----------------------------------------------------------------------------------------------------------------------
+#Internal imports
+from Bagging_for_LID.run_files.final_tasks import *
+#-----------------------------------------------------------------------------------------------------------------------
 #Setup computation
 multiprocess=True
-load=True
-load_data=True
+load=True #Load already complete experiment .pkl files.
+load_data=True #Load data for running experiments, if load=True, this has no effect on result output.
 worker_count=7
-save_name='mergedresult'
-directory = r'C:\pkls'
+save_name='mergedresult' #Save and load .pkl files with this name prefix.
+pkl_directory = r'C:\pkls' #Directory for saving and loading
 #RESULTS ARE SAVED AT Bagging_for_LID.Output
 #Modify output folders at Bagging_for_LID.run_files.final_tasks
 
 if __name__ == "__main__":
     setup_logging()
     # -----------------------------------------------------------------------------------------------------------------------
-    #Generate datasets (to be reused in different experiments)
-    results_data = new_result_generator(param_dicts_data, multiprocess=False, load=True, load_data=True,
-                                        worker_count=None,
-                                        save_name='data_generation',
-                                        directory=directory)
-    #print('Data generation complete')
+    #Generate datasets (to be reused in different experiments, if we want to recreate them)
+    if not load:
+        results_data = new_result_generator(param_dicts_data, multiprocess=False, load=True, load_data=True,
+                                            worker_count=None,
+                                            save_name='data_generation',
+                                            directory=pkl_directory)
+        print('Data generation complete')
     # -----------------------------------------------------------------------------------------------------------------------
     #Setup result generation
 
@@ -38,13 +43,13 @@ if __name__ == "__main__":
     #Interaction of sampling rate and number of bags (mse difference heatmaps)
     #Interaction of k and sampling rate (mse difference heatmaps)
 
-    task_dict = {"Bagging and smoothing test": effectiveness_test_general_param_dict,
+    task_dict = {"Bagging_and_smoothing_test": effectiveness_test_general_param_dict,
                  "Number_of_bags_test": Nbag_test_general_param_dict,
                  "Sampling_rate_test": sr_test_general_param_dict,
                  "Interaction_of_sampling_rate_and_number_of_bags_test": interaction_sr_Nbag_test_general_param_dict,
                  "Interaction_of_k_and_sampling_rate_test": interaction_sr_k_test_general_param_dict}
 
-    tasks = setup_tasks(task_dict, multiprocess=multiprocess, load=load, load_data=load_data, worker_count=worker_count, save_name=save_name, directory=directory)
+    tasks = setup_tasks(task_dict, multiprocess=multiprocess, load=load, load_data=load_data, worker_count=worker_count, save_name=save_name, directory=pkl_directory)
 
     # -----------------------------------------------------------------------------------------------------------------------
     #Run results and plotting at the same time to save RAM

@@ -27,7 +27,7 @@ effectiveness_test_general_param_dict = param_dicts_general(base_param_dict=effe
                                                             variants_test_types=effectiveness_variants_test_types,
                                                             estimator_names=effectiveness_estimator_names,
                                                             changing_vars=['k', 'sr'],
-                                                            test_name='Bagging and smoothing test')
+                                                            test_name='Bagging_and_smoothing_test')
 
 effectiveness_test_with_t_general_param_dict = param_dicts_general(base_param_dict=effectiveness_test_with_t_base_param_dict,
                                                                    variants_test_types=['weight_with_t'],
@@ -39,42 +39,41 @@ Nbag_test_general_param_dict = param_dicts_general(base_param_dict=Nbag_test_bas
                                                    variants_test_types=variable_variants_test_types,
                                                    estimator_names=variable_estimator_names,
                                                    changing_vars=['Nbag'],
-                                                   test_name='Nbag_barchart_test')
+                                                   test_name='Number_of_bags_test')
 
 sr_test_general_param_dict = param_dicts_general(base_param_dict=sr_prog_test_base_param_dict,
                                                  variants_test_types=variable_variants_test_types,
                                                  estimator_names=variable_estimator_names,
                                                  changing_vars=['sr'],
-                                                 test_name='sr_barchart_test')
+                                                 test_name='Sampling_rate_test')
 
 interaction_sr_Nbag_test_general_param_dict = param_dicts_general(base_param_dict=interaction_sr_Nbag_test_base_param_dict,
                                                                   variants_test_types=variable_variants_test_types,
                                                                   estimator_names=variable_estimator_names,
                                                                   changing_vars=['sr', 'Nbag'],
-                                                                  test_name='interaction_sr_Nbag_heatmap_test')
+                                                                  test_name='Interaction_of_sampling_rate_and_number_of_bags_test')
 
 interaction_sr_k_test_general_param_dict = param_dicts_general(base_param_dict=interaction_sr_k_test_base_param_dict,
                                                                variants_test_types=variable_variants_test_types,
                                                                estimator_names=variable_estimator_names,
                                                                changing_vars=['sr', 'k'],
-                                                               test_name='interaction_sr_k_heatmap_test')
+                                                               test_name='Interaction_of_k_and_sampling_rate_test')
 
 #-----------------------------------------------------------------------------------------------------------------------
 #Setup plotting
 n_rows = 5
-
 n_cols = 4
-
 barchart_figsize = (12*n_cols/4, 12*n_rows/5)
-
 heatmap_figsize = (25*n_cols/4, 25*n_rows/5)
+metrics = ("mse",) #, "bias2", "var"
 
 plot_tasks = {
 
-    "Bagging and smoothing test": [
+    "Bagging_and_smoothing_test": [
         (plot_radar_best_of_sweep, dict(sweep_params=['k', 'sr'], normalize_data=True, log=False,
                                         save=True, height_per_row=450, width_per_col=450,
-                                        verbose=False, save_dir=f"{save_dir}/radar", decomposition_param='full')),
+                                        verbose=False, save_dir=f"{save_dir}/radar", decomposition_param='full',
+                                        metrics=metrics)),
         (plot_table_best_of_sweep, dict(sweep_params=['k', 'sr'], mode="combined", normalize_data=False,
                                         log=False, metric_label_map=None, save_dir=f"{save_dir}/table",
                                         best_font_color = "black", heatmap_colorscale=red_blue_bright,
@@ -83,7 +82,8 @@ plot_tasks = {
     "effectiveness_test_with_t": [
         (plot_radar_best_of_sweep, dict(sweep_params=['k', 'sr', 't'], normalize_data=True, log=False,
                                         save=True, height_per_row=450, width_per_col=450,
-                                        verbose=False, save_dir=f"{save_dir}/radar", decomposition_param='full')),
+                                        verbose=False, save_dir=f"{save_dir}/radar", decomposition_param='full',
+                                        metrics=metrics)),
         (plot_table_best_of_sweep, dict(sweep_params=['k', 'sr', 't'], mode="combined", normalize_data=False,
                                         log=False, metric_label_map=None, best_font_color="black",
                                         save_dir="./plots/table", heatmap_colorscale=red_blue_bright,
@@ -104,7 +104,7 @@ plot_tasks = {
 
     "Interaction_of_sampling_rate_and_number_of_bags_test": [
         (plot_experiment_heatmaps, dict(x_param='sr', y_param='Nbag', reverse_x=False, reverse_y=False,
-                                        metrics=("mse", "bias2", "var"), label_every=1, grid=True,
+                                        metrics=metrics, label_every=1, grid=True,
                                         figsize=heatmap_figsize, base_fontsize=10, cmap="RdBu",
                                         save_dir=f"{save_dir}/interaction",
                                         log=True, type='difference', inlog=False,
@@ -113,7 +113,7 @@ plot_tasks = {
 
     "Interaction_of_k_and_sampling_rate_test": [
         (plot_experiment_heatmaps, dict(x_param='sr', y_param='k', reverse_x=False, reverse_y=False,
-                                        metrics=("mse", "bias2", "var"), label_every=1, grid=True,
+                                        metrics=metrics, label_every=1, grid=True,
                                         figsize=heatmap_figsize, base_fontsize=10, cmap="RdBu",
                                         save_dir=f"{save_dir}/interaction",
                                         log=True, type='difference', inlog=False,

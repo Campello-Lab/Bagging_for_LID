@@ -33,6 +33,7 @@ def plot_experiment_mse_bars(
     fig_title: bool = False,
     n_rows: int | None = None,
     n_cols: int | None = None,
+    verbose: bool = False
 ):
     # Sometimes we want to have the baseline before or after the bagged variants for reference.
     # But it's a bit annoying to handle this automatically, so we just redefine it as a bagged experiment, with 1 bag that has a sr of 1, as that would be identical.
@@ -114,14 +115,15 @@ def plot_experiment_mse_bars(
         for e in exps:
             ok, p_bad = _params_consistent(ref, e, ignore={vary_param})
             if not ok:
-                warnings.warn(
-                    f"Dataset '{ds_name}': parameter '{p_bad}' differs while varying '{vary_param}'. "
-                    "Proceeding anyway.",
-                    category=UserWarning,
-                    stacklevel=2,
-                )
-                print(f"Warning: Dataset '{ds_name}': parameter '{p_bad}' differs while varying '{vary_param}'. {_get(e, p_bad)} differs from {_get(ref, p_bad)}"
-                    "Proceeding anyway.")
+                if verbose:
+                    warnings.warn(
+                        f"Dataset '{ds_name}': parameter '{p_bad}' differs while varying '{vary_param}'. "
+                        "Proceeding anyway.",
+                        category=UserWarning,
+                        stacklevel=2,
+                    )
+                    print(f"Warning: Dataset '{ds_name}': parameter '{p_bad}' differs while varying '{vary_param}'. {_get(e, p_bad)} differs from {_get(ref, p_bad)}"
+                        "Proceeding anyway.")
 
         baselines = [e for e in exps if _get(e, "bagging_method") is None]
         variants = [e for e in exps if _get(e, "bagging_method") is not None]
