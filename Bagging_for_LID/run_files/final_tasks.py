@@ -139,7 +139,7 @@ plot_tasks_appendix = {
                                         verbose=False, save_dir=f"{save_dir}/radar_appendix", decomposition_param='full',
                                         metrics=metrics_appendix)),
         (plot_table_best_of_sweep, dict(sweep_params=['k', 'sr'], mode="combined", normalize_data=False,
-                                        log=False, metric_label_map=None, save_dir=f"{save_dir}/table",
+                                        log=False, metric_label_map=None, save_dir=f"{save_dir}/table_appendix",
                                         best_font_color = "black", heatmap_colorscale=red_blue_bright,
                                         heatmap_cells=True, decomposition_param=['combined'], combined=True)),
     ],

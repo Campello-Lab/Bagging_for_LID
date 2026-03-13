@@ -49,7 +49,10 @@ def plot_radar_from_results(
         return {"mse": "MSE", "bias2": "Bias²", "var": "Variance"}.get(base, base.upper())
     colour_cycle = px.colors.qualitative.Plotly
     for met_key, (params_df, values_df) in results.items():
-        if met_key in metrics:
+        # result_extraction with decomposition_param='full' returns keys like 'total_mse',
+        # while metrics uses short names like 'mse' — normalize before matching
+        met_key_short = met_key.removeprefix("total_") if met_key.startswith("total_") else met_key
+        if met_key_short in metrics:
             if not isinstance(values_df, pd.DataFrame) or not isinstance(params_df, pd.DataFrame):
                 raise TypeError(f"results['{met_key}'] must be a (params_df, values_df) pair of DataFrames.")
             if not values_df.index.equals(params_df.index) or not values_df.columns.equals(params_df.columns):
