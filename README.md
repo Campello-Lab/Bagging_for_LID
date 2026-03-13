@@ -5,7 +5,9 @@
 
 # Bagging for LID estimation
 
-#### This repository has been developed for the publication: [On the Use of Bagging for Local Intrinsic Dimensionality Estimation](https://linktopaper) (link not yet active, paper submitted for review)
+#### This repository has been developed for the publication with preprint published on [arXiv](https://linktoarxivpaper) and viewable at [Preprint](Papers/On_the_Use_of_Bagging_for_Local_Intrinsic_Dimensionality_Estimation_Arxiv_Version.pdf), as well as part of a master's thesis project viewable at [Master's Thesis](Papers/On_the_Use_of_Bagging_for_Local_Intrinsic_Dimensionality_Estimation_Arxiv_Version.pdf).
+
+
 
 - To recreate the results, plots, and figures present in the publication, first follow the [Installation](#installation) steps. Then do either of the following:
 
@@ -44,7 +46,7 @@ pip install -e .
 
 ## Data availability
 
-#### Downloading the exact experiment objects containing the data and already performed experiments for the publication [On the Use of Bagging for Local Intrinsic Dimensionality Estimation](https://linktopaper)
+#### Downloading the exact experiment objects containing the data and already performed experiments for the publication with preprint published on [arXiv](https://linktoarxivpaper) and viewable at [Preprint](Papers/On_the_Use_of_Bagging_for_Local_Intrinsic_Dimensionality_Estimation_Arxiv_Version.pdf).
 
 - Download the experiment objects from **Zenodo**: The source files (.pkl) available at [Zenodo link](https://zenodo.org/records/18847030?preview=1&token=eyJhbGciOiJIUzUxMiIsImlhdCI6MTc3MzE1OTc5MCwiZXhwIjoxNzk4NzYxNTk5fQ.eyJpZCI6ImRjZDdkM2UwLTFlZWMtNDE2MC1iN2NkLTlhNzJhNWVjZTkyYyIsImRhdGEiOnt9LCJyYW5kb20iOiJiMzgwMzZmZmM1M2QzNGIzM2U4OGM4Y2IwZDg0Yjc5ZCJ9.fF1JlcOf3kYWrotuWGq_efGicrFFp1gJlIRcy60pL-3f8ppJmUAjSn8Gakros4c7EWUdwBfzPIdh0YZJ0b20CQ) can be used together with our code to extract all the necessary information about the performed experiments, as well as to recreate the figures and the values in the tables that are also already viewable at [Output](Output). Amongst these downloadable files, the larger files with prefix 'mergedresult' contain all data required to obtain the results (including datasets). While the 'light_mergedresult' smaller files have only the data necessary to reconstruct the plots, they are more like data storage, not interactive class objects.
 
