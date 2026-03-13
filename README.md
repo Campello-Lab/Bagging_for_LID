@@ -5,7 +5,7 @@
 
 # Bagging for LID estimation
 
-#### This repository has been developed for the publication with preprint published on [arXiv](https://linktoarxivpaper) and viewable at [Preprint](Papers/On_the_Use_of_Bagging_for_Local_Intrinsic_Dimensionality_Estimation_Arxiv_Version.pdf), as well as part of a master's thesis project viewable at [Master's Thesis](Papers/On_the_Use_of_Bagging_for_Local_Intrinsic_Dimensionality_Estimation_Master_s_Thesis.pdf).
+#### This repository has been developed for the publication with preprint published on [arXiv](https://linktoarxivpaper) and viewable at [Preprint](Papers/On_the_Use_of_Bagging_for_Local_Intrinsic_Dimensionality_Estimation_Arxiv_Version.pdf), as well as part of a master's thesis project viewable at [Master's Thesis](Papers/On_the_Use_of_Bagging_for_Local_Intrinsic_Dimensionality_Estimation__Master_s_Thesis.pdf).
 
 
 
