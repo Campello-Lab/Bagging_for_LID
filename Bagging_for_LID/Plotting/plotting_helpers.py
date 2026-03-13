@@ -20,10 +20,21 @@ def fmt_val(p: str, v: Any) -> str:
     if v is None:
         return "None"
     if p in {"sr", "t", "r"}:
-        return f"{float(v):.3f}"
+        return f"{float(v):.2f}"
     if p in {"n", "k", "Nbag", "lid", "dim"}:
         return str(int(v))
     return str(v)
+
+def emphasize_labeled_ticks(ax, axis="both", major_length=10, minor_length=5):
+    """Make ticks with a visible label longer than ticks with an empty label."""
+    for which in (["xaxis", "yaxis"] if axis == "both" else
+                  ["xaxis"] if axis == "x" else ["yaxis"]):
+        ax_obj = getattr(ax, which)
+        for tick in ax_obj.get_major_ticks():
+            label = tick.label1.get_text() if tick.label1 else ""
+            length = major_length if label.strip() else minor_length
+            tick.tick1line.set_markersize(length)
+            tick.tick2line.set_markersize(length)
 
 # is num a float or not
 def isfloat(num):

@@ -19,8 +19,9 @@ multiprocess=True
 load=True #Load already complete experiment .pkl files.
 load_data=True #Load data for running experiments, if load=True, this has no effect on result output.
 worker_count=7
-save_name='mergedresult' #Save and load .pkl files with this name prefix.
+save_name='mergedresult' #Save and load .pkl files with this name prefix. Amongst the downloadable files at Zenodo, the larger files with 'mergedresult' contain all data required to obtain the results (including datasets). While the 'light_mergedresult' smaller files have only the data necessary to reconstruct the plots, they are more like data storage, not interactive class objects.
 pkl_directory = r'C:\pkls' #Directory for saving and loading
+plot_style = 'main' #Use the 'main' or 'appendix' presets. Sets the style of plots as they are in the main paper/in the appendix (approximately).
 #RESULTS ARE SAVED AT Bagging_for_LID.Output
 #Modify output folders at Bagging_for_LID.run_files.final_tasks
 
@@ -51,6 +52,8 @@ if __name__ == "__main__":
 
     tasks = setup_tasks(task_dict, multiprocess=multiprocess, load=load, load_data=load_data, worker_count=worker_count, save_name=save_name, directory=pkl_directory)
 
+    plot_tasks = plot_tasks_main if plot_style == 'main' else plot_tasks_appendix
+
     # -----------------------------------------------------------------------------------------------------------------------
     #Run results and plotting at the same time to save RAM
     for key, func, args, kwargs in tasks:
@@ -62,3 +65,4 @@ if __name__ == "__main__":
         finally:
             del result_dict
             gc.collect()
+
