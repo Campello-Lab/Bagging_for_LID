@@ -7,14 +7,12 @@
 
 #### This repository has been developed for the publication with preprint published on [arXiv](https://linktoarxivpaper) and viewable at [Preprint](Papers/On_the_Use_of_Bagging_for_Local_Intrinsic_Dimensionality_Estimation_Arxiv_Version.pdf), as well as part of a master's thesis project viewable at [Master's Thesis](Papers/On_the_Use_of_Bagging_for_Local_Intrinsic_Dimensionality_Estimation__Master_s_Thesis.pdf).
 
-
-
 - To recreate the results, plots, and figures present in the publication, first follow the [Installation](#installation) steps. Then do either of the following:
 
-  - Download ready experiment objects as explained at [Data availability](#data-availability), then load them to create the plots and figures via the instructions at [Reproducibility](#reproducibility).
   - Follow the instructions at [Reproducibility](#reproducibility) to resample new datasets and perform the LID estimation experiments in the publication from scratch.
+  - Follow the instructions at [Reproducibility](#reproducibility) to load ready-made light experiment objects from [Output/Complete_experiment_pkl_files/light_experiments](#Output/Complete_experiment_pkl_files/light_experiments), then recreate the plots and figures in the preferred style. Note that these are made only for plotting purposes and have no longer the necessary data attached to recreate the experiments from scratch.
 
-- To use the Bagging_for_LID package for your own LID estimation experiments, or to examine downloaded experiment objects, first install the package via the [Installation](#installation) steps. Then follow the instructions at [Tutorial for the package](#tutorialforthepackage).
+- To use the Bagging_for_LID package for your own LID estimation experiments, or to examine experiment objects, first install the package via the [Installation](#installation) steps. Then follow the instructions at [Tutorial for the package](#tutorialforthepackage).
 
 ## Installation
 
@@ -43,16 +41,6 @@ Install package
 ```bash
 pip install -e .
 ```
-
-## Data availability
-
-#### Downloading the exact experiment objects containing the data and already performed experiments for the publication with preprint published on [arXiv](https://linktoarxivpaper) and viewable at [Preprint](Papers/On_the_Use_of_Bagging_for_Local_Intrinsic_Dimensionality_Estimation_Arxiv_Version.pdf).
-
-- Download the experiment objects from **Zenodo**: The source files (.pkl) available at [Zenodo link](https://zenodo.org/records/18847030?preview=1&token=eyJhbGciOiJIUzUxMiIsImlhdCI6MTc3MzE1OTc5MCwiZXhwIjoxNzk4NzYxNTk5fQ.eyJpZCI6ImRjZDdkM2UwLTFlZWMtNDE2MC1iN2NkLTlhNzJhNWVjZTkyYyIsImRhdGEiOnt9LCJyYW5kb20iOiJiMzgwMzZmZmM1M2QzNGIzM2U4OGM4Y2IwZDg0Yjc5ZCJ9.fF1JlcOf3kYWrotuWGq_efGicrFFp1gJlIRcy60pL-3f8ppJmUAjSn8Gakros4c7EWUdwBfzPIdh0YZJ0b20CQ) can be used together with our code to extract all the necessary information about the performed experiments, as well as to recreate the figures and the values in the tables that are also already viewable at [Output](Output). Amongst these downloadable files, the larger files with prefix 'mergedresult' contain all data required to obtain the results (including datasets). While the 'light_mergedresult' smaller files have only the data necessary to reconstruct the plots, they are more like data storage, not interactive class objects.
-
-- Extract the experiment objects from the downloaded .zip file to a selected folder, which will serve as the directory for loading and saving experiments. You are now ready to give the path to the directory and load the files by either using [recreate_results_notebook](Reproducibility/recreate_results_notebook.ipynb) or [recreate_results](Reproducibility/recreate_results.py) and setting **load = True**.
-
-- Alternatively, the files may be loaded for detailed inspection by following the instructions in the [single_experiment](Tutorials/single_experiment.ipynb) tutorial.
 
 ## Reproducibility
 
