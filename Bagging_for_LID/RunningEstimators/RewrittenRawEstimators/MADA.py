@@ -2,6 +2,7 @@ import numpy as np
 from skdim._commonfuncs import LocalEstimator
 
 class MADA(LocalEstimator):
+    'This is a modified rewrite of the MADA estimator from the skdim package, licensed under the 3-Clause BSD license. The modification was made to accommodate the requirements of the OOB weighted bagging setups in the present package.'
 
     _N_NEIGHBORS = 20
 
