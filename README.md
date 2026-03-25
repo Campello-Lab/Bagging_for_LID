@@ -10,7 +10,7 @@
 - To recreate the results, plots, and figures present in the publication, first follow the [Installation](#installation) steps. Then do either of the following:
 
   - Follow the instructions at [Reproducibility](#reproducibility) to resample new datasets and perform the LID estimation experiments in the publication from scratch.
-  - Follow the instructions at [Reproducibility](#reproducibility) to load ready-made light experiment objects from [Output/Complete_experiment_pkl_files/light_experiments](#Output/Complete_experiment_pkl_files/light_experiments), then recreate the plots and figures in the preferred style. Note that these are made only for plotting purposes and have no longer the necessary data attached to recreate the experiments from scratch.
+  - Follow the instructions at [Reproducibility](#reproducibility) to load ready-made light experiment objects from [light experiments](#Output/Complete_experiment_pkl_files/light_experiments), then recreate the plots and figures in the preferred style. Note that these are made only for plotting purposes and have no longer the necessary data attached to recreate the experiments from scratch.
 
 - To use the Bagging_for_LID package for your own LID estimation experiments, or to examine experiment objects, first install the package via the [Installation](#installation) steps. Then follow the instructions at [Tutorial for the package](#tutorialforthepackage).
 
