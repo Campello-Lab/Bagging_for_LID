@@ -44,7 +44,7 @@ pip install -e .
 
 ## Reproducibility
 
-#### Recreating results and figures from the publication [On the Use of Bagging for Local Intrinsic Dimensionality Estimation](https://linktopaper) 
+#### Recreating results and figures from the publication [On the Use of Bagging for Local Intrinsic Dimensionality Estimation](https://arxiv.org/abs/2603.24384) 
 
 - The [recreate_results_notebook](Reproducibility/recreate_results_notebook.ipynb) Jupyter notebook file contains detailed, step-by-step instructions on how to
 recreate the results and figures present in the paper from scratch, or by loading already computed experiment objects.
