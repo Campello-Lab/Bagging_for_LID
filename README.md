@@ -57,7 +57,9 @@ recreate the results and figures present in the paper from scratch, or by loadin
 
 - The [single_experiment](Tutorials/single_experiment.ipynb) jupyter notebook file can be used to learn how to use the repository for examining or performing single LID estimation experiments, or multiple ones at once for a range of parameter combinations.
 
+## Contact
 
+For questions or support, please open an issue or contact: krp@imada.sdu.dk.
 
 
 
